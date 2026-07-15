@@ -1,0 +1,22 @@
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import type { AuthUser } from '@pathwise/shared';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { AssessmentsService } from './assessments.service';
+import { CreateAssessmentDto } from './dto/create-assessment.dto';
+
+@Controller('assessments')
+@UseGuards(JwtAuthGuard)
+export class AssessmentsController {
+  constructor(private readonly assessmentsService: AssessmentsService) {}
+
+  @Post()
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreateAssessmentDto) {
+    return this.assessmentsService.create(dto, user.id);
+  }
+
+  @Get(':id')
+  findOne(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.assessmentsService.findOne(id, user.id);
+  }
+}

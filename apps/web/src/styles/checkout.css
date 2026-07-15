@@ -1,0 +1,77 @@
+/* ===== Checkout ===== */
+.checkout-shell {
+  max-width: 720px;
+  padding: 40px 24px 80px;
+}
+.checkout-shell h1 {
+  font-size: 32px;
+  margin: 12px 0;
+}
+.checkout-grid {
+  display: grid;
+  gap: 16px;
+  margin: 28px 0;
+}
+.checkout-card {
+  text-align: start;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  position: relative;
+}
+.checkout-card.selected {
+  border-color: var(--indigo);
+}
+.checkout-card.highlight {
+  background: linear-gradient(135deg, var(--bg-card), var(--indigo-dim));
+}
+.checkout-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.checkout-card-head b {
+  display: block;
+  font-size: 16px;
+}
+.checkout-card-head span {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.checkout-price {
+  margin-inline-start: auto;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--indigo-bright);
+}
+.checkout-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.checkout-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checkout-owned {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--emerald);
+  font-weight: 600;
+}
+.checkout-pay {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}

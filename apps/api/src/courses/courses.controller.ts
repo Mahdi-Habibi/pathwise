@@ -1,0 +1,47 @@
+import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import type { AuthUser, CourseSummary, LessonDetail, LessonSummary } from '@pathwise/shared';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CoursesService } from './courses.service';
+
+@Controller('courses')
+@UseGuards(JwtAuthGuard)
+export class CoursesController {
+  constructor(private readonly coursesService: CoursesService) {}
+
+  @Get()
+  list(@CurrentUser() user: AuthUser): Promise<CourseSummary[]> {
+    return this.coursesService.listCourses(user.id);
+  }
+
+  @Get(':slug')
+  getCourse(
+    @CurrentUser() user: AuthUser,
+    @Param('slug') slug: string,
+  ): Promise<CourseSummary & { lessons: LessonSummary[] }> {
+    return this.coursesService.getCourse(user.id, slug);
+  }
+
+  @Get(':slug/lessons/:lessonSlug')
+  getLesson(
+    @CurrentUser() user: AuthUser,
+    @Param('slug') slug: string,
+    @Param('lessonSlug') lessonSlug: string,
+  ): Promise<LessonDetail> {
+    return this.coursesService.getLesson(user.id, slug, lessonSlug);
+  }
+
+  @Post(':slug/enroll')
+  enroll(@CurrentUser() user: AuthUser, @Param('slug') slug: string): Promise<CourseSummary> {
+    return this.coursesService.enroll(user.id, slug);
+  }
+
+  @Post(':slug/lessons/:lessonSlug/complete')
+  completeLesson(
+    @CurrentUser() user: AuthUser,
+    @Param('slug') slug: string,
+    @Param('lessonSlug') lessonSlug: string,
+  ): Promise<LessonSummary> {
+    return this.coursesService.markComplete(user.id, slug, lessonSlug);
+  }
+}

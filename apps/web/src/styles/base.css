@@ -1,0 +1,218 @@
+:root {
+  /* Surfaces (dark default) */
+  --bg: #070b14;
+  --bg-elevated: #0f1528;
+  --bg-card: #141c32;
+  --bg-glass: rgba(20, 28, 50, 0.72);
+  --border: #2a3558;
+  --border-soft: #1e2844;
+
+  /* Text — all ≥ 4.5:1 on --bg / --bg-card */
+  --text: #f0f2fa;
+  --text-dim: #a8b0cc;
+  --text-faint: #8b93b0;
+
+  /* Accents for text, borders, icons on surfaces */
+  --indigo: #818cf8;
+  --indigo-bright: #a5b4fc;
+  --teal: #2dd4bf;
+  --emerald: #34d399;
+  --amber: #fbbf24;
+  --danger: #fca5a5;
+
+  /* Solid fills paired with --on-fill (≥ 4.5:1 white-on-fill) */
+  --indigo-fill: #4f46e5;
+  --teal-fill: #0f766e;
+  --emerald-fill: #047857;
+  --on-fill: #ffffff;
+
+  /* Soft tints */
+  --indigo-dim: rgba(129, 140, 248, 0.16);
+  --teal-dim: rgba(45, 212, 191, 0.14);
+  --emerald-dim: rgba(52, 211, 153, 0.14);
+  --amber-dim: rgba(251, 191, 36, 0.14);
+  --danger-dim: rgba(252, 165, 165, 0.14);
+
+  /* Code chrome stays dark in both themes for readability */
+  --code-bg: #080a14;
+  --code-bg-elevated: #161a2e;
+  --code-text: #e8eaf6;
+  --code-muted: #a8b0cc;
+  --code-keyword: #a5b4fc;
+  --code-function: #fbbf24;
+  --medal-silver: #c5cbe0;
+  --medal-bronze: #e0a070;
+
+  --gradient-brand: linear-gradient(135deg, var(--indigo-fill) 0%, var(--teal-fill) 100%);
+  --gradient-hero:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(129, 140, 248, 0.28), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(45, 212, 191, 0.12), transparent);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.32);
+  --shadow-glow: 0 8px 40px -8px rgba(79, 70, 229, 0.45);
+  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --space-section: 80px;
+}
+
+[data-theme='light'] {
+  --bg: #f8fafc;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --border: #e2e8f0;
+  --border-soft: #f1f5f9;
+
+  --text: #0f172a;
+  --text-dim: #475569;
+  --text-faint: #64748b;
+
+  --indigo: #4f46e5;
+  --indigo-bright: #4338ca;
+  --teal: #0f766e;
+  --emerald: #047857;
+  --amber: #b45309;
+  --danger: #dc2626;
+
+  --indigo-fill: #4f46e5;
+  --teal-fill: #0f766e;
+  --emerald-fill: #047857;
+
+  --indigo-dim: rgba(79, 70, 229, 0.1);
+  --teal-dim: rgba(15, 118, 110, 0.1);
+  --emerald-dim: rgba(4, 120, 87, 0.1);
+  --amber-dim: rgba(180, 83, 9, 0.12);
+  --danger-dim: rgba(220, 38, 38, 0.1);
+
+  --medal-silver: #64748b;
+  --medal-bronze: #9a3412;
+
+  --gradient-hero:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(79, 70, 229, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 118, 110, 0.08), transparent);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 8px 40px -8px rgba(79, 70, 229, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  background-image: var(--gradient-hero);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition:
+    background 0.3s,
+    color 0.3s;
+  line-height: 1.6;
+}
+
+[dir='rtl'] body {
+  font-family: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  font-feature-settings: 'ss01' 1;
+  line-height: 1.8;
+}
+
+[dir='rtl'] .eyebrow,
+[dir='rtl'] .footer-tagline,
+[dir='rtl'] .footer-nav-group h2,
+[dir='rtl'] .stage-label,
+[dir='rtl'] .tile .t-status,
+[dir='rtl'] .aha,
+[dir='rtl'] .roadmap-title,
+[dir='rtl'] .node-status,
+[dir='rtl'] .badge-rec,
+[dir='rtl'] .module-tag,
+[dir='rtl'] .results-tag,
+[dir='rtl'] .rk-label,
+[dir='rtl'] .section-title,
+[dir='rtl'] .cc-badge,
+[dir='rtl'] .sp-label,
+[dir='rtl'] .rw-tag,
+[dir='rtl'] .admin-stat-label,
+[dir='rtl'] .admin-table th {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.ltr-isolate,
+.code-box,
+.blank-select,
+.code-editor,
+.example-box,
+.admin-textarea.mono,
+.admin-table code,
+pre,
+code,
+input[type='email'],
+.timer-box,
+.cc-timer,
+.price-tag,
+.mprice,
+.price-final,
+.checkout-price,
+.lb-rank,
+.lb-score,
+.score-pct,
+.sp-val {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+[dir='rtl'] .nav-arrow {
+  transform: scaleX(-1);
+}
+
+.inline-leading-icon {
+  display: inline;
+  margin-inline-end: 6px;
+  vertical-align: middle;
+}
+
+.inline-leading-icon--spacious {
+  margin-inline-end: 8px;
+}
+
+.site-main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.app {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.page-content {
+  animation: fadeUp 0.45s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-content {
+    animation: none;
+  }
+}

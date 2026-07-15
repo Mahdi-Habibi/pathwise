@@ -1,0 +1,286 @@
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import type { CourseSummary, LessonDetail, LessonSummary } from '@pathwise/shared';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class CoursesService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async listCourses(userId: string): Promise<CourseSummary[]> {
+    const courses = await this.prisma.course.findMany({
+      where: { published: true },
+      include: {
+        lessons: { orderBy: { sortOrder: 'asc' } },
+        enrollments: { where: { userId } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    const progressByCourse = await this.getProgressByCourse(userId, courses);
+
+    return courses.map((course) => {
+      const enrolled = course.enrollments.length > 0;
+      const lessonCount = course.lessons.length;
+      const completedCount = progressByCourse.get(course.id) ?? 0;
+      const progressPct = lessonCount === 0 ? 0 : Math.round((completedCount / lessonCount) * 100);
+
+      return {
+        id: course.id,
+        slug: course.slug,
+        title: course.title,
+        description: course.description,
+        icon: course.icon,
+        trackKey: course.trackKey,
+        lessonCount,
+        enrolled,
+        progressPct,
+      };
+    });
+  }
+
+  async getCourse(
+    userId: string,
+    slug: string,
+  ): Promise<CourseSummary & { lessons: LessonSummary[] }> {
+    const course = await this.prisma.course.findUnique({
+      where: { slug },
+      include: {
+        lessons: { orderBy: { sortOrder: 'asc' } },
+        enrollments: { where: { userId } },
+      },
+    });
+
+    if (!course || !course.published) {
+      throw new NotFoundException(`Course ${slug} not found`);
+    }
+
+    const completedLessonIds = await this.getCompletedLessonIds(
+      userId,
+      course.lessons.map((lesson) => lesson.id),
+    );
+
+    const lessons: LessonSummary[] = course.lessons.map((lesson) => ({
+      id: lesson.id,
+      slug: lesson.slug,
+      title: lesson.title,
+      durationMin: lesson.durationMin,
+      completed: completedLessonIds.has(lesson.id),
+    }));
+
+    const enrolled = course.enrollments.length > 0;
+    const progressPct =
+      lessons.length === 0
+        ? 0
+        : Math.round((lessons.filter((lesson) => lesson.completed).length / lessons.length) * 100);
+
+    return {
+      id: course.id,
+      slug: course.slug,
+      title: course.title,
+      description: course.description,
+      icon: course.icon,
+      trackKey: course.trackKey,
+      lessonCount: lessons.length,
+      enrolled,
+      progressPct,
+      lessons,
+    };
+  }
+
+  async getLesson(userId: string, courseSlug: string, lessonSlug: string): Promise<LessonDetail> {
+    const course = await this.prisma.course.findUnique({
+      where: { slug: courseSlug },
+      include: {
+        lessons: { orderBy: { sortOrder: 'asc' } },
+        enrollments: { where: { userId } },
+      },
+    });
+
+    if (!course || !course.published) {
+      throw new NotFoundException(`Course ${courseSlug} not found`);
+    }
+
+    await this.assertCourseAccess(userId, course.slug, course.enrollments.length > 0);
+
+    const lessonIndex = course.lessons.findIndex((lesson) => lesson.slug === lessonSlug);
+    if (lessonIndex === -1) {
+      throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
+    }
+
+    const lesson = course.lessons[lessonIndex];
+    const progress = await this.prisma.lessonProgress.findUnique({
+      where: { userId_lessonId: { userId, lessonId: lesson.id } },
+    });
+
+    const prevLesson = course.lessons[lessonIndex - 1];
+    const nextLesson = course.lessons[lessonIndex + 1];
+
+    return {
+      id: lesson.id,
+      slug: lesson.slug,
+      title: lesson.title,
+      durationMin: lesson.durationMin,
+      completed: progress?.completed ?? false,
+      content: lesson.content,
+      courseSlug: course.slug,
+      courseTitle: course.title,
+      prevSlug: prevLesson?.slug ?? null,
+      nextSlug: nextLesson?.slug ?? null,
+    };
+  }
+
+  async enroll(userId: string, courseSlug: string): Promise<CourseSummary> {
+    const course = await this.prisma.course.findUnique({
+      where: { slug: courseSlug },
+      include: { lessons: true },
+    });
+
+    if (!course || !course.published) {
+      throw new NotFoundException(`Course ${courseSlug} not found`);
+    }
+
+    const existing = await this.prisma.enrollment.findUnique({
+      where: { userId_courseId: { userId, courseId: course.id } },
+    });
+    if (existing) {
+      throw new ConflictException('Already enrolled in this course');
+    }
+
+    await this.prisma.enrollment.create({
+      data: { userId, courseId: course.id },
+    });
+
+    return {
+      id: course.id,
+      slug: course.slug,
+      title: course.title,
+      description: course.description,
+      icon: course.icon,
+      trackKey: course.trackKey,
+      lessonCount: course.lessons.length,
+      enrolled: true,
+      progressPct: 0,
+    };
+  }
+
+  async markComplete(
+    userId: string,
+    courseSlug: string,
+    lessonSlug: string,
+  ): Promise<LessonSummary> {
+    const course = await this.prisma.course.findUnique({
+      where: { slug: courseSlug },
+      include: {
+        lessons: true,
+        enrollments: { where: { userId } },
+      },
+    });
+
+    if (!course || !course.published) {
+      throw new NotFoundException(`Course ${courseSlug} not found`);
+    }
+
+    const lesson = course.lessons.find((entry) => entry.slug === lessonSlug);
+    if (!lesson) {
+      throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
+    }
+
+    await this.assertCourseAccess(userId, course.slug, course.enrollments.length > 0);
+
+    const progress = await this.prisma.lessonProgress.upsert({
+      where: { userId_lessonId: { userId, lessonId: lesson.id } },
+      create: {
+        userId,
+        lessonId: lesson.id,
+        completed: true,
+        completedAt: new Date(),
+      },
+      update: {
+        completed: true,
+        completedAt: new Date(),
+      },
+    });
+
+    return {
+      id: lesson.id,
+      slug: lesson.slug,
+      title: lesson.title,
+      durationMin: lesson.durationMin,
+      completed: progress.completed,
+    };
+  }
+
+  private async assertCourseAccess(
+    userId: string,
+    courseSlug: string,
+    enrolled: boolean,
+  ): Promise<void> {
+    if (enrolled) {
+      return;
+    }
+
+    const entitlement = await this.prisma.entitlement.findFirst({
+      where: {
+        userId,
+        resourceType: 'course',
+        resourceId: courseSlug,
+      },
+    });
+
+    if (!entitlement) {
+      throw new ForbiddenException('Enroll in this course to access lessons');
+    }
+  }
+
+  private async getCompletedLessonIds(userId: string, lessonIds: string[]): Promise<Set<string>> {
+    if (lessonIds.length === 0) {
+      return new Set();
+    }
+
+    const progress = await this.prisma.lessonProgress.findMany({
+      where: {
+        userId,
+        lessonId: { in: lessonIds },
+        completed: true,
+      },
+      select: { lessonId: true },
+    });
+
+    return new Set(progress.map((entry) => entry.lessonId));
+  }
+
+  private async getProgressByCourse(
+    userId: string,
+    courses: Array<{ id: string; lessons: Array<{ id: string }> }>,
+  ): Promise<Map<string, number>> {
+    const lessonIds = courses.flatMap((course) => course.lessons.map((lesson) => lesson.id));
+
+    if (lessonIds.length === 0) {
+      return new Map();
+    }
+
+    const progress = await this.prisma.lessonProgress.findMany({
+      where: {
+        userId,
+        lessonId: { in: lessonIds },
+        completed: true,
+      },
+      select: { lessonId: true },
+    });
+
+    const completedSet = new Set(progress.map((entry) => entry.lessonId));
+    const result = new Map<string, number>();
+
+    for (const course of courses) {
+      const completedCount = course.lessons.filter((lesson) => completedSet.has(lesson.id)).length;
+      result.set(course.id, completedCount);
+    }
+
+    return result;
+  }
+}

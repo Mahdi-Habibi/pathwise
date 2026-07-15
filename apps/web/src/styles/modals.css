@@ -1,0 +1,93 @@
+/* ================= MODALS (shared) ================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 16, 0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 20px;
+  overflow: hidden;
+}
+.modal-overlay.active {
+  display: flex;
+}
+.modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 400px;
+  text-align: center;
+  z-index: 2;
+  position: relative;
+}
+.modal .mi {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.modal h4 {
+  font-size: 19px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.modal p {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  margin-bottom: 22px;
+  line-height: 1.55;
+}
+.modal button {
+  background: var(--indigo-fill);
+  color: var(--on-fill);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 8px;
+  height: 14px;
+  opacity: 0.9;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+footer {
+  text-align: center;
+  padding: 30px 0;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+/* ===== Touch & pointer drag ===== */
+.touch-draggable {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.touch-draggable.is-dragging,
+.r-item.dragging {
+  opacity: 0.85;
+  transform: scale(1.02);
+  z-index: 5;
+  cursor: grabbing;
+}
+.pointer-drop-zone.dragover-touch,
+.folder-drop.dragover-touch,
+.flow-slot.dragover-touch {
+  border-color: var(--indigo-bright) !important;
+  background: var(--indigo-dim) !important;
+}

@@ -1,0 +1,237 @@
+/* ===== admin shell ===== */
+.admin-shell {
+  display: flex;
+  gap: 0;
+  min-height: calc(100vh - 120px);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+.admin-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  padding-block: 24px;
+  padding-inline: 0 16px;
+  border-inline-end: 1px solid var(--border-soft);
+}
+.admin-sidebar-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  padding: 0 12px;
+}
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.admin-nav-link:hover {
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+.admin-nav-link.active {
+  background: var(--indigo-dim);
+  color: var(--indigo-bright);
+}
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  padding-block: 24px;
+  padding-inline: 32px 0;
+}
+.admin-content h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.admin-sub {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+.admin-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+.admin-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-stat-card.highlight {
+  border-color: var(--indigo);
+  background: var(--indigo-dim);
+}
+.admin-stat-label {
+  font-size: 12px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-stat-card b {
+  font-size: 28px;
+  font-weight: 700;
+}
+.admin-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.admin-table th,
+.admin-table td {
+  padding: 12px 16px;
+  text-align: start;
+  border-bottom: 1px solid var(--border-soft);
+}
+.admin-table th {
+  background: var(--bg-elevated);
+  font-weight: 600;
+  color: var(--text-dim);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+.admin-table-icon {
+  margin-inline-end: 8px;
+}
+.admin-table code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.admin-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  color: var(--text-faint);
+}
+.admin-badge.ok {
+  background: var(--emerald-dim);
+  color: var(--emerald);
+}
+.admin-actions {
+  display: flex;
+  gap: 12px;
+}
+.admin-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--indigo-bright);
+  cursor: pointer;
+  text-decoration: none;
+}
+.admin-link.danger {
+  color: var(--danger);
+}
+.admin-back {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+  margin-bottom: 16px;
+}
+.admin-back:hover {
+  color: var(--indigo-bright);
+}
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  margin-bottom: 32px;
+}
+.admin-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.admin-textarea {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  resize: vertical;
+}
+.admin-textarea.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.admin-textarea:focus {
+  outline: none;
+  border-color: var(--indigo);
+}
+.admin-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.admin-section {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-soft);
+}
+.admin-section h2,
+.admin-section h3 {
+  margin-bottom: 16px;
+}
+.admin-form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}

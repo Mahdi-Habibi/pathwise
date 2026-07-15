@@ -1,0 +1,228 @@
+'use client';
+
+import { useCallback, useState, type Dispatch, type SetStateAction } from 'react';
+import {
+  buildChallengeResult,
+  buildRoadmapFromAnswers,
+  computeReadinessResult,
+  hasRoadmapEntitlement,
+  type AssessmentAnswers,
+  type LearnerState,
+  type ReadinessResult,
+  type RoadmapResponse,
+} from '@pathwise/shared';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+import type { CourseItem, ModalState, PersistedAppState } from '@/lib/storage';
+import { useLanguage } from '@/context/LanguageProvider';
+import { trackMessageKey } from '@/i18n/domain';
+
+interface UseAppActionsArgs {
+  state: PersistedAppState;
+  setState: Dispatch<SetStateAction<PersistedAppState>>;
+  patch: (partial: Partial<PersistedAppState>) => void;
+  isAuthenticated: boolean;
+  learnerState: LearnerState | null;
+  refreshSession: () => Promise<void>;
+  setModal: (modal: ModalState | null) => void;
+  setReadinessResult: (result: ReadinessResult | null) => void;
+}
+
+export function useAppActions({
+  state,
+  setState,
+  patch,
+  isAuthenticated,
+  learnerState,
+  refreshSession,
+  setModal,
+  setReadinessResult,
+}: UseAppActionsArgs) {
+  const router = useRouter();
+  const { t, format } = useLanguage();
+
+  const setAnswers = useCallback((answers: AssessmentAnswers) => patch({ answers }), [patch]);
+
+  const setStageIndex = useCallback((stageIndex: number) => patch({ stageIndex }), [patch]);
+
+  const setReadinessModuleIndex = useCallback(
+    (readinessModuleIndex: number) => patch({ readinessModuleIndex }),
+    [patch],
+  );
+
+  const updateReadinessScore = useCallback(
+    (module: string, correct: number, total: number) => {
+      setState((prev) => ({
+        ...prev,
+        readinessScores: {
+          ...prev.readinessScores,
+          [module]: { correct, total },
+        },
+      }));
+    },
+    [setState],
+  );
+
+  const completeWizard = useCallback(async () => {
+    const roadmap = buildRoadmapFromAnswers(state.answers);
+    try {
+      const remote = await api.saveRoadmap(state.answers);
+      patch({ roadmap: remote, stageIndex: 0 });
+      await api.saveAssessment(state.answers);
+    } catch {
+      // Offline / unauthenticated: keep a local roadmap so the UX continues.
+      patch({ roadmap, stageIndex: 0 });
+    }
+  }, [state.answers, patch]);
+
+  const enrollBundle = useCallback(
+    async (onEnrolled?: () => void) => {
+      if (!isAuthenticated) {
+        router.push('/login?next=/roadmap');
+        return;
+      }
+
+      const roadmapId = state.roadmap?.id;
+      if (!learnerState?.roadmapEnrolled) {
+        const hasBundle = hasRoadmapEntitlement(learnerState?.entitlements ?? [], roadmapId);
+        if (!hasBundle) {
+          if (!roadmapId) {
+            setModal({
+              icon: '⚠️',
+              title: t('modal.roadmapNotReady.title'),
+              body: t('modal.roadmapNotReady.body'),
+            });
+            return;
+          }
+          router.push(`/checkout?product=ROADMAP_BUNDLE&roadmapId=${roadmapId}`);
+          return;
+        }
+      }
+
+      const roadmap = state.roadmap ?? buildRoadmapFromAnswers(state.answers, true);
+      try {
+        if (state.roadmap?.id) {
+          await api.enrollRoadmap(state.roadmap.id);
+        }
+      } catch {
+        /* local fallback below */
+      }
+
+      const enrolled: RoadmapResponse = { ...roadmap, enrolled: true };
+      patch({
+        hasRoadmap: true,
+        roadmap: enrolled,
+        courses: [
+          {
+            id: 'roadmap',
+            icon: '🌐',
+            name: `${t(trackMessageKey(enrolled.trackKey))} ${t('roadmap.bundleSuffix')}`,
+            status: t('courses.status.inProgress'),
+          },
+        ],
+      });
+      await refreshSession();
+      setModal({
+        icon: '🎉',
+        title: t('modal.enrolled.title'),
+        body: t('modal.enrolled.body'),
+        onClose: onEnrolled,
+      });
+    },
+    [
+      state.roadmap,
+      state.answers,
+      patch,
+      isAuthenticated,
+      learnerState,
+      router,
+      refreshSession,
+      setModal,
+      t,
+    ],
+  );
+
+  const openPurchaseModal = useCallback(
+    (_kind: string) => {
+      router.push('/checkout');
+    },
+    [router],
+  );
+
+  const completeReadinessTest = useCallback(async () => {
+    try {
+      const remote = await api.saveReadinessTest(state.readinessScores);
+      setReadinessResult(remote);
+    } catch {
+      setReadinessResult(computeReadinessResult(state.readinessScores));
+    }
+    patch({ testCompleted: true, readinessModuleIndex: 0 });
+    await refreshSession();
+  }, [state.readinessScores, patch, refreshSession, setReadinessResult]);
+
+  const submitChallenge = useCallback(
+    async (code: string) => {
+      let result;
+      try {
+        result = await api.submitChallenge(code);
+      } catch {
+        result = buildChallengeResult(code);
+      }
+
+      if (result.unlockInterviewCourse) {
+        setState((prev) => {
+          const hasInterview = prev.courses.some((c) => c.id === 'interview');
+          const courses: CourseItem[] = hasInterview
+            ? prev.courses
+            : [
+                ...prev.courses,
+                {
+                  id: 'interview',
+                  icon: '🎤',
+                  name: t('courses.interview.name'),
+                  status: t('courses.status.unlocked'),
+                  isNew: true,
+                },
+              ];
+          return { ...prev, interviewUnlocked: true, courses };
+        });
+      }
+
+      const verdictKey = result.topScore ? 'best' : 'ok';
+      setModal({
+        icon: result.icon,
+        title: t(`bootcamp.verdict.${verdictKey}.title`),
+        body: t(`bootcamp.verdict.${verdictKey}.message`, {
+          score: format.number(result.score),
+        }),
+        confetti: result.topScore,
+      });
+    },
+    [setState, setModal, t, format],
+  );
+
+  const resetReadinessTest = useCallback(() => {
+    patch({ readinessScores: {}, readinessModuleIndex: 0 });
+    setReadinessResult(null);
+  }, [patch, setReadinessResult]);
+
+  return {
+    setAnswers,
+    setStageIndex,
+    setReadinessModuleIndex,
+    updateReadinessScore,
+    completeWizard,
+    enrollBundle,
+    openPurchaseModal,
+    completeReadinessTest,
+    submitChallenge,
+    resetReadinessTest,
+  };
+}
+
+export function useModalState() {
+  const [modal, setModal] = useState<ModalState | null>(null);
+  const openModal = useCallback((m: ModalState) => setModal(m), []);
+  const closeModal = useCallback(() => setModal(null), []);
+  return { modal, setModal, openModal, closeModal };
+}

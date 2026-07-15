@@ -1,0 +1,41 @@
+# Dependencies & build output
+node_modules
+**/node_modules
+dist
+**/dist
+.next
+**/.next
+.turbo
+coverage
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!.env.docker.example
+apps/api/.env
+apps/web/.env.local
+
+# Git & IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.md
+!README.md
+
+# Tests & dev tooling
+**/*.spec.ts
+**/*.test.ts
+**/e2e
+**/playwright-report
+**/test-results
+
+# SQLite legacy
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  LEARNER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ProductType {
+  READINESS_TEST
+  ROADMAP_BUNDLE
+  COURSE
+}
+
+enum EntitlementSource {
+  PURCHASE
+  CHALLENGE
+  BUNDLE
+  FREE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          UserRole  @default(LEARNER)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  refreshTokens        RefreshToken[]
+  assessments          Assessment[]
+  roadmaps             Roadmap[]
+  readinessTests       ReadinessTest[]
+  bootcampProfile      BootcampProfile?
+  challengeSubmissions ChallengeSubmission[]
+  payments             Payment[]
+  entitlements         Entitlement[]
+  enrollments          Enrollment[]
+  lessonProgress       LessonProgress[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Assessment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers   String
+  createdAt DateTime @default(now())
+
+  roadmaps Roadmap[]
+}
+
+model Roadmap {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessmentId String?
+  assessment   Assessment? @relation(fields: [assessmentId], references: [id], onDelete: SetNull)
+  trackKey     String
+  trackName    String
+  modules      String
+  level        String
+  profile      String
+  pricing      String
+  enrolled     Boolean  @default(false)
+  paymentId    String?
+  createdAt    DateTime @default(now())
+}
+
+model ReadinessTest {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scores      String
+  percentages String
+  average     Int
+  passed      Boolean
+  verdict     String
+  paymentId   String?
+  createdAt   DateTime @default(now())
+}
+
+model BootcampProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rank   Int    @default(12)
+  points Int    @default(340)
+}
+
+model ChallengeSubmission {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  score     Int
+  topScore  Boolean
+  result    String
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productType ProductType
+  productRef  String?
+  amountCents Int
+  currency    String        @default("usd")
+  status      PaymentStatus @default(PENDING)
+  stripeId    String?
+  metadata    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Entitlement {
+  id           String            @id @default(cuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resourceType String
+  resourceId   String
+  source       EntitlementSource
+  createdAt    DateTime          @default(now())
+
+  @@unique([userId, resourceType, resourceId])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  icon        String   @default("book")
+  trackKey    String?
+  sortOrder   Int      @default(0)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  lessons     Lesson[]
+  enrollments Enrollment[]
+}
+
+model Lesson {
+  id          String @id @default(cuid())
+  courseId    String
+  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  slug        String
+  title       String
+  content     String
+  durationMin Int    @default(10)
+  sortOrder   Int    @default(0)
+
+  progress LessonProgress[]
+
+  @@unique([courseId, slug])
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+
+  @@unique([userId, lessonId])
+}
+
+model Challenge {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  points      Int      @default(120)
+  startsAt    DateTime
+  endsAt      DateTime
+  active      Boolean  @default(true)
+  starterCode String   @default("")
+  createdAt   DateTime @default(now())
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  to        String
+  subject   String
+  template  String
+  status    String
+  createdAt DateTime @default(now())
+}

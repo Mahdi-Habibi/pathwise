@@ -1,0 +1,360 @@
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import type {
+  AdminChallenge,
+  AdminCourse,
+  AdminLesson,
+  AdminStats,
+  AdminUser,
+} from '@pathwise/shared';
+import { PrismaService } from '../prisma/prisma.service';
+import {
+  AdminCreateChallengeDto,
+  AdminCreateCourseDto,
+  AdminCreateLessonDto,
+  AdminUpdateChallengeDto,
+  AdminUpdateCourseDto,
+  AdminUpdateUserRoleDto,
+} from './dto/admin.dto';
+
+@Injectable()
+export class AdminService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async getStats(): Promise<AdminStats> {
+    const [users, courses, lessons, challenges, activeChallenges, payments, enrollments, revenue] =
+      await Promise.all([
+        this.prisma.user.count(),
+        this.prisma.course.count(),
+        this.prisma.lesson.count(),
+        this.prisma.challenge.count(),
+        this.prisma.challenge.count({ where: { active: true } }),
+        this.prisma.payment.count({ where: { status: 'COMPLETED' } }),
+        this.prisma.enrollment.count(),
+        this.prisma.payment.aggregate({
+          where: { status: 'COMPLETED' },
+          _sum: { amountCents: true },
+        }),
+      ]);
+
+    return {
+      users,
+      courses,
+      lessons,
+      enrollments,
+      payments,
+      revenueCents: revenue._sum.amountCents ?? 0,
+      challenges,
+      activeChallenges,
+    };
+  }
+
+  async listCourses(): Promise<AdminCourse[]> {
+    const courses = await this.prisma.course.findMany({
+      include: {
+        lessons: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    return courses.map((course) => this.toAdminCourse(course));
+  }
+
+  async createCourse(dto: AdminCreateCourseDto): Promise<AdminCourse> {
+    const existing = await this.prisma.course.findUnique({
+      where: { slug: dto.slug },
+    });
+    if (existing) {
+      throw new ConflictException(`Course slug "${dto.slug}" already exists`);
+    }
+
+    const course = await this.prisma.course.create({
+      data: {
+        slug: dto.slug,
+        title: dto.title,
+        description: dto.description,
+        icon: dto.icon ?? 'book',
+        trackKey: dto.trackKey ?? null,
+        sortOrder: dto.sortOrder ?? 0,
+        published: dto.published ?? true,
+        lessons: dto.lessons?.length
+          ? {
+              create: dto.lessons.map((lesson, index) => ({
+                slug: lesson.slug,
+                title: lesson.title,
+                content: lesson.content,
+                durationMin: lesson.durationMin ?? 10,
+                sortOrder: lesson.sortOrder ?? index + 1,
+              })),
+            }
+          : undefined,
+      },
+      include: { lessons: { orderBy: { sortOrder: 'asc' } } },
+    });
+
+    return this.toAdminCourse(course);
+  }
+
+  async updateCourse(slug: string, dto: AdminUpdateCourseDto): Promise<AdminCourse> {
+    const course = await this.ensureCourseBySlug(slug);
+
+    if (dto.slug && dto.slug !== course.slug) {
+      const conflict = await this.prisma.course.findFirst({
+        where: { slug: dto.slug, NOT: { id: course.id } },
+      });
+      if (conflict) {
+        throw new ConflictException(`Course slug "${dto.slug}" already exists`);
+      }
+    }
+
+    const updated = await this.prisma.course.update({
+      where: { id: course.id },
+      data: {
+        slug: dto.slug,
+        title: dto.title,
+        description: dto.description,
+        icon: dto.icon,
+        trackKey: dto.trackKey,
+        sortOrder: dto.sortOrder,
+        published: dto.published,
+      },
+      include: { lessons: { orderBy: { sortOrder: 'asc' } } },
+    });
+
+    return this.toAdminCourse(updated);
+  }
+
+  async deleteCourse(slug: string): Promise<{ deleted: true }> {
+    const course = await this.ensureCourseBySlug(slug);
+    await this.prisma.course.delete({ where: { id: course.id } });
+    return { deleted: true };
+  }
+
+  async createLesson(courseSlug: string, dto: AdminCreateLessonDto): Promise<AdminLesson> {
+    const course = await this.ensureCourseBySlug(courseSlug);
+
+    const conflict = await this.prisma.lesson.findFirst({
+      where: { courseId: course.id, slug: dto.slug },
+    });
+    if (conflict) {
+      throw new ConflictException(`Lesson slug "${dto.slug}" already exists in this course`);
+    }
+
+    const maxOrder = await this.prisma.lesson.aggregate({
+      where: { courseId: course.id },
+      _max: { sortOrder: true },
+    });
+
+    const lesson = await this.prisma.lesson.create({
+      data: {
+        courseId: course.id,
+        slug: dto.slug,
+        title: dto.title,
+        content: dto.content,
+        durationMin: dto.durationMin ?? 10,
+        sortOrder: dto.sortOrder ?? (maxOrder._max.sortOrder ?? 0) + 1,
+      },
+    });
+
+    return this.toAdminLesson(lesson);
+  }
+
+  async listChallenges(): Promise<AdminChallenge[]> {
+    const challenges = await this.prisma.challenge.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    return challenges.map((challenge) => this.toAdminChallenge(challenge));
+  }
+
+  async createChallenge(dto: AdminCreateChallengeDto): Promise<AdminChallenge> {
+    const existing = await this.prisma.challenge.findUnique({
+      where: { slug: dto.slug },
+    });
+    if (existing) {
+      throw new ConflictException(`Challenge slug "${dto.slug}" already exists`);
+    }
+
+    const challenge = await this.prisma.challenge.create({
+      data: {
+        slug: dto.slug,
+        title: dto.title,
+        description: dto.description,
+        points: dto.points ?? 120,
+        startsAt: new Date(dto.startsAt),
+        endsAt: new Date(dto.endsAt),
+        active: dto.active ?? true,
+        starterCode: dto.starterCode ?? '',
+      },
+    });
+
+    return this.toAdminChallenge(challenge);
+  }
+
+  async updateChallenge(slug: string, dto: AdminUpdateChallengeDto): Promise<AdminChallenge> {
+    const challenge = await this.ensureChallengeBySlug(slug);
+
+    if (dto.slug && dto.slug !== challenge.slug) {
+      const conflict = await this.prisma.challenge.findFirst({
+        where: { slug: dto.slug, NOT: { id: challenge.id } },
+      });
+      if (conflict) {
+        throw new ConflictException(`Challenge slug "${dto.slug}" already exists`);
+      }
+    }
+
+    const updated = await this.prisma.challenge.update({
+      where: { id: challenge.id },
+      data: {
+        slug: dto.slug,
+        title: dto.title,
+        description: dto.description,
+        points: dto.points,
+        startsAt: dto.startsAt ? new Date(dto.startsAt) : undefined,
+        endsAt: dto.endsAt ? new Date(dto.endsAt) : undefined,
+        active: dto.active,
+        starterCode: dto.starterCode,
+      },
+    });
+
+    return this.toAdminChallenge(updated);
+  }
+
+  async listUsers(): Promise<AdminUser[]> {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt.toISOString(),
+    }));
+  }
+
+  async updateUserRole(id: string, dto: AdminUpdateUserRoleDto): Promise<AdminUser> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { role: dto.role },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      email: updated.email,
+      role: updated.role,
+      createdAt: updated.createdAt.toISOString(),
+    };
+  }
+
+  private async ensureCourseBySlug(slug: string) {
+    const course = await this.prisma.course.findUnique({ where: { slug } });
+    if (!course) {
+      throw new NotFoundException(`Course ${slug} not found`);
+    }
+    return course;
+  }
+
+  private async ensureChallengeBySlug(slug: string) {
+    const challenge = await this.prisma.challenge.findUnique({
+      where: { slug },
+    });
+    if (!challenge) {
+      throw new NotFoundException(`Challenge ${slug} not found`);
+    }
+    return challenge;
+  }
+
+  private toAdminLesson(lesson: {
+    id: string;
+    slug: string;
+    title: string;
+    content: string;
+    durationMin: number;
+    sortOrder: number;
+  }): AdminLesson {
+    return {
+      id: lesson.id,
+      slug: lesson.slug,
+      title: lesson.title,
+      content: lesson.content,
+      durationMin: lesson.durationMin,
+      sortOrder: lesson.sortOrder,
+    };
+  }
+
+  private toAdminCourse(course: {
+    id: string;
+    slug: string;
+    title: string;
+    description: string;
+    icon: string;
+    trackKey: string | null;
+    sortOrder: number;
+    published: boolean;
+    lessons: Array<{
+      id: string;
+      slug: string;
+      title: string;
+      content: string;
+      durationMin: number;
+      sortOrder: number;
+    }>;
+  }): AdminCourse {
+    return {
+      id: course.id,
+      slug: course.slug,
+      title: course.title,
+      description: course.description,
+      icon: course.icon,
+      trackKey: course.trackKey,
+      sortOrder: course.sortOrder,
+      published: course.published,
+      lessonCount: course.lessons.length,
+      lessons: course.lessons.map((lesson) => this.toAdminLesson(lesson)),
+    };
+  }
+
+  private toAdminChallenge(challenge: {
+    id: string;
+    slug: string;
+    title: string;
+    description: string;
+    points: number;
+    startsAt: Date;
+    endsAt: Date;
+    active: boolean;
+    starterCode: string;
+  }): AdminChallenge {
+    return {
+      id: challenge.id,
+      slug: challenge.slug,
+      title: challenge.title,
+      description: challenge.description,
+      points: challenge.points,
+      startsAt: challenge.startsAt.toISOString(),
+      endsAt: challenge.endsAt.toISOString(),
+      active: challenge.active,
+      starterCode: challenge.starterCode,
+    };
+  }
+}
