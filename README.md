@@ -46,6 +46,64 @@ Git synchronizes code and reproducible setup files, not live PostgreSQL data or 
 ongoing user/course data, point both installations at the same hosted PostgreSQL database and keep
 its credentials in each device's ignored `apps/api/.env`.
 
+## Deploy from GitHub
+
+This monorepo is set up for GitHub-native CI and container deployment:
+
+| Piece | What it does |
+| ----- | ------------ |
+| `.github/workflows/ci.yml` | On every push/PR to `main`: install, migrate against Postgres, lint, typecheck, test, and build |
+| `.github/workflows/docker-publish.yml` | On push to `main` (and version tags): build and push `pathwise-api` / `pathwise-web` images to **GitHub Container Registry** (`ghcr.io`) |
+| `docker-compose.ghcr.yml` | Run the published images on any host with Docker (no local build required) |
+| Dependabot | Weekly npm / Actions / Docker update PRs |
+
+### 1. Enable package writes (one-time)
+
+After the first successful `Docker publish` run, open **GitHub → Packages** for this repo and confirm `pathwise-api` and `pathwise-web` appear. If packages are private, grant read access to deploy machines (or make them public under package settings).
+
+### 2. Deploy with GHCR images
+
+On the server:
+
+```bash
+git clone https://github.com/Mahdi-Habibi/pathwise.git
+cd pathwise
+cp .env.docker.example .env.docker
+# Edit .env.docker: set strong JWT_* secrets, CORS_ORIGIN, APP_URL, NEXT_PUBLIC_APP_URL,
+# and production POSTGRES_PASSWORD / DATABASE_URL credentials.
+
+# Lowercase GitHub username or org that owns the packages:
+export GHCR_OWNER=mahdi-habibi
+# Optional pin: export PATHWISE_TAG=latest   # or a semver / sha-* tag from Actions
+
+# Authenticate to pull private packages (skip if packages are public):
+echo "$GITHUB_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+
+pnpm docker:ghcr:pull   # or: docker compose -f docker-compose.ghcr.yml --env-file .env.docker pull
+pnpm docker:ghcr:up
+```
+
+- **Web:** http://localhost:3000 (or your public host / reverse proxy)
+- **API health:** http://localhost:3001/api/health
+
+Put a reverse proxy (Caddy, nginx, Traefik) in front of port 3000 and terminate TLS there. Keep the browser on the **same origin** as `/api` so auth cookies stay first-party.
+
+### 3. Local full-stack build (no registry)
+
+```bash
+pnpm docker:setup
+pnpm docker:up
+```
+
+### Production checklist
+
+- [ ] Replace all `change-me-*` JWT secrets (32+ random characters each)
+- [ ] Use a strong `POSTGRES_PASSWORD` and matching `DATABASE_URL`
+- [ ] Set `CORS_ORIGIN`, `APP_URL`, and `NEXT_PUBLIC_APP_URL` to your public HTTPS URL
+- [ ] Set `SEED_DATABASE=false` after the first boot (demo data only for staging)
+- [ ] Configure Stripe / SMTP env vars when enabling payments and email
+- [ ] Never commit `.env`, `.env.docker`, or real secrets — only `*.example` templates
+
 ## Quick start
 
 ### Option A — Local Postgres (recommended when Docker Engine won’t start)
@@ -121,6 +179,9 @@ pnpm docker:up                # build images + start all services
 | `pnpm docker:up`       | Start full stack (postgres + api + web) |
 | `pnpm docker:down`     | Stop full stack                         |
 | `pnpm docker:logs`     | Tail logs for all services              |
+| `pnpm docker:ghcr:pull`| Pull API/web images from GitHub Packages|
+| `pnpm docker:ghcr:up`  | Start stack from GHCR images            |
+| `pnpm docker:ghcr:down`| Stop GHCR-based stack                   |
 
 ### Networking
 
@@ -136,7 +197,7 @@ The API container connects to Postgres via the Docker network (`postgres:5432`).
 ### Requirements
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine + Compose v2 (Linux)
-- Node.js 20+ and pnpm (for local dev workflow)
+- Node.js 22.13+ and pnpm 11 (for local dev workflow; required by `packageManager`)
 - **Windows:** CPU virtualization (Intel VT-x / AMD-V) must be **enabled in BIOS/UEFI**. Docker Desktop will not start without it.
 
 ### Troubleshooting: “virtualisation support wasn’t detected”
@@ -270,6 +331,8 @@ Free assessment works offline via localStorage; API sync requires login.
 | `pnpm docker:db`         | Start PostgreSQL container         |
 | `pnpm docker:up`         | Start full Docker stack            |
 | `pnpm docker:down`       | Stop full Docker stack             |
+| `pnpm docker:ghcr:up`    | Deploy from GitHub Container Registry |
+| `pnpm docker:ghcr:pull`  | Pull latest GHCR images            |
 
 ## Tech stack
 
