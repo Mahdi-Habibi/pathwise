@@ -1,3 +1,15 @@
+/* ===== GitHub Pages demo banner ===== */
+.demo-banner {
+  width: 100%;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: color-mix(in srgb, var(--indigo-fill) 18%, transparent);
+  border-bottom: 1px solid var(--border-soft);
+}
+
 /* ===== shared top bar ===== */
 .topbar {
   display: flex;

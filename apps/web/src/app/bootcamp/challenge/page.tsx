@@ -3,6 +3,7 @@
 import { scoreFizzBuzz } from '@pathwise/shared';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { useApp } from '@/context/AppProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 
@@ -12,6 +13,14 @@ const DEFAULT_CODE = `function fizzbuzz(n) {
 }`;
 
 export default function ChallengePage() {
+  return (
+    <RequireAuth nextPath="/bootcamp/challenge">
+      <ChallengeContent />
+    </RequireAuth>
+  );
+}
+
+function ChallengeContent() {
   const router = useRouter();
   const { t } = useLanguage();
   const { submitChallenge, modal } = useApp();

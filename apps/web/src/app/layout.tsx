@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { cookies } from 'next/headers';
 import { Inter, JetBrains_Mono, Vazirmatn } from 'next/font/google';
 import { ClientProviders } from '@/components/layout/ClientProviders';
+import { DemoBanner } from '@/components/layout/DemoBanner';
 import { Footer } from '@/components/layout/Footer';
 import { TopBar } from '@/components/layout/TopBar';
-import { LOCALE_COOKIE, dirForLocale, parseLocale } from '@/i18n/locales';
+import { DEFAULT_LOCALE, dirForLocale } from '@/i18n/locales';
 import { messages } from '@/i18n/messages';
 import '@/styles/globals.css';
 
@@ -26,15 +26,13 @@ const vazirmatn = Vazirmatn({
   weight: ['400', '500', '600', '700', '800'],
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const jar = await cookies();
-  const locale = parseLocale(jar.get(LOCALE_COOKIE)?.value);
-  const m = messages[locale];
-  return {
-    title: m.meta.title,
-    description: m.meta.description,
-  };
-}
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+
+export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
+  title: messages[DEFAULT_LOCALE].meta.title,
+  description: messages[DEFAULT_LOCALE].meta.description,
+};
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -46,9 +44,8 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const jar = await cookies();
-  const locale = parseLocale(jar.get(LOCALE_COOKIE)?.value);
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = DEFAULT_LOCALE;
   const dir = dirForLocale(locale);
 
   return (
@@ -60,6 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body>
         <ClientProviders initialLocale={locale}>
+          <DemoBanner />
           <TopBar />
           <main className="site-main">{children}</main>
           <Footer />

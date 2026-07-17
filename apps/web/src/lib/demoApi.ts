@@ -1,0 +1,716 @@
+import type {
+  AssessmentAnswers,
+  AssessmentResponse,
+  AuthResponse,
+  AuthTokens,
+  AuthUser,
+  ChallengeScoreResult,
+  CheckoutDto,
+  CourseSummary,
+  CreateChallengeDto,
+  CreateCourseDto,
+  CreateLessonDto,
+  LearnerState,
+  LessonDetail,
+  LessonSummary,
+  LoginDto,
+  PaymentResponse,
+  ReadinessResult,
+  ReadinessScores,
+  RegisterDto,
+  RoadmapResponse,
+  UpdateChallengeDto,
+  UpdateCourseDto,
+  UserRole,
+  AdminStats,
+  AdminCourse,
+  AdminLesson,
+  AdminChallenge,
+  AdminUser,
+} from '@pathwise/shared';
+import {
+  PRODUCT_PRICES,
+  buildRoadmapFromAnswers,
+  computeReadinessResult,
+  buildChallengeResult,
+} from '@pathwise/shared';
+import { ApiError } from '@/lib/apiError';
+import { clearTokens, setAccessToken } from '@/lib/auth';
+
+const DEMO_SESSION_KEY = 'pathwise-demo-session';
+const DEMO_STATE_KEY = 'pathwise-demo-state';
+
+const DEMO_LEARNER: AuthUser = {
+  id: 'demo-learner',
+  name: 'Alex R.',
+  email: 'alex@pathwise.dev',
+  role: 'LEARNER',
+};
+
+const DEMO_ADMIN: AuthUser = {
+  id: 'demo-admin',
+  name: 'Pathwise Admin',
+  email: 'admin@pathwise.dev',
+  role: 'ADMIN',
+};
+
+interface DemoLesson {
+  id: string;
+  slug: string;
+  title: string;
+  durationMin: number;
+  content: string;
+  sortOrder: number;
+}
+
+interface DemoCourse {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  icon: string;
+  trackKey: string | null;
+  sortOrder: number;
+  published: boolean;
+  lessons: DemoLesson[];
+}
+
+interface DemoPersistedState {
+  enrollments: string[];
+  completedLessons: string[];
+  hasRoadmap: boolean;
+  roadmapEnrolled: boolean;
+  readinessPaid: boolean;
+  testCompleted: boolean;
+  entitlements: string[];
+  roadmapId: string | null;
+  lastAnswers: AssessmentAnswers | null;
+  payments: PaymentResponse[];
+}
+
+function lessonKey(courseSlug: string, lessonSlug: string): string {
+  return `${courseSlug}/${lessonSlug}`;
+}
+
+function defaultCourses(): DemoCourse[] {
+  return [
+    {
+      id: 'course-js',
+      slug: 'javascript-core',
+      title: 'JavaScript Core',
+      description:
+        'Master variables, functions, arrays, and async patterns with hands-on markdown lessons.',
+      icon: 'code',
+      trackKey: 'web',
+      sortOrder: 1,
+      published: true,
+      lessons: [
+        {
+          id: 'lesson-js-1',
+          slug: 'variables-and-types',
+          title: 'Variables & Types',
+          durationMin: 12,
+          sortOrder: 1,
+          content: `# Variables & Types
+
+Learn how JavaScript stores data with \`let\`, \`const\`, and primitive types.
+
+## Key concepts
+- \`const\` for values that should not be reassigned
+- \`let\` for values that change over time
+- typeof checks for runtime type inspection
+
+## Practice
+Declare a \`const\` for your name and a \`let\` counter starting at zero.`,
+        },
+        {
+          id: 'lesson-js-2',
+          slug: 'functions-and-scope',
+          title: 'Functions & Scope',
+          durationMin: 15,
+          sortOrder: 2,
+          content: `# Functions & Scope
+
+Functions encapsulate logic. Scope determines where variables are visible.
+
+## Key concepts
+- Function declarations vs arrow functions
+- Block scope with \`let\`/\`const\`
+- Returning values from functions
+
+## Practice
+Write a function \`greet(name)\` that returns a greeting string.`,
+        },
+        {
+          id: 'lesson-js-3',
+          slug: 'async-await',
+          title: 'Async/Await',
+          durationMin: 18,
+          sortOrder: 3,
+          content: `# Async/Await
+
+Modern JavaScript uses Promises and \`async/await\` for non-blocking I/O.
+
+## Key concepts
+- Promises represent future values
+- \`async\` functions always return a Promise
+- \`await\` pauses until a Promise settles
+
+## Practice
+Fetch JSON from an API and log the first item.`,
+        },
+      ],
+    },
+    {
+      id: 'course-interview',
+      slug: 'interview-branding',
+      title: 'Interview & Personal Branding',
+      description: 'Build a standout portfolio, resume, and interview story that gets you hired.',
+      icon: 'briefcase',
+      trackKey: 'web',
+      sortOrder: 2,
+      published: true,
+      lessons: [
+        {
+          id: 'lesson-iv-1',
+          slug: 'portfolio-story',
+          title: 'Portfolio Story',
+          durationMin: 14,
+          sortOrder: 1,
+          content: `# Portfolio Story
+
+Your portfolio should tell a clear story: who you are, what you build, and why it matters.
+
+## Checklist
+- Hero section with role + value proposition
+- 2–3 featured projects with outcomes
+- Contact link and GitHub profile`,
+        },
+        {
+          id: 'lesson-iv-2',
+          slug: 'interview-framework',
+          title: 'Interview Framework',
+          durationMin: 16,
+          sortOrder: 2,
+          content: `# Interview Framework
+
+Use STAR (Situation, Task, Action, Result) to answer behavioral questions.
+
+## Tips
+- Lead with impact, not tools
+- Quantify results when possible
+- Prepare 3 project deep-dives`,
+        },
+      ],
+    },
+  ];
+}
+
+let courses = defaultCourses();
+let challenges: AdminChallenge[] = [
+  {
+    id: 'challenge-fizzbuzz',
+    slug: 'fizzbuzz',
+    title: 'FizzBuzz Sprint',
+    description: 'Implement classic FizzBuzz and climb the bootcamp leaderboard.',
+    points: 100,
+    startsAt: new Date(Date.now() - 86400000).toISOString(),
+    endsAt: new Date(Date.now() + 7 * 86400000).toISOString(),
+    active: true,
+    starterCode: 'function fizzbuzz(n) {\n  \n}',
+  },
+];
+
+function readSession(): AuthUser | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(DEMO_SESSION_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSession(user: AuthUser | null): void {
+  if (typeof window === 'undefined') return;
+  if (!user) {
+    sessionStorage.removeItem(DEMO_SESSION_KEY);
+    clearTokens();
+    return;
+  }
+  sessionStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(user));
+  setAccessToken('demo-access-token');
+}
+
+function defaultState(): DemoPersistedState {
+  return {
+    enrollments: ['javascript-core'],
+    completedLessons: [],
+    hasRoadmap: true,
+    roadmapEnrolled: false,
+    readinessPaid: false,
+    testCompleted: false,
+    entitlements: [],
+    roadmapId: 'demo-roadmap',
+    lastAnswers: {
+      goal: 'job',
+      interests: ['web'],
+      skills: { html: 'Beginner', css: 'Beginner', js: 'Never used', python: 'Never used' },
+      hours: 8,
+      style: 'building',
+      personality: { teamwork: 60, pace: 55 },
+    },
+    payments: [],
+  };
+}
+
+function readState(): DemoPersistedState {
+  if (typeof window === 'undefined') return defaultState();
+  try {
+    const raw = localStorage.getItem(DEMO_STATE_KEY);
+    if (!raw) return defaultState();
+    return { ...defaultState(), ...(JSON.parse(raw) as DemoPersistedState) };
+  } catch {
+    return defaultState();
+  }
+}
+
+function writeState(state: DemoPersistedState): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(DEMO_STATE_KEY, JSON.stringify(state));
+}
+
+function requireUser(): AuthUser {
+  const user = readSession();
+  if (!user) throw new ApiError('Unauthorized', 401);
+  return user;
+}
+
+function learnerStateFor(user: AuthUser): LearnerState {
+  const state = readState();
+  return {
+    user,
+    hasRoadmap: state.hasRoadmap,
+    roadmapEnrolled: state.roadmapEnrolled,
+    readinessPaid: state.readinessPaid,
+    testCompleted: state.testCompleted,
+    entitlements: state.entitlements,
+    enrollments: state.enrollments,
+  };
+}
+
+function toCourseSummary(course: DemoCourse): CourseSummary {
+  const state = readState();
+  const enrolled = state.enrollments.includes(course.slug);
+  const completed = course.lessons.filter((l) =>
+    state.completedLessons.includes(lessonKey(course.slug, l.slug)),
+  ).length;
+  const progressPct =
+    course.lessons.length === 0 ? 0 : Math.round((completed / course.lessons.length) * 100);
+  return {
+    id: course.id,
+    slug: course.slug,
+    title: course.title,
+    description: course.description,
+    icon: course.icon,
+    trackKey: course.trackKey,
+    lessonCount: course.lessons.length,
+    enrolled,
+    progressPct,
+  };
+}
+
+function delay<T>(value: T, ms = 80): Promise<T> {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(value), ms);
+  });
+}
+
+function authResponse(user: AuthUser): AuthResponse {
+  writeSession(user);
+  return { user, accessToken: 'demo-access-token', expiresIn: 3600 };
+}
+
+export const demoApi = {
+  async register(dto: RegisterDto): Promise<AuthResponse> {
+    return delay(
+      authResponse({
+        id: `demo-${Date.now()}`,
+        name: dto.name,
+        email: dto.email,
+        role: 'LEARNER',
+      }),
+    );
+  },
+
+  async login(dto: LoginDto): Promise<AuthResponse> {
+    const email = dto.email.trim().toLowerCase();
+    if (email === DEMO_ADMIN.email.toLowerCase()) {
+      return delay(authResponse(DEMO_ADMIN));
+    }
+    if (email === DEMO_LEARNER.email.toLowerCase() || email.includes('@')) {
+      return delay(
+        authResponse({
+          ...DEMO_LEARNER,
+          email: dto.email,
+          name: email === DEMO_LEARNER.email.toLowerCase() ? DEMO_LEARNER.name : dto.email.split('@')[0],
+        }),
+      );
+    }
+    throw new ApiError('Invalid credentials', 401);
+  },
+
+  async logout(): Promise<void> {
+    writeSession(null);
+    await delay(undefined);
+  },
+
+  async refresh(): Promise<AuthTokens> {
+    const user = readSession();
+    if (!user) throw new ApiError('Unauthorized', 401);
+    setAccessToken('demo-access-token');
+    return delay({ accessToken: 'demo-access-token', expiresIn: 3600 });
+  },
+
+  async me(): Promise<LearnerState> {
+    return delay(learnerStateFor(requireUser()));
+  },
+
+  async checkout(dto: CheckoutDto): Promise<PaymentResponse> {
+    requireUser();
+    const state = readState();
+    const payment: PaymentResponse = {
+      id: `pay-${Date.now()}`,
+      productType: dto.productType,
+      amountCents: PRODUCT_PRICES[dto.productType] ?? 0,
+      currency: 'usd',
+      status: 'COMPLETED',
+    };
+    state.payments = [payment, ...state.payments];
+    if (dto.productType === 'READINESS_TEST') {
+      state.readinessPaid = true;
+      state.entitlements = Array.from(new Set([...state.entitlements, 'READINESS_TEST']));
+    }
+    if (dto.productType === 'ROADMAP_BUNDLE') {
+      state.roadmapEnrolled = true;
+      state.hasRoadmap = true;
+    }
+    writeState(state);
+    return delay(payment);
+  },
+
+  async confirmPayment(id: string): Promise<PaymentResponse> {
+    requireUser();
+    const found = readState().payments.find((p) => p.id === id);
+    if (!found) throw new ApiError('Payment not found', 404);
+    return delay({ ...found, status: 'COMPLETED' });
+  },
+
+  async myPayments(): Promise<PaymentResponse[]> {
+    requireUser();
+    return delay(readState().payments);
+  },
+
+  async listCourses(): Promise<CourseSummary[]> {
+    return delay(courses.filter((c) => c.published).map(toCourseSummary));
+  },
+
+  async getCourse(slug: string): Promise<CourseSummary & { lessons: LessonSummary[] }> {
+    const course = courses.find((c) => c.slug === slug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const state = readState();
+    const lessons: LessonSummary[] = course.lessons.map((l) => ({
+      id: l.id,
+      slug: l.slug,
+      title: l.title,
+      durationMin: l.durationMin,
+      completed: state.completedLessons.includes(lessonKey(slug, l.slug)),
+    }));
+    return delay({ ...toCourseSummary(course), lessons });
+  },
+
+  async getLesson(courseSlug: string, lessonSlug: string): Promise<LessonDetail> {
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const index = course.lessons.findIndex((l) => l.slug === lessonSlug);
+    if (index < 0) throw new ApiError('Lesson not found', 404);
+    const lesson = course.lessons[index];
+    const state = readState();
+    return delay({
+      id: lesson.id,
+      slug: lesson.slug,
+      title: lesson.title,
+      durationMin: lesson.durationMin,
+      completed: state.completedLessons.includes(lessonKey(courseSlug, lessonSlug)),
+      content: lesson.content,
+      courseSlug,
+      courseTitle: course.title,
+      prevSlug: index > 0 ? course.lessons[index - 1].slug : null,
+      nextSlug: index < course.lessons.length - 1 ? course.lessons[index + 1].slug : null,
+    });
+  },
+
+  async enrollCourse(slug: string): Promise<void> {
+    requireUser();
+    const course = courses.find((c) => c.slug === slug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const state = readState();
+    if (!state.enrollments.includes(slug)) {
+      state.enrollments = [...state.enrollments, slug];
+      writeState(state);
+    }
+    await delay(undefined);
+  },
+
+  async completeLesson(courseSlug: string, lessonSlug: string): Promise<void> {
+    requireUser();
+    const key = lessonKey(courseSlug, lessonSlug);
+    const state = readState();
+    if (!state.completedLessons.includes(key)) {
+      state.completedLessons = [...state.completedLessons, key];
+      writeState(state);
+    }
+    await delay(undefined);
+  },
+
+  async saveAssessment(answers: AssessmentAnswers): Promise<AssessmentResponse> {
+    requireUser();
+    const state = readState();
+    state.lastAnswers = answers;
+    state.hasRoadmap = true;
+    writeState(state);
+    return delay({
+      id: `assessment-${Date.now()}`,
+      answers,
+      createdAt: new Date().toISOString(),
+    });
+  },
+
+  async saveRoadmap(answers: AssessmentAnswers): Promise<RoadmapResponse> {
+    requireUser();
+    const state = readState();
+    state.lastAnswers = answers;
+    state.hasRoadmap = true;
+    state.roadmapId = `roadmap-${Date.now()}`;
+    writeState(state);
+    return delay(buildRoadmapFromAnswers(answers, state.roadmapEnrolled, state.roadmapId));
+  },
+
+  async enrollRoadmap(roadmapId: string): Promise<RoadmapResponse> {
+    requireUser();
+    const state = readState();
+    state.roadmapEnrolled = true;
+    state.hasRoadmap = true;
+    state.roadmapId = roadmapId;
+    writeState(state);
+    const answers = state.lastAnswers ?? defaultState().lastAnswers!;
+    return delay(buildRoadmapFromAnswers(answers, true, roadmapId));
+  },
+
+  async saveReadinessTest(scores: ReadinessScores): Promise<ReadinessResult> {
+    requireUser();
+    const state = readState();
+    if (!state.readinessPaid) throw new ApiError('Readiness test not purchased', 402);
+    const result = computeReadinessResult(scores);
+    state.testCompleted = true;
+    writeState(state);
+    return delay(result);
+  },
+
+  async submitChallenge(code: string): Promise<ChallengeScoreResult> {
+    requireUser();
+    return delay(buildChallengeResult(code));
+  },
+
+  async adminStats(): Promise<AdminStats> {
+    requireUser();
+    const state = readState();
+    return delay({
+      users: 2,
+      courses: courses.length,
+      lessons: courses.reduce((n, c) => n + c.lessons.length, 0),
+      enrollments: state.enrollments.length,
+      payments: state.payments.length,
+      revenueCents: state.payments.reduce((n, p) => n + p.amountCents, 0),
+      challenges: challenges.length,
+      activeChallenges: challenges.filter((c) => c.active).length,
+    });
+  },
+
+  async adminListCourses(): Promise<AdminCourse[]> {
+    requireUser();
+    return delay(
+      courses.map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        title: c.title,
+        description: c.description,
+        icon: c.icon,
+        trackKey: c.trackKey,
+        sortOrder: c.sortOrder,
+        published: c.published,
+        lessonCount: c.lessons.length,
+        lessons: c.lessons.map(
+          (l): AdminLesson => ({
+            id: l.id,
+            slug: l.slug,
+            title: l.title,
+            content: l.content,
+            durationMin: l.durationMin,
+            sortOrder: l.sortOrder,
+          }),
+        ),
+      })),
+    );
+  },
+
+  async adminCreateCourse(dto: CreateCourseDto): Promise<AdminCourse> {
+    requireUser();
+    const course: DemoCourse = {
+      id: `course-${Date.now()}`,
+      slug: dto.slug,
+      title: dto.title,
+      description: dto.description,
+      icon: dto.icon ?? '📘',
+      trackKey: dto.trackKey ?? null,
+      sortOrder: dto.sortOrder ?? courses.length + 1,
+      published: dto.published ?? true,
+      lessons: (dto.lessons ?? []).map((l, i) => ({
+        id: `lesson-${Date.now()}-${i}`,
+        slug: l.slug,
+        title: l.title,
+        content: l.content,
+        durationMin: l.durationMin ?? 10,
+        sortOrder: l.sortOrder ?? i + 1,
+      })),
+    };
+    courses = [...courses, course];
+    return delay({
+      id: course.id,
+      slug: course.slug,
+      title: course.title,
+      description: course.description,
+      icon: course.icon,
+      trackKey: course.trackKey,
+      sortOrder: course.sortOrder,
+      published: course.published,
+      lessonCount: course.lessons.length,
+      lessons: course.lessons,
+    });
+  },
+
+  async adminUpdateCourse(slug: string, dto: UpdateCourseDto): Promise<AdminCourse> {
+    requireUser();
+    const index = courses.findIndex((c) => c.slug === slug);
+    if (index < 0) throw new ApiError('Course not found', 404);
+    const current = courses[index];
+    const updated: DemoCourse = {
+      ...current,
+      ...dto,
+      trackKey: dto.trackKey === undefined ? current.trackKey : dto.trackKey,
+      lessons: current.lessons,
+    };
+    courses = courses.map((c, i) => (i === index ? updated : c));
+    return delay({
+      id: updated.id,
+      slug: updated.slug,
+      title: updated.title,
+      description: updated.description,
+      icon: updated.icon,
+      trackKey: updated.trackKey,
+      sortOrder: updated.sortOrder,
+      published: updated.published,
+      lessonCount: updated.lessons.length,
+      lessons: updated.lessons,
+    });
+  },
+
+  async adminDeleteCourse(slug: string): Promise<void> {
+    requireUser();
+    courses = courses.filter((c) => c.slug !== slug);
+    await delay(undefined);
+  },
+
+  async adminCreateLesson(courseSlug: string, dto: CreateLessonDto): Promise<AdminLesson> {
+    requireUser();
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const lesson: DemoLesson = {
+      id: `lesson-${Date.now()}`,
+      slug: dto.slug,
+      title: dto.title,
+      content: dto.content,
+      durationMin: dto.durationMin ?? 10,
+      sortOrder: dto.sortOrder ?? course.lessons.length + 1,
+    };
+    course.lessons = [...course.lessons, lesson];
+    return delay(lesson);
+  },
+
+  async adminListChallenges(): Promise<AdminChallenge[]> {
+    requireUser();
+    return delay(challenges);
+  },
+
+  async adminCreateChallenge(dto: CreateChallengeDto): Promise<AdminChallenge> {
+    requireUser();
+    const challenge: AdminChallenge = {
+      id: `challenge-${Date.now()}`,
+      slug: dto.slug,
+      title: dto.title,
+      description: dto.description,
+      points: dto.points ?? 50,
+      startsAt: dto.startsAt,
+      endsAt: dto.endsAt,
+      active: dto.active ?? true,
+      starterCode: dto.starterCode ?? '',
+    };
+    challenges = [...challenges, challenge];
+    return delay(challenge);
+  },
+
+  async adminUpdateChallenge(slug: string, dto: UpdateChallengeDto): Promise<AdminChallenge> {
+    requireUser();
+    const index = challenges.findIndex((c) => c.slug === slug);
+    if (index < 0) throw new ApiError('Challenge not found', 404);
+    const updated = { ...challenges[index], ...dto };
+    challenges = challenges.map((c, i) => (i === index ? updated : c));
+    return delay(updated);
+  },
+
+  async adminListUsers(): Promise<AdminUser[]> {
+    requireUser();
+    return delay([
+      {
+        id: DEMO_LEARNER.id,
+        name: DEMO_LEARNER.name,
+        email: DEMO_LEARNER.email,
+        role: DEMO_LEARNER.role,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: DEMO_ADMIN.id,
+        name: DEMO_ADMIN.name,
+        email: DEMO_ADMIN.email,
+        role: DEMO_ADMIN.role,
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+  },
+
+  async adminUpdateUserRole(userId: string, role: UserRole): Promise<AdminUser> {
+    requireUser();
+    const users = await this.adminListUsers();
+    const user = users.find((u) => u.id === userId);
+    if (!user) throw new ApiError('User not found', 404);
+    return delay({ ...user, role });
+  },
+};
+
+/** Ensure a signed-in demo session exists for browsing the full static site. */
+export function ensureDemoSession(): AuthUser {
+  const existing = readSession();
+  if (existing) return existing;
+  writeSession(DEMO_LEARNER);
+  return DEMO_LEARNER;
+}

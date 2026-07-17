@@ -4,6 +4,47 @@
 
 Full-stack monorepo: **Next.js 15** (frontend) + **NestJS 11** (backend) + **Prisma** (PostgreSQL).
 
+**Live frontend (GitHub Pages):** https://mahdi-habibi.github.io/pathwise/
+
+## GitHub Pages
+
+The web app is statically exported to https://mahdi-habibi.github.io/pathwise/ (`basePath` `/pathwise`).
+By default the Pages build enables **demo mode** (`NEXT_PUBLIC_DEMO_MODE=true`): courses, lessons,
+assessment, checkout, bootcamp, and admin use in-browser mock data so visitors can explore the full UI
+without a hosted Nest API. Progress is stored in the browser only.
+
+**Local clone is unchanged:** leave demo mode off, run Postgres + Nest + Next with `pnpm dev` (same-origin
+`/api` proxy). Demo mode is only turned on for the Pages export.
+
+### One-time GitHub setup
+
+1. Repo **Settings → Pages → Build and deployment → Source**: **GitHub Actions**
+2. Merge to `main` (or run **Deploy GitHub Pages** via Actions → workflow_dispatch)
+3. Optional — use a real hosted API instead of demo mode:
+   - Repo **Settings → Variables → Actions**: `NEXT_PUBLIC_API_URL` = your API origin (no trailing slash)
+   - On the API host set `CORS_ORIGIN=https://mahdi-habibi.github.io`
+
+### Local static build (Pages preview)
+
+```bash
+pnpm build:pages
+# Output: apps/web/out  (asset URLs expect /pathwise/)
+```
+
+### Local full stack (recommended for development)
+
+```bash
+corepack enable && corepack prepare pnpm@11.13.0 --activate
+pnpm install --frozen-lockfile
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+# Keep NEXT_PUBLIC_DEMO_MODE unset/false in .env.local
+pnpm docker:db   # or use a local Postgres matching DATABASE_URL
+pnpm db:migrate && pnpm db:seed
+pnpm dev
+# Web http://localhost:3000  ·  API http://localhost:3001/api/health
+```
+
 ## Use on another device
 
 The repository contains everything needed to recreate the project: application source, workspace
@@ -187,12 +228,13 @@ pnpm docker:up                # build images + start all services
 
 | Context                | `DATABASE_URL` host       | Web API calls                                            | Cookie note                                                      |
 | ---------------------- | ------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
-| Local dev (`pnpm dev`) | `localhost`               | same-origin `/api` via Next rewrite (`API_PROXY_TARGET`) | Refresh cookie is set on the web origin so middleware can see it |
+| GitHub Pages           | n/a (API hosted elsewhere)| `NEXT_PUBLIC_API_URL` absolute origin                    | Set API `CORS_ORIGIN` to Pages origin; cookies use `SameSite=None` when CORS points at `github.io` |
+| Local dev (`pnpm dev`) | `localhost`               | same-origin `/api` via Next rewrite (`API_PROXY_TARGET`) | Refresh cookie shared via same-origin `/api` proxy |
 | Docker full stack      | `postgres` (service name) | same-origin `/api`; web container proxies to `api:3001`  | Keep web and API behind the same public host/domain              |
 
-The API container connects to Postgres via the Docker network (`postgres:5432`). The browser calls the web origin; Next rewrites `/api/*` to Nest so auth cookies stay first-party.
+The API container connects to Postgres via the Docker network (`postgres:5432`). In local/Docker the browser calls the web origin; Next rewrites `/api/*` to Nest so auth cookies stay first-party. On GitHub Pages there is no rewrite — set `NEXT_PUBLIC_API_URL` to the API origin and configure CORS accordingly.
 
-**Auth cookies:** the API sets an HttpOnly `refreshToken` cookie with `path=/`. For route middleware to observe it, the browser must receive `Set-Cookie` from the **web** origin (same-origin `/api` proxy) or both apps must share a parent domain via reverse proxy. Do not point `NEXT_PUBLIC_API_URL` at a different origin in production unless that origin can share cookies with the web app.
+**Auth cookies:** the API sets an HttpOnly `refreshToken` cookie with `path=/`. Protected routes use client-side `RequireAuth` (static export cannot use Next.js middleware). For a separate API host + GitHub Pages frontend, ensure CORS allows credentials and the API cookie uses `SameSite=None` (enabled automatically when `CORS_ORIGIN` contains `github.io`).
 
 ### Requirements
 
