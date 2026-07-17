@@ -4,6 +4,15 @@
   "private": true,
   "packageManager": "pnpm@11.13.0",
   "description": "Pathwise — Adaptive Learning Platform",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mahdi-habibi/pathwise.git"
+  },
+  "homepage": "https://github.com/mahdi-habibi/pathwise#readme",
+  "bugs": {
+    "url": "https://github.com/mahdi-habibi/pathwise/issues"
+  },
   "scripts": {
     "dev": "concurrently -n web,api -c blue,green \"pnpm --filter @pathwise/web dev\" \"pnpm --filter @pathwise/api dev\"",
     "build": "pnpm --filter @pathwise/shared build && pnpm --filter @pathwise/api build && pnpm --filter @pathwise/web build",
@@ -30,6 +39,9 @@
     "portable:zip": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-portable.ps1",
     "portable:zip:staged": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-portable-zip.ps1",
     "docker:setup": "node -e \"const fs=require('fs'); if(!fs.existsSync('.env.docker')){fs.copyFileSync('.env.docker.example','.env.docker'); console.log('Created .env.docker');} else {console.log('.env.docker already exists');}\"",
+    "docker:ghcr:up": "docker compose -f docker-compose.ghcr.yml --env-file .env.docker up -d",
+    "docker:ghcr:down": "docker compose -f docker-compose.ghcr.yml --env-file .env.docker down",
+    "docker:ghcr:pull": "docker compose -f docker-compose.ghcr.yml --env-file .env.docker pull",
     "postinstall": "pnpm db:generate"
   },
   "engines": {
