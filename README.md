@@ -16,13 +16,27 @@ without a hosted Nest API. Progress is stored in the browser only.
 **Local clone is unchanged:** leave demo mode off, run Postgres + Nest + Next with `pnpm dev` (same-origin
 `/api` proxy). Demo mode is only turned on for the Pages export.
 
-### One-time GitHub setup
+### One-time GitHub setup (required — otherwise the site shows README.md)
 
-1. Repo **Settings → Pages → Build and deployment → Source**: **GitHub Actions**
-2. Merge to `main` (or run **Deploy GitHub Pages** via Actions → workflow_dispatch)
-3. Optional — use a real hosted API instead of demo mode:
-   - Repo **Settings → Variables → Actions**: `NEXT_PUBLIC_API_URL` = your API origin (no trailing slash)
-   - On the API host set `CORS_ORIGIN=https://mahdi-habibi.github.io`
+Your repo was publishing from **branch `main` / root**, which only shows the README.
+Point Pages at the built app instead:
+
+**Option A — Deploy from branch (works with the `gh-pages` branch we publish):**
+
+1. Open **Settings → Pages**
+2. Under **Build and deployment → Source**, choose **Deploy from a branch**
+3. Branch: **`gh-pages`** · Folder: **`/ (root)`**
+4. Save, wait ~1 minute, then open https://mahdi-habibi.github.io/pathwise/
+
+**Option B — GitHub Actions:**
+
+1. **Settings → Pages → Source**: **GitHub Actions**
+2. Re-run the **Deploy GitHub Pages** workflow (Actions → workflow_dispatch) or push to `main`
+
+Optional — use a real hosted API instead of demo mode:
+
+- Repo **Settings → Variables → Actions**: `NEXT_PUBLIC_API_URL` = your API origin (no trailing slash)
+- On the API host set `CORS_ORIGIN=https://mahdi-habibi.github.io`
 
 ### Local static build (Pages preview)
 

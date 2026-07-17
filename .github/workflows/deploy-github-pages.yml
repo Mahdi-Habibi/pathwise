@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -57,8 +57,6 @@ jobs:
           GITHUB_PAGES: 'true'
           NEXT_BASE_PATH: /pathwise
           NEXT_PUBLIC_APP_URL: https://mahdi-habibi.github.io/pathwise
-          # Browseable static demo when no hosted API is configured.
-          # Set repo variable NEXT_PUBLIC_API_URL to use a real Nest backend instead.
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_DEMO_MODE: ${{ vars.NEXT_PUBLIC_API_URL == '' && 'true' || 'false' }}
         run: pnpm --filter @pathwise/web build
@@ -66,14 +64,26 @@ jobs:
       - name: Ensure .nojekyll (GitHub Pages must not ignore _next)
         run: touch apps/web/out/.nojekyll
 
-      - name: Upload Pages artifact
+      - name: Upload Pages artifact (for Source = GitHub Actions)
         uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/out
 
+      - name: Publish to gh-pages branch (for Source = Deploy from a branch)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: apps/web/out
+          publish_branch: gh-pages
+          force_orphan: true
+          enable_jekyll: false
+
   deploy:
-    name: Deploy to GitHub Pages
+    name: Deploy to GitHub Pages (Actions source)
     needs: build
+    # Succeeds only when repo Settings → Pages → Source is "GitHub Actions".
+    # If Source is still "Deploy from a branch" / gh-pages, the branch publish above is enough.
+    continue-on-error: true
     runs-on: ubuntu-latest
     environment:
       name: github-pages
