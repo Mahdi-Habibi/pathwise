@@ -5,21 +5,38 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { LessonDetail } from '@pathwise/shared';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError } from '@/lib/api';
 import { markdownToHtml } from '@/lib/markdown';
 
 export default function LessonPlayerPage() {
   const params = useParams<{ courseSlug: string; lessonSlug: string }>();
+  const courseSlug = params.courseSlug;
+  const lessonSlug = params.lessonSlug;
+  const nextPath =
+    courseSlug && lessonSlug ? `/learn/${courseSlug}/${lessonSlug}` : '/courses';
+
+  return (
+    <RequireAuth nextPath={nextPath}>
+      <LessonPlayerContent courseSlug={courseSlug} lessonSlug={lessonSlug} />
+    </RequireAuth>
+  );
+}
+
+function LessonPlayerContent({
+  courseSlug,
+  lessonSlug,
+}: {
+  courseSlug: string;
+  lessonSlug: string;
+}) {
   const router = useRouter();
   const { t, format } = useLanguage();
   const [lesson, setLesson] = useState<LessonDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [completing, setCompleting] = useState(false);
-
-  const courseSlug = params.courseSlug;
-  const lessonSlug = params.lessonSlug;
 
   useEffect(() => {
     if (!courseSlug || !lessonSlug) return;

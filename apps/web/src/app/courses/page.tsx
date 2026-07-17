@@ -97,7 +97,13 @@ export default function CoursesPage() {
                   <button
                     type="button"
                     className="btn-next"
-                    onClick={() => router.push(`/courses/${course.slug}`)}
+                    onClick={() =>
+                      router.push(
+                        course.slug === 'interview-branding'
+                          ? `/learn/${course.slug}/portfolio-story`
+                          : `/learn/${course.slug}/variables-and-types`,
+                      )
+                    }
                   >
                     {t('courses.continue')}
                   </button>

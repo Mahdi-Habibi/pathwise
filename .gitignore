@@ -4,6 +4,8 @@ dist/
 **/dist/
 .next/
 **/.next/
+out/
+**/out/
 .turbo/
 coverage/
 **/coverage/
