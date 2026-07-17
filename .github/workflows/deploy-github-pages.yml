@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,7 +39,7 @@ jobs:
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
 
       - name: Cache pnpm store
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -57,8 +57,10 @@ jobs:
           GITHUB_PAGES: 'true'
           NEXT_BASE_PATH: /pathwise
           NEXT_PUBLIC_APP_URL: https://mahdi-habibi.github.io/pathwise
-          # Optional: set repo variable NEXT_PUBLIC_API_URL to a hosted Nest API origin
+          # Browseable static demo when no hosted API is configured.
+          # Set repo variable NEXT_PUBLIC_API_URL to use a real Nest backend instead.
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_DEMO_MODE: ${{ vars.NEXT_PUBLIC_API_URL == '' && 'true' || 'false' }}
         run: pnpm --filter @pathwise/web build
 
       - name: Ensure .nojekyll (GitHub Pages must not ignore _next)

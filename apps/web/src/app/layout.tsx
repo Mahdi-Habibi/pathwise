@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono, Vazirmatn } from 'next/font/google';
 import { ClientProviders } from '@/components/layout/ClientProviders';
+import { DemoBanner } from '@/components/layout/DemoBanner';
 import { Footer } from '@/components/layout/Footer';
 import { TopBar } from '@/components/layout/TopBar';
 import { DEFAULT_LOCALE, dirForLocale } from '@/i18n/locales';
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <ClientProviders initialLocale={locale}>
+          <DemoBanner />
           <TopBar />
           <main className="site-main">{children}</main>
           <Footer />

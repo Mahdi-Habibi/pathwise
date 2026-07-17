@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:pages": "GITHUB_PAGES=true NEXT_BASE_PATH=/pathwise NEXT_PUBLIC_APP_URL=https://mahdi-habibi.github.io/pathwise next build",
+    "build:pages": "GITHUB_PAGES=true NEXT_BASE_PATH=/pathwise NEXT_PUBLIC_APP_URL=https://mahdi-habibi.github.io/pathwise NEXT_PUBLIC_DEMO_MODE=true next build",
     "start": "next start",
     "lint": "eslint src --config ../../eslint.config.mjs",
     "typecheck": "tsc --noEmit",
@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@pathwise/shared": "workspace:*",
-    "lucide-react": "^1.25.0",
-    "next": "^16.2.10",
+    "lucide-react": "^0.511.0",
+    "next": "^15.5.20",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

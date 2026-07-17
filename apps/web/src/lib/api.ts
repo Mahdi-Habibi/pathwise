@@ -31,6 +31,9 @@ import type {
   AdminUser,
 } from '@pathwise/shared';
 import { clearTokens, getAccessToken, setAccessToken } from '@/lib/auth';
+import { ApiError } from '@/lib/apiError';
+import { demoApi } from '@/lib/demoApi';
+import { isDemoMode } from '@/lib/demoMode';
 
 export type {
   AdminStats,
@@ -46,23 +49,15 @@ export type {
   AuthUser,
 };
 
+export { ApiError };
+
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
 function apiBase(): string {
   // Empty NEXT_PUBLIC_API_URL uses same-origin /api (Next.js rewrite → Nest in local/Docker).
-  // GitHub Pages has no API proxy — set NEXT_PUBLIC_API_URL to your hosted Nest origin.
+  // GitHub Pages demo mode uses in-browser mocks when NEXT_PUBLIC_DEMO_MODE=true.
+  // Absolute URL keeps direct browser→API calls for hosted Nest backends.
   return API_URL || '';
-}
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public details?: unknown,
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
 }
 
 interface RequestOptions extends RequestInit {
@@ -108,7 +103,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   ) {
     try {
       if (!refreshPromise) {
-        refreshPromise = api.refresh().finally(() => {
+        refreshPromise = liveApi.refresh().finally(() => {
           refreshPromise = null;
         });
       }
@@ -137,7 +132,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return JSON.parse(text) as T;
 }
 
-export const api = {
+const liveApi = {
   register(dto: RegisterDto): Promise<AuthResponse> {
     return request<AuthResponse>('/auth/register', {
       method: 'POST',
@@ -320,3 +315,5 @@ export const api = {
     });
   },
 };
+
+export const api = isDemoMode() ? demoApi : liveApi;

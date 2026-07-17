@@ -8,23 +8,41 @@ Full-stack monorepo: **Next.js 15** (frontend) + **NestJS 11** (backend) + **Pri
 
 ## GitHub Pages
 
-The web app can be statically exported and served from this repository’s GitHub Pages project site
-(`basePath` `/pathwise`). GitHub Pages hosts **only the frontend**. Auth, courses, and other API
-features need a separately hosted NestJS + PostgreSQL backend.
+The web app is statically exported to https://mahdi-habibi.github.io/pathwise/ (`basePath` `/pathwise`).
+By default the Pages build enables **demo mode** (`NEXT_PUBLIC_DEMO_MODE=true`): courses, lessons,
+assessment, checkout, bootcamp, and admin use in-browser mock data so visitors can explore the full UI
+without a hosted Nest API. Progress is stored in the browser only.
+
+**Local clone is unchanged:** leave demo mode off, run Postgres + Nest + Next with `pnpm dev` (same-origin
+`/api` proxy). Demo mode is only turned on for the Pages export.
 
 ### One-time GitHub setup
 
 1. Repo **Settings → Pages → Build and deployment → Source**: **GitHub Actions**
 2. Merge to `main` (or run **Deploy GitHub Pages** via Actions → workflow_dispatch)
-3. Optional — connect a hosted API:
+3. Optional — use a real hosted API instead of demo mode:
    - Repo **Settings → Variables → Actions**: `NEXT_PUBLIC_API_URL` = your API origin (no trailing slash)
-   - On the API host set `CORS_ORIGIN=https://mahdi-habibi.github.io` (or the full Pages URL your CORS stack expects)
+   - On the API host set `CORS_ORIGIN=https://mahdi-habibi.github.io`
 
-### Local static build
+### Local static build (Pages preview)
 
 ```bash
 pnpm build:pages
-# Output: apps/web/out  (serve with any static host; paths expect /pathwise/)
+# Output: apps/web/out  (asset URLs expect /pathwise/)
+```
+
+### Local full stack (recommended for development)
+
+```bash
+corepack enable && corepack prepare pnpm@11.13.0 --activate
+pnpm install --frozen-lockfile
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+# Keep NEXT_PUBLIC_DEMO_MODE unset/false in .env.local
+pnpm docker:db   # or use a local Postgres matching DATABASE_URL
+pnpm db:migrate && pnpm db:seed
+pnpm dev
+# Web http://localhost:3000  ·  API http://localhost:3001/api/health
 ```
 
 ## Use on another device

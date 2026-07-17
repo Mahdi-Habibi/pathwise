@@ -12,6 +12,8 @@ import {
 } from 'react';
 import { api, ApiError } from '@/lib/api';
 import { clearTokens, getAccessToken } from '@/lib/auth';
+import { ensureDemoSession } from '@/lib/demoApi';
+import { isDemoMode } from '@/lib/demoMode';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -44,7 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     try {
-      if (!getAccessToken()) {
+      if (isDemoMode()) {
+        ensureDemoSession();
+      } else if (!getAccessToken()) {
         await api.refresh();
       }
       const state = await api.me();
@@ -63,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       try {
+        if (isDemoMode()) {
+          ensureDemoSession();
+        }
         await refreshSession();
       } catch {
         if (!cancelled) clearSession();
