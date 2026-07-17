@@ -7,11 +7,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mahdi-habibi/pathwise.git"
+    "url": "https://github.com/Mahdi-Habibi/pathwise.git"
   },
-  "homepage": "https://github.com/mahdi-habibi/pathwise#readme",
+  "homepage": "https://github.com/Mahdi-Habibi/pathwise#readme",
   "bugs": {
-    "url": "https://github.com/mahdi-habibi/pathwise/issues"
+    "url": "https://github.com/Mahdi-Habibi/pathwise/issues"
   },
   "scripts": {
     "dev": "concurrently -n web,api -c blue,green \"pnpm --filter @pathwise/web dev\" \"pnpm --filter @pathwise/api dev\"",

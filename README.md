@@ -66,7 +66,7 @@ After the first successful `Docker publish` run, open **GitHub → Packages** fo
 On the server:
 
 ```bash
-git clone https://github.com/mahdi-habibi/pathwise.git
+git clone https://github.com/Mahdi-Habibi/pathwise.git
 cd pathwise
 cp .env.docker.example .env.docker
 # Edit .env.docker: set strong JWT_* secrets, CORS_ORIGIN, APP_URL, NEXT_PUBLIC_APP_URL,
