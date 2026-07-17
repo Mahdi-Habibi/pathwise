@@ -197,7 +197,7 @@ The API container connects to Postgres via the Docker network (`postgres:5432`).
 ### Requirements
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/macOS) or Docker Engine + Compose v2 (Linux)
-- Node.js 20+ and pnpm (for local dev workflow)
+- Node.js 22.13+ and pnpm 11 (for local dev workflow; required by `packageManager`)
 - **Windows:** CPU virtualization (Intel VT-x / AMD-V) must be **enabled in BIOS/UEFI**. Docker Desktop will not start without it.
 
 ### Troubleshooting: “virtualisation support wasn’t detected”
