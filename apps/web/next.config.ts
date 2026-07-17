@@ -16,32 +16,48 @@ const securityHeaders = [
 ];
 
 const isDockerBuild = process.env.DOCKER_BUILD === 'true';
+const isGitHubPages = process.env.GITHUB_PAGES === 'true';
 const apiProxyTarget = (process.env.API_PROXY_TARGET ?? 'http://localhost:3001').replace(/\/$/, '');
 
+/** Project-site path for https://mahdi-habibi.github.io/pathwise/ */
+const githubPagesBasePath = (process.env.NEXT_BASE_PATH ?? '/pathwise').replace(/\/$/, '') || '';
+
 const nextConfig: NextConfig = {
-  ...(isDockerBuild
+  transpilePackages: ['@pathwise/shared'],
+  ...(isGitHubPages
     ? {
-        output: 'standalone' as const,
-        outputFileTracingRoot: path.join(process.cwd(), '../..'),
+        output: 'export' as const,
+        basePath: githubPagesBasePath,
+        assetPrefix: githubPagesBasePath,
+        trailingSlash: true,
+        images: { unoptimized: true },
+      }
+    : isDockerBuild
+      ? {
+          output: 'standalone' as const,
+          outputFileTracingRoot: path.join(process.cwd(), '../..'),
+        }
+      : {}),
+  ...(!isGitHubPages
+    ? {
+        async rewrites() {
+          return [
+            {
+              source: '/api/:path*',
+              destination: `${apiProxyTarget}/api/:path*`,
+            },
+          ];
+        },
+        async headers() {
+          return [
+            {
+              source: '/:path*',
+              headers: securityHeaders,
+            },
+          ];
+        },
       }
     : {}),
-  transpilePackages: ['@pathwise/shared'],
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiProxyTarget}/api/:path*`,
-      },
-    ];
-  },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: securityHeaders,
-      },
-    ];
-  },
 };
 
 export default nextConfig;

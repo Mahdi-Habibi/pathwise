@@ -84,14 +84,15 @@ export class AuthController {
     const refreshExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
     const maxAge = parseExpiresInSeconds(refreshExpiresIn) * 1000;
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    // Cross-origin frontends (e.g. GitHub Pages → hosted API) need SameSite=None; Secure.
+    const corsOrigin = this.configService.get<string>('CORS_ORIGIN', 'http://localhost:3000');
+    const crossSite = /github\.io/i.test(corsOrigin) || process.env.COOKIE_SAMESITE === 'none';
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax',
+      secure: isProduction || crossSite,
+      sameSite: crossSite ? 'none' : isProduction ? 'strict' : 'lax',
       maxAge,
-      // path '/' so Next.js middleware on the web origin can detect the cookie
-      // when API and web share a parent domain (or same-origin proxy).
       path: '/',
     });
   }

@@ -4,6 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.13.0",
   "description": "Pathwise — Adaptive Learning Platform",
+<<<<<<< HEAD
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,9 +14,13 @@
   "bugs": {
     "url": "https://github.com/Mahdi-Habibi/pathwise/issues"
   },
+=======
+  "homepage": "https://mahdi-habibi.github.io/pathwise/",
+>>>>>>> c65724f (Enable GitHub Pages static deploy at /pathwise)
   "scripts": {
     "dev": "concurrently -n web,api -c blue,green \"pnpm --filter @pathwise/web dev\" \"pnpm --filter @pathwise/api dev\"",
     "build": "pnpm --filter @pathwise/shared build && pnpm --filter @pathwise/api build && pnpm --filter @pathwise/web build",
+    "build:pages": "pnpm --filter @pathwise/shared build && GITHUB_PAGES=true NEXT_BASE_PATH=/pathwise NEXT_PUBLIC_APP_URL=https://mahdi-habibi.github.io/pathwise pnpm --filter @pathwise/web build",
     "start": "concurrently -n web,api -c blue,green \"pnpm --filter @pathwise/web start\" \"pnpm --filter @pathwise/api start:prod\"",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pages": "GITHUB_PAGES=true NEXT_BASE_PATH=/pathwise NEXT_PUBLIC_APP_URL=https://mahdi-habibi.github.io/pathwise next build",
     "start": "next start",
     "lint": "eslint src --config ../../eslint.config.mjs",
     "typecheck": "tsc --noEmit",

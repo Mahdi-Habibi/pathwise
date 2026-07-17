@@ -49,8 +49,8 @@ export type {
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
 
 function apiBase(): string {
-  // Empty NEXT_PUBLIC_API_URL uses same-origin /api (Next.js rewrite → Nest).
-  // Absolute URL keeps direct browser→API calls for setups without the proxy.
+  // Empty NEXT_PUBLIC_API_URL uses same-origin /api (Next.js rewrite → Nest in local/Docker).
+  // GitHub Pages has no API proxy — set NEXT_PUBLIC_API_URL to your hosted Nest origin.
   return API_URL || '';
 }
 

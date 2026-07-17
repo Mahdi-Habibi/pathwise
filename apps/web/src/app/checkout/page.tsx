@@ -4,6 +4,7 @@ import { PRODUCT_PRICES } from '@pathwise/shared';
 import { Check, CreditCard, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
@@ -207,9 +208,11 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<CheckoutFallback />}>
-      <CheckoutContent />
-    </Suspense>
+    <RequireAuth nextPath="/checkout">
+      <Suspense fallback={<CheckoutFallback />}>
+        <CheckoutContent />
+      </Suspense>
+    </RequireAuth>
   );
 }
 

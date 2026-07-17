@@ -102,7 +102,7 @@ export default function DashboardPage() {
           <button
             type="button"
             className="tile"
-            onClick={() => router.push(`/learn/${courseSlug}/intro`)}
+            onClick={() => router.push(`/learn/${courseSlug}/variables-and-types`)}
           >
             <span className="t-icon">▶️</span>
             <b>{t('dashboard.tile.next.title')}</b>
