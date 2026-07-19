@@ -56,6 +56,8 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
     ports:
       - '${API_PORT:-3001}:3001'
+    volumes:
+      - api-uploads:/app/apps/api/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,3 +76,4 @@ services:
 
 volumes:
   pgdata:
+  api-uploads:

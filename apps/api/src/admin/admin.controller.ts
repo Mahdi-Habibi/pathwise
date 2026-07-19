@@ -1,7 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { MAX_LESSON_VIDEO_BYTES } from '../media/media-storage.service';
 import { AdminService } from './admin.service';
 import {
   AdminCreateChallengeDto,
@@ -61,6 +75,26 @@ export class AdminController {
   @Delete('courses/:slug/lessons/:lessonSlug')
   deleteLesson(@Param('slug') slug: string, @Param('lessonSlug') lessonSlug: string) {
     return this.adminService.deleteLesson(slug, lessonSlug);
+  }
+
+  @Post('courses/:slug/lessons/:lessonSlug/video')
+  @UseInterceptors(
+    FileInterceptor('video', {
+      storage: memoryStorage(),
+      limits: { fileSize: MAX_LESSON_VIDEO_BYTES },
+    }),
+  )
+  uploadLessonVideo(
+    @Param('slug') slug: string,
+    @Param('lessonSlug') lessonSlug: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.adminService.uploadLessonVideo(slug, lessonSlug, file);
+  }
+
+  @Delete('courses/:slug/lessons/:lessonSlug/video')
+  deleteLessonVideo(@Param('slug') slug: string, @Param('lessonSlug') lessonSlug: string) {
+    return this.adminService.deleteLessonVideo(slug, lessonSlug);
   }
 
   @Get('challenges')

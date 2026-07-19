@@ -66,6 +66,7 @@ interface DemoLesson {
   durationMin: number;
   content: string;
   sortOrder: number;
+  videoUrl: string | null;
 }
 
 interface DemoCourse {
@@ -115,6 +116,7 @@ function defaultCourses(): DemoCourse[] {
           slug: 'variables-and-types',
           title: 'Variables & Types',
           durationMin: 12,
+          videoUrl: null,
           sortOrder: 1,
           content: `# Variables & Types
 
@@ -133,6 +135,7 @@ Declare a \`const\` for your name and a \`let\` counter starting at zero.`,
           slug: 'functions-and-scope',
           title: 'Functions & Scope',
           durationMin: 15,
+          videoUrl: null,
           sortOrder: 2,
           content: `# Functions & Scope
 
@@ -151,6 +154,7 @@ Write a function \`greet(name)\` that returns a greeting string.`,
           slug: 'async-await',
           title: 'Async/Await',
           durationMin: 18,
+          videoUrl: null,
           sortOrder: 3,
           content: `# Async/Await
 
@@ -181,6 +185,7 @@ Fetch JSON from an API and log the first item.`,
           slug: 'portfolio-story',
           title: 'Portfolio Story',
           durationMin: 14,
+          videoUrl: null,
           sortOrder: 1,
           content: `# Portfolio Story
 
@@ -196,6 +201,7 @@ Your portfolio should tell a clear story: who you are, what you build, and why i
           slug: 'interview-framework',
           title: 'Interview Framework',
           durationMin: 16,
+          videoUrl: null,
           sortOrder: 2,
           content: `# Interview Framework
 
@@ -442,6 +448,7 @@ export const demoApi = {
       title: l.title,
       durationMin: l.durationMin,
       completed: state.completedLessons.includes(lessonKey(slug, l.slug)),
+      hasVideo: Boolean(l.videoUrl),
     }));
     return delay({ ...toCourseSummary(course), lessons });
   },
@@ -459,7 +466,9 @@ export const demoApi = {
       title: lesson.title,
       durationMin: lesson.durationMin,
       completed: state.completedLessons.includes(lessonKey(courseSlug, lessonSlug)),
+      hasVideo: Boolean(lesson.videoUrl),
       content: lesson.content,
+      videoUrl: lesson.videoUrl,
       courseSlug,
       courseTitle: course.title,
       prevSlug: index > 0 ? course.lessons[index - 1].slug : null,
@@ -587,6 +596,7 @@ export const demoApi = {
             slug: l.slug,
             title: l.title,
             content: l.content,
+            videoUrl: l.videoUrl,
             durationMin: l.durationMin,
             sortOrder: l.sortOrder,
           }),
@@ -613,6 +623,7 @@ export const demoApi = {
         content: l.content,
         durationMin: l.durationMin ?? 10,
         sortOrder: l.sortOrder ?? i + 1,
+        videoUrl: null,
       })),
     };
     courses = [...courses, course];
@@ -673,6 +684,7 @@ export const demoApi = {
       content: dto.content,
       durationMin: dto.durationMin ?? 10,
       sortOrder: dto.sortOrder ?? course.lessons.length + 1,
+      videoUrl: null,
     };
     course.lessons = [...course.lessons, lesson];
     return delay(lesson);
@@ -703,6 +715,33 @@ export const demoApi = {
     if (!course) throw new ApiError('Course not found', 404);
     course.lessons = course.lessons.filter((l) => l.slug !== lessonSlug);
     await delay(undefined);
+  },
+
+  async adminUploadLessonVideo(
+    courseSlug: string,
+    lessonSlug: string,
+    file: File,
+  ): Promise<AdminLesson> {
+    requireUser();
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const index = course.lessons.findIndex((l) => l.slug === lessonSlug);
+    if (index < 0) throw new ApiError('Lesson not found', 404);
+    const videoUrl = await fileToDataUrl(file);
+    const updated = { ...course.lessons[index], videoUrl };
+    course.lessons = course.lessons.map((l, i) => (i === index ? updated : l));
+    return delay(updated);
+  },
+
+  async adminDeleteLessonVideo(courseSlug: string, lessonSlug: string): Promise<AdminLesson> {
+    requireUser();
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const index = course.lessons.findIndex((l) => l.slug === lessonSlug);
+    if (index < 0) throw new ApiError('Lesson not found', 404);
+    const updated = { ...course.lessons[index], videoUrl: null };
+    course.lessons = course.lessons.map((l, i) => (i === index ? updated : l));
+    return delay(updated);
   },
 
   async adminListChallenges(): Promise<AdminChallenge[]> {
@@ -801,6 +840,20 @@ function readDemoSettings(): SiteSettings {
 function writeDemoSettings(settings: SiteSettings): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(DEMO_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+
+function fileToDataUrl(file: File): Promise<string> {
+  const maxBytes = 25 * 1024 * 1024;
+  if (file.size > maxBytes) {
+    return Promise.reject(new ApiError('Demo mode supports videos up to 25 MB', 400));
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new ApiError('Failed to read video file', 400));
+    reader.readAsDataURL(file);
+  });
 }
 
 /** Ensure a signed-in demo session exists for browsing the full static site. */

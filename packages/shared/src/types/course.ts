@@ -4,6 +4,7 @@ export interface LessonSummary {
   title: string;
   durationMin: number;
   completed: boolean;
+  hasVideo?: boolean;
 }
 
 export interface CourseSummary {
@@ -20,6 +21,7 @@ export interface CourseSummary {
 
 export interface LessonDetail extends LessonSummary {
   content: string;
+  videoUrl: string | null;
   courseSlug: string;
   courseTitle: string;
   prevSlug: string | null;

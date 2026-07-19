@@ -165,14 +165,15 @@ model Course {
 }
 
 model Lesson {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   courseId    String
-  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course      Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   slug        String
   title       String
   content     String
-  durationMin Int    @default(10)
-  sortOrder   Int    @default(0)
+  videoUrl    String?
+  durationMin Int     @default(10)
+  sortOrder   Int     @default(0)
 
   progress LessonProgress[]
 

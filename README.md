@@ -326,6 +326,8 @@ See `.env.example` for Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NE
 | GET                   | `/api/admin/stats`                           | ADMIN  |
 | GET/POST/PATCH/DELETE | `/api/admin/courses`                         | ADMIN  |
 | POST/PATCH/DELETE     | `/api/admin/courses/:slug/lessons`           | ADMIN  |
+| POST/DELETE           | `/api/admin/courses/:slug/lessons/:lessonSlug/video` | ADMIN |
+| GET                   | `/api/uploads/...`                           | Public (lesson media) |
 | GET/POST/PATCH/DELETE | `/api/admin/challenges`                      | ADMIN  |
 | GET                   | `/api/admin/users`                           | ADMIN  |
 | PATCH                 | `/api/admin/users/:id/role`                  | ADMIN  |

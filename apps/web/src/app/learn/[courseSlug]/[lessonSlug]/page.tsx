@@ -9,6 +9,7 @@ import { RequireAuth } from '@/components/auth/RequireAuth';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError } from '@/lib/api';
 import { markdownToHtml } from '@/lib/markdown';
+import { mediaUrl } from '@/lib/mediaUrl';
 
 export default function LessonPlayerPage() {
   const params = useParams<{ courseSlug: string; lessonSlug: string }>();
@@ -99,6 +100,20 @@ function LessonPlayerContent({
             </span>
           )}
         </div>
+
+        {lesson.videoUrl && (
+          <div className="lesson-video">
+            <video
+              key={lesson.videoUrl}
+              controls
+              playsInline
+              preload="metadata"
+              src={mediaUrl(lesson.videoUrl) ?? undefined}
+            >
+              {t('lesson.videoUnsupported')}
+            </video>
+          </div>
+        )}
 
         <div
           className="lesson-content"

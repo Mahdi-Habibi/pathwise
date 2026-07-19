@@ -38,11 +38,23 @@ describe('PaymentsService', () => {
     get: jest.fn().mockReturnValue('http://localhost:3000'),
   };
 
+  const siteSettings = {
+    get: jest.fn().mockResolvedValue({
+      pricing: {
+        readinessTestCents: 1900,
+        courseCents: 4900,
+        modulePrices: [49, 69, 79, 89, 59],
+        bundleDiscountPercent: 20,
+      },
+    }),
+  };
+
   const service = new PaymentsService(
     prisma as never,
     stripeService as never,
     emailService as never,
     configService as never,
+    siteSettings as never,
   );
 
   beforeEach(() => {

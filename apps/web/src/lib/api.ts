@@ -86,9 +86,12 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const token = skipAuth ? null : getAccessToken();
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(customHeaders as Record<string, string>),
   };
+  // Only set JSON content-type when body is not FormData (multipart uploads).
+  if (!(fetchOptions.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -305,6 +308,25 @@ const liveApi = {
 
   adminDeleteLesson(courseSlug: string, lessonSlug: string): Promise<void> {
     return request<void>(`/admin/courses/${courseSlug}/lessons/${lessonSlug}`, {
+      method: 'DELETE',
+    });
+  },
+
+  adminUploadLessonVideo(
+    courseSlug: string,
+    lessonSlug: string,
+    file: File,
+  ): Promise<AdminLesson> {
+    const body = new FormData();
+    body.append('video', file);
+    return request<AdminLesson>(`/admin/courses/${courseSlug}/lessons/${lessonSlug}/video`, {
+      method: 'POST',
+      body,
+    });
+  },
+
+  adminDeleteLessonVideo(courseSlug: string, lessonSlug: string): Promise<AdminLesson> {
+    return request<AdminLesson>(`/admin/courses/${courseSlug}/lessons/${lessonSlug}/video`, {
       method: 'DELETE',
     });
   },

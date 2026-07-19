@@ -69,6 +69,7 @@ Tracks drive assessment interests and roadmap generation.
 |--------|-----|
 | Course | **create / list / edit / delete** (slug, title, description, icon, track, sort order, published) |
 | Lesson | **create / list / edit / delete** (slug, title, content, duration, sort order) |
+| Lesson video | **upload / replace / remove** (mp4, webm, ogg, mov; max 200 MB) |
 
 ---
 

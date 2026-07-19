@@ -6,6 +6,7 @@ import type {
   AdminStats,
   AdminUser,
 } from '@pathwise/shared';
+import { MediaStorageService } from '../media/media-storage.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AdminCreateChallengeDto,
@@ -19,7 +20,10 @@ import {
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaStorage: MediaStorageService,
+  ) {}
 
   async getStats(): Promise<AdminStats> {
     const [users, courses, lessons, challenges, activeChallenges, payments, enrollments, revenue] =
@@ -126,6 +130,14 @@ export class AdminService {
 
   async deleteCourse(slug: string): Promise<{ deleted: true }> {
     const course = await this.ensureCourseBySlug(slug);
+    const lessons = await this.prisma.lesson.findMany({
+      where: { courseId: course.id },
+      select: { id: true, videoUrl: true },
+    });
+    for (const lesson of lessons) {
+      this.mediaStorage.deleteByPublicUrl(lesson.videoUrl);
+      this.mediaStorage.clearLessonDir(lesson.id);
+    }
     await this.prisma.course.delete({ where: { id: course.id } });
     return { deleted: true };
   }
@@ -203,8 +215,50 @@ export class AdminService {
     if (!lesson) {
       throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
     }
+    this.mediaStorage.deleteByPublicUrl(lesson.videoUrl);
+    this.mediaStorage.clearLessonDir(lesson.id);
     await this.prisma.lesson.delete({ where: { id: lesson.id } });
     return { deleted: true };
+  }
+
+  async uploadLessonVideo(
+    courseSlug: string,
+    lessonSlug: string,
+    file: Express.Multer.File,
+  ): Promise<AdminLesson> {
+    const course = await this.ensureCourseBySlug(courseSlug);
+    const lesson = await this.prisma.lesson.findFirst({
+      where: { courseId: course.id, slug: lessonSlug },
+    });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
+    }
+
+    this.mediaStorage.deleteByPublicUrl(lesson.videoUrl);
+    const videoUrl = this.mediaStorage.saveLessonVideo(lesson.id, file);
+    const updated = await this.prisma.lesson.update({
+      where: { id: lesson.id },
+      data: { videoUrl },
+    });
+    return this.toAdminLesson(updated);
+  }
+
+  async deleteLessonVideo(courseSlug: string, lessonSlug: string): Promise<AdminLesson> {
+    const course = await this.ensureCourseBySlug(courseSlug);
+    const lesson = await this.prisma.lesson.findFirst({
+      where: { courseId: course.id, slug: lessonSlug },
+    });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
+    }
+
+    this.mediaStorage.deleteByPublicUrl(lesson.videoUrl);
+    this.mediaStorage.clearLessonDir(lesson.id);
+    const updated = await this.prisma.lesson.update({
+      where: { id: lesson.id },
+      data: { videoUrl: null },
+    });
+    return this.toAdminLesson(updated);
   }
 
   async listChallenges(): Promise<AdminChallenge[]> {
@@ -344,6 +398,7 @@ export class AdminService {
     slug: string;
     title: string;
     content: string;
+    videoUrl?: string | null;
     durationMin: number;
     sortOrder: number;
   }): AdminLesson {
@@ -352,6 +407,7 @@ export class AdminService {
       slug: lesson.slug,
       title: lesson.title,
       content: lesson.content,
+      videoUrl: lesson.videoUrl ?? null,
       durationMin: lesson.durationMin,
       sortOrder: lesson.sortOrder,
     };
@@ -371,6 +427,7 @@ export class AdminService {
       slug: string;
       title: string;
       content: string;
+      videoUrl?: string | null;
       durationMin: number;
       sortOrder: number;
     }>;
