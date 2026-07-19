@@ -1,6 +1,7 @@
 export type Goal = 'job' | 'startup' | 'freelance' | 'fun';
 export type SkillLevel = 'Never used' | 'Beginner' | 'Comfortable';
-export type Interest = 'web' | 'ai' | 'mobile' | 'game' | 'data' | 'backend';
+/** Track / interest key — defaults are web|ai|mobile|game|data|backend; admin can add more. */
+export type Interest = string;
 export type LearningStyle = 'video' | 'reading' | 'building';
 
 export interface PersonalityAnswers {

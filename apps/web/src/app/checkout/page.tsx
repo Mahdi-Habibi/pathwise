@@ -1,6 +1,5 @@
 'use client';
 
-import { PRODUCT_PRICES } from '@pathwise/shared';
 import { Check, CreditCard, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -8,6 +7,7 @@ import { RequireAuth } from '@/components/auth/RequireAuth';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 type ProductChoice = 'READINESS_TEST' | 'ROADMAP_BUNDLE';
 
@@ -18,6 +18,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const { t, format } = useLanguage();
   const { refreshSession, learnerState } = useAuth();
+  const { settings } = useSiteSettings();
   const initialProduct = (searchParams.get('product') as ProductChoice) ?? 'READINESS_TEST';
   const roadmapId = searchParams.get('roadmapId');
   const [product, setProduct] = useState<ProductChoice>(
@@ -28,7 +29,7 @@ function CheckoutContent() {
   const [success, setSuccess] = useState('');
   const [returnProcessing, setReturnProcessing] = useState(false);
 
-  const readinessPrice = PRODUCT_PRICES.READINESS_TEST / 100;
+  const readinessPrice = settings.pricing.readinessTestCents / 100;
   const sessionId = searchParams.get('session_id');
 
   useEffect(() => {

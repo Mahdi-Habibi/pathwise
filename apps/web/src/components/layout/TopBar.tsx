@@ -9,6 +9,7 @@ import { useApp } from '@/context/AppProvider';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { useTheme } from '@/context/ThemeProvider';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export function TopBar() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export function TopBar() {
   const { toggleTheme } = useTheme();
   const { hasRoadmap } = useApp();
   const { user, isAuthenticated, logout, loading } = useAuth();
+  const { settings } = useSiteSettings();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -43,7 +45,7 @@ export function TopBar() {
     <div className="topbar app">
       <button type="button" className="logo" onClick={handleLogoClick}>
         <span className="logo-mark" aria-hidden="true" />
-        <span className="logo-text">{t('common.brand')}</span>
+        <span className="logo-text">{settings.general.siteName || t('common.brand')}</span>
       </button>
 
       <nav className="top-nav">

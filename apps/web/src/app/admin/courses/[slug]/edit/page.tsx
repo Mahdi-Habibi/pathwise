@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2, Upload } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError, type AdminCourse, type AdminLesson } from '@/lib/api';
+import { mediaUrl } from '@/lib/mediaUrl';
 
 export default function AdminEditCoursePage() {
   const params = useParams();
@@ -17,16 +18,33 @@ export default function AdminEditCoursePage() {
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('');
   const [trackKey, setTrackKey] = useState('');
+  const [sortOrder, setSortOrder] = useState(0);
   const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
 
+  const [editingLesson, setEditingLesson] = useState<AdminLesson | null>(null);
   const [lessonSlug, setLessonSlug] = useState('');
   const [lessonTitle, setLessonTitle] = useState('');
   const [lessonContent, setLessonContent] = useState('');
   const [lessonDuration, setLessonDuration] = useState(10);
+  const [lessonSortOrder, setLessonSortOrder] = useState(0);
+  const [lessonVideoFile, setLessonVideoFile] = useState<File | null>(null);
+  const [lessonVideoUrl, setLessonVideoUrl] = useState<string | null>(null);
   const [lessonSubmitting, setLessonSubmitting] = useState(false);
+  const [videoBusy, setVideoBusy] = useState(false);
+  const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!lessonVideoFile) {
+      setPreviewObjectUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(lessonVideoFile);
+    setPreviewObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [lessonVideoFile]);
 
   const loadCourse = useCallback(async () => {
     const courses = await api.adminListCourses();
@@ -37,7 +55,9 @@ export default function AdminEditCoursePage() {
     setDescription(found.description);
     setIcon(found.icon);
     setTrackKey(found.trackKey ?? '');
+    setSortOrder(found.sortOrder);
     setPublished(found.published);
+    return found;
   }, [slug, t]);
 
   useEffect(() => {
@@ -47,6 +67,28 @@ export default function AdminEditCoursePage() {
       })
       .finally(() => setLoading(false));
   }, [loadCourse, t]);
+
+  const resetLessonForm = () => {
+    setEditingLesson(null);
+    setLessonSlug('');
+    setLessonTitle('');
+    setLessonContent('');
+    setLessonDuration(10);
+    setLessonSortOrder(0);
+    setLessonVideoFile(null);
+    setLessonVideoUrl(null);
+  };
+
+  const startEditLesson = (lesson: AdminLesson) => {
+    setEditingLesson(lesson);
+    setLessonSlug(lesson.slug);
+    setLessonTitle(lesson.title);
+    setLessonContent(lesson.content);
+    setLessonDuration(lesson.durationMin);
+    setLessonSortOrder(lesson.sortOrder);
+    setLessonVideoFile(null);
+    setLessonVideoUrl(lesson.videoUrl);
+  };
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
@@ -58,6 +100,7 @@ export default function AdminEditCoursePage() {
         description,
         icon,
         trackKey: trackKey || undefined,
+        sortOrder,
         published,
       });
       setCourse(updated);
@@ -67,27 +110,82 @@ export default function AdminEditCoursePage() {
     }
   };
 
-  const handleAddLesson = async (e: FormEvent) => {
+  const handleLessonSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLessonSubmitting(true);
     setError('');
     try {
-      await api.adminCreateLesson(slug, {
+      const payload = {
         slug: lessonSlug,
         title: lessonTitle,
         content: lessonContent,
         durationMin: lessonDuration,
-      });
-      setLessonSlug('');
-      setLessonTitle('');
-      setLessonContent('');
-      setLessonDuration(10);
-      await loadCourse();
-      setSaved(t('admin.courses.lessonAdded'));
+        sortOrder: lessonSortOrder || undefined,
+      };
+      let lesson: AdminLesson;
+      if (editingLesson) {
+        lesson = await api.adminUpdateLesson(slug, editingLesson.slug, payload);
+        setSaved(t('admin.courses.lessonUpdated'));
+      } else {
+        lesson = await api.adminCreateLesson(slug, payload);
+        setSaved(t('admin.courses.lessonAdded'));
+      }
+
+      if (lessonVideoFile) {
+        lesson = await api.adminUploadLessonVideo(slug, lesson.slug, lessonVideoFile);
+        setSaved(t('admin.courses.videoUploaded'));
+      }
+
+      const refreshed = await loadCourse();
+      const next = refreshed.lessons?.find((l) => l.slug === lesson.slug) ?? lesson;
+      if (editingLesson || lessonVideoFile) {
+        startEditLesson(next);
+        setLessonVideoFile(null);
+      } else {
+        resetLessonForm();
+      }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('admin.courses.addLessonError'));
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : editingLesson
+            ? t('admin.courses.updateLessonError')
+            : t('admin.courses.addLessonError'),
+      );
     } finally {
       setLessonSubmitting(false);
+    }
+  };
+
+  const handleDeleteLesson = async (lesson: AdminLesson) => {
+    if (!confirm(t('admin.courses.deleteLessonConfirm', { slug: lesson.slug }))) return;
+    setError('');
+    try {
+      await api.adminDeleteLesson(slug, lesson.slug);
+      if (editingLesson?.id === lesson.id) resetLessonForm();
+      await loadCourse();
+      setSaved(t('admin.courses.lessonDeleted'));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('admin.courses.deleteLessonError'));
+    }
+  };
+
+  const handleRemoveVideo = async () => {
+    if (!editingLesson) return;
+    if (!confirm(t('admin.courses.deleteVideoConfirm'))) return;
+    setVideoBusy(true);
+    setError('');
+    try {
+      const updated = await api.adminDeleteLessonVideo(slug, editingLesson.slug);
+      setLessonVideoUrl(null);
+      setLessonVideoFile(null);
+      setEditingLesson(updated);
+      await loadCourse();
+      setSaved(t('admin.courses.videoRemoved'));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('admin.courses.deleteVideoError'));
+    } finally {
+      setVideoBusy(false);
     }
   };
 
@@ -108,6 +206,7 @@ export default function AdminEditCoursePage() {
   }
 
   const lessons: AdminLesson[] = course.lessons ?? [];
+  const previewSrc = previewObjectUrl ?? mediaUrl(lessonVideoUrl);
 
   return (
     <div className="admin-content">
@@ -143,6 +242,14 @@ export default function AdminEditCoursePage() {
             <span>{t('admin.courses.field.trackKey')}</span>
             <input value={trackKey} onChange={(e) => setTrackKey(e.target.value)} />
           </label>
+          <label className="form-field">
+            <span>{t('admin.courses.field.sortOrder')}</span>
+            <input
+              type="number"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(Number(e.target.value))}
+            />
+          </label>
         </div>
         <label className="admin-checkbox">
           <input
@@ -169,6 +276,8 @@ export default function AdminEditCoursePage() {
                   <th>{t('admin.courses.col.title')}</th>
                   <th>{t('admin.courses.col.slug')}</th>
                   <th>{t('admin.courses.colDuration')}</th>
+                  <th>{t('admin.courses.col.video')}</th>
+                  <th>{t('admin.courses.col.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,6 +288,29 @@ export default function AdminEditCoursePage() {
                       <code>{lesson.slug}</code>
                     </td>
                     <td>{format.durationMinutes(lesson.durationMin)}</td>
+                    <td>
+                      <span className={`admin-badge${lesson.videoUrl ? ' ok' : ''}`}>
+                        {lesson.videoUrl
+                          ? t('admin.courses.videoAttached')
+                          : t('admin.courses.videoNone')}
+                      </span>
+                    </td>
+                    <td className="admin-actions">
+                      <button
+                        type="button"
+                        className="admin-link"
+                        onClick={() => startEditLesson(lesson)}
+                      >
+                        {t('common.edit')}
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-link danger"
+                        onClick={() => handleDeleteLesson(lesson)}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -186,8 +318,12 @@ export default function AdminEditCoursePage() {
           </div>
         )}
 
-        <h3>{t('admin.courses.addLesson')}</h3>
-        <form className="admin-form" onSubmit={handleAddLesson}>
+        <h3>
+          {editingLesson
+            ? t('admin.courses.editLesson', { slug: editingLesson.slug })
+            : t('admin.courses.addLesson')}
+        </h3>
+        <form className="admin-form" onSubmit={handleLessonSubmit}>
           <div className="admin-form-row">
             <label className="form-field">
               <span>{t('admin.courses.lessonSlug')}</span>
@@ -214,6 +350,14 @@ export default function AdminEditCoursePage() {
                 onChange={(e) => setLessonDuration(Number(e.target.value))}
               />
             </label>
+            <label className="form-field">
+              <span>{t('admin.courses.field.sortOrder')}</span>
+              <input
+                type="number"
+                value={lessonSortOrder}
+                onChange={(e) => setLessonSortOrder(Number(e.target.value))}
+              />
+            </label>
           </div>
           <label className="form-field">
             <span>{t('admin.courses.contentMarkdown')}</span>
@@ -225,9 +369,56 @@ export default function AdminEditCoursePage() {
               onChange={(e) => setLessonContent(e.target.value)}
             />
           </label>
-          <button type="submit" className="btn-next" disabled={lessonSubmitting}>
-            {lessonSubmitting ? t('admin.courses.adding') : t('admin.courses.addLesson')}
-          </button>
+
+          <div className="admin-video-block">
+            <span className="admin-video-label">{t('admin.courses.videoLabel')}</span>
+            <p className="admin-sub">{t('admin.courses.videoHint')}</p>
+            <label className="admin-file-input">
+              <Upload size={16} />
+              <span>{t('admin.courses.videoChoose')}</span>
+              <input
+                type="file"
+                accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.ogg,.mov,.m4v"
+                onChange={(e) => setLessonVideoFile(e.target.files?.[0] ?? null)}
+              />
+            </label>
+            {lessonVideoFile && (
+              <p className="admin-sub">
+                {t('admin.courses.videoSelected', { name: lessonVideoFile.name })}
+              </p>
+            )}
+            {previewSrc && (
+              <video className="admin-video-preview" src={previewSrc} controls preload="metadata" />
+            )}
+            {editingLesson?.videoUrl && !lessonVideoFile && (
+              <button
+                type="button"
+                className="admin-link danger"
+                disabled={videoBusy}
+                onClick={handleRemoveVideo}
+              >
+                <Trash2 size={14} />{' '}
+                {videoBusy ? t('admin.courses.videoRemoving') : t('admin.courses.videoRemove')}
+              </button>
+            )}
+          </div>
+
+          <div className="admin-form-actions">
+            <button type="submit" className="btn-next" disabled={lessonSubmitting}>
+              {lessonSubmitting
+                ? editingLesson
+                  ? t('admin.courses.updatingLesson')
+                  : t('admin.courses.adding')
+                : editingLesson
+                  ? t('admin.courses.updateLesson')
+                  : t('admin.courses.addLesson')}
+            </button>
+            {editingLesson && (
+              <button type="button" className="btn-outline-full" onClick={resetLessonForm}>
+                {t('admin.courses.cancelLessonEdit')}
+              </button>
+            )}
+          </div>
         </form>
       </section>
     </div>

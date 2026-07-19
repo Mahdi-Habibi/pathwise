@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ReadinessResult } from '@pathwise/shared';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
 import { computeReadinessResult } from './readiness.utils';
 import { CreateReadinessTestDto } from './dto/create-readiness-test.dto';
 
@@ -15,10 +16,12 @@ export class ReadinessService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly siteSettings: SiteSettingsService,
   ) {}
 
   async create(dto: CreateReadinessTestDto, userId: string): Promise<ReadinessTestResponse> {
-    const result = computeReadinessResult(dto.scores);
+    const settings = await this.siteSettings.get();
+    const result = computeReadinessResult(dto.scores, settings.readiness);
 
     const record = await this.prisma.readinessTest.create({
       data: {

@@ -1,4 +1,5 @@
 import type { ChallengeScoreResult } from '../types/bootcamp';
+import type { SiteBootcampSettings } from '../types/site-settings';
 
 export function scoreFizzBuzz(code: string): number {
   let score = 0;
@@ -9,9 +10,13 @@ export function scoreFizzBuzz(code: string): number {
   return score;
 }
 
-export function buildChallengeResult(code: string): ChallengeScoreResult {
+export function buildChallengeResult(
+  code: string,
+  settings?: Partial<SiteBootcampSettings>,
+): ChallengeScoreResult {
   const score = scoreFizzBuzz(code);
-  const topScore = score >= 75;
+  const unlockThreshold = settings?.unlockScoreThreshold ?? 75;
+  const topScore = score >= unlockThreshold;
 
   if (topScore) {
     return {

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { CheckoutDto, PaymentResponse, RoadmapResponse } from '@pathwise/shared';
-import { PRODUCT_PRICES } from '@pathwise/shared';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
 import type Stripe from 'stripe';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,6 +14,7 @@ export class PaymentsService {
     private readonly stripeService: StripeService,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly siteSettings: SiteSettingsService,
   ) {}
 
   async createCheckout(userId: string, dto: CheckoutDto): Promise<PaymentResponse> {
@@ -157,15 +158,17 @@ export class PaymentsService {
   }
 
   private async resolveAmountCents(dto: CheckoutDto): Promise<number> {
+    const settings = await this.siteSettings.get();
+
     if (dto.productType === 'READINESS_TEST') {
-      return PRODUCT_PRICES.READINESS_TEST;
+      return settings.pricing.readinessTestCents;
     }
 
     if (dto.productType === 'COURSE') {
       if (!dto.productRef) {
         throw new BadRequestException('productRef is required for COURSE checkout');
       }
-      return PRODUCT_PRICES.COURSE;
+      return settings.pricing.courseCents;
     }
 
     if (dto.productType === 'ROADMAP_BUNDLE') {

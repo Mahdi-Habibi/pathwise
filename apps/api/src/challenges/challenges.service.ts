@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ChallengeScoreResult } from '@pathwise/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
 import { buildChallengeResult } from './challenge.utils';
 import { CreateChallengeSubmissionDto } from './dto/create-challenge-submission.dto';
 
@@ -11,13 +12,17 @@ export interface ChallengeSubmissionResponse extends ChallengeScoreResult {
 
 @Injectable()
 export class ChallengesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly siteSettings: SiteSettingsService,
+  ) {}
 
   async create(
     dto: CreateChallengeSubmissionDto,
     userId: string,
   ): Promise<ChallengeSubmissionResponse> {
-    const result = buildChallengeResult(dto.code);
+    const settings = await this.siteSettings.get();
+    const result = buildChallengeResult(dto.code, settings.bootcamp);
 
     const record = await this.prisma.challengeSubmission.create({
       data: {
@@ -34,6 +39,28 @@ export class ChallengesService {
         where: { userId },
         data: { rank: 1, points: result.score },
       });
+
+      const course = await this.prisma.course.findUnique({
+        where: { slug: settings.bootcamp.unlockCourseSlug },
+      });
+      if (course) {
+        await this.prisma.entitlement.upsert({
+          where: {
+            userId_resourceType_resourceId: {
+              userId,
+              resourceType: 'course',
+              resourceId: course.slug,
+            },
+          },
+          create: {
+            userId,
+            resourceType: 'course',
+            resourceId: course.slug,
+            source: 'CHALLENGE',
+          },
+          update: {},
+        });
+      }
     }
 
     return {

@@ -16,6 +16,7 @@ export interface AdminLesson {
   slug: string;
   title: string;
   content: string;
+  videoUrl: string | null;
   durationMin: number;
   sortOrder: number;
 }
@@ -86,3 +87,5 @@ export interface CreateChallengeDto {
 }
 
 export type UpdateChallengeDto = Partial<CreateChallengeDto>;
+
+export type UpdateLessonDto = Partial<CreateLessonDto>;

@@ -19,8 +19,11 @@ import type {
   ReadinessScores,
   RegisterDto,
   RoadmapResponse,
+  SiteSettings,
   UpdateChallengeDto,
   UpdateCourseDto,
+  UpdateLessonDto,
+  UpdateSiteSettingsDto,
   UserRole,
   AdminStats,
   AdminCourse,
@@ -29,16 +32,18 @@ import type {
   AdminUser,
 } from '@pathwise/shared';
 import {
-  PRODUCT_PRICES,
   buildRoadmapFromAnswers,
   computeReadinessResult,
   buildChallengeResult,
+  createDefaultSiteSettings,
+  mergeSiteSettings,
 } from '@pathwise/shared';
 import { ApiError } from '@/lib/apiError';
 import { clearTokens, setAccessToken } from '@/lib/auth';
 
 const DEMO_SESSION_KEY = 'pathwise-demo-session';
 const DEMO_STATE_KEY = 'pathwise-demo-state';
+const DEMO_SETTINGS_KEY = 'pathwise-demo-settings';
 
 const DEMO_LEARNER: AuthUser = {
   id: 'demo-learner',
@@ -61,6 +66,7 @@ interface DemoLesson {
   durationMin: number;
   content: string;
   sortOrder: number;
+  videoUrl: string | null;
 }
 
 interface DemoCourse {
@@ -110,6 +116,7 @@ function defaultCourses(): DemoCourse[] {
           slug: 'variables-and-types',
           title: 'Variables & Types',
           durationMin: 12,
+          videoUrl: null,
           sortOrder: 1,
           content: `# Variables & Types
 
@@ -128,6 +135,7 @@ Declare a \`const\` for your name and a \`let\` counter starting at zero.`,
           slug: 'functions-and-scope',
           title: 'Functions & Scope',
           durationMin: 15,
+          videoUrl: null,
           sortOrder: 2,
           content: `# Functions & Scope
 
@@ -146,6 +154,7 @@ Write a function \`greet(name)\` that returns a greeting string.`,
           slug: 'async-await',
           title: 'Async/Await',
           durationMin: 18,
+          videoUrl: null,
           sortOrder: 3,
           content: `# Async/Await
 
@@ -176,6 +185,7 @@ Fetch JSON from an API and log the first item.`,
           slug: 'portfolio-story',
           title: 'Portfolio Story',
           durationMin: 14,
+          videoUrl: null,
           sortOrder: 1,
           content: `# Portfolio Story
 
@@ -191,6 +201,7 @@ Your portfolio should tell a clear story: who you are, what you build, and why i
           slug: 'interview-framework',
           title: 'Interview Framework',
           durationMin: 16,
+          videoUrl: null,
           sortOrder: 2,
           content: `# Interview Framework
 
@@ -379,10 +390,22 @@ export const demoApi = {
   async checkout(dto: CheckoutDto): Promise<PaymentResponse> {
     requireUser();
     const state = readState();
+    const settings = readDemoSettings();
+    let amountCents = 0;
+    if (dto.productType === 'READINESS_TEST') amountCents = settings.pricing.readinessTestCents;
+    else if (dto.productType === 'COURSE') amountCents = settings.pricing.courseCents;
+    else if (dto.productType === 'ROADMAP_BUNDLE') {
+      const answers = state.lastAnswers ?? defaultState().lastAnswers!;
+      const roadmap = buildRoadmapFromAnswers(answers, false, 'local', {
+        tracks: settings.tracks,
+        pricing: settings.pricing,
+      });
+      amountCents = roadmap.pricing.discounted * 100;
+    }
     const payment: PaymentResponse = {
       id: `pay-${Date.now()}`,
       productType: dto.productType,
-      amountCents: PRODUCT_PRICES[dto.productType] ?? 0,
+      amountCents,
       currency: 'usd',
       status: 'COMPLETED',
     };
@@ -425,6 +448,7 @@ export const demoApi = {
       title: l.title,
       durationMin: l.durationMin,
       completed: state.completedLessons.includes(lessonKey(slug, l.slug)),
+      hasVideo: Boolean(l.videoUrl),
     }));
     return delay({ ...toCourseSummary(course), lessons });
   },
@@ -442,7 +466,9 @@ export const demoApi = {
       title: lesson.title,
       durationMin: lesson.durationMin,
       completed: state.completedLessons.includes(lessonKey(courseSlug, lessonSlug)),
+      hasVideo: Boolean(lesson.videoUrl),
       content: lesson.content,
+      videoUrl: lesson.videoUrl,
       courseSlug,
       courseTitle: course.title,
       prevSlug: index > 0 ? course.lessons[index - 1].slug : null,
@@ -493,7 +519,13 @@ export const demoApi = {
     state.hasRoadmap = true;
     state.roadmapId = `roadmap-${Date.now()}`;
     writeState(state);
-    return delay(buildRoadmapFromAnswers(answers, state.roadmapEnrolled, state.roadmapId));
+    const settings = readDemoSettings();
+    return delay(
+      buildRoadmapFromAnswers(answers, state.roadmapEnrolled, state.roadmapId, {
+        tracks: settings.tracks,
+        pricing: settings.pricing,
+      }),
+    );
   },
 
   async enrollRoadmap(roadmapId: string): Promise<RoadmapResponse> {
@@ -504,14 +536,21 @@ export const demoApi = {
     state.roadmapId = roadmapId;
     writeState(state);
     const answers = state.lastAnswers ?? defaultState().lastAnswers!;
-    return delay(buildRoadmapFromAnswers(answers, true, roadmapId));
+    const settings = readDemoSettings();
+    return delay(
+      buildRoadmapFromAnswers(answers, true, roadmapId, {
+        tracks: settings.tracks,
+        pricing: settings.pricing,
+      }),
+    );
   },
 
   async saveReadinessTest(scores: ReadinessScores): Promise<ReadinessResult> {
     requireUser();
     const state = readState();
     if (!state.readinessPaid) throw new ApiError('Readiness test not purchased', 402);
-    const result = computeReadinessResult(scores);
+    const settings = readDemoSettings();
+    const result = computeReadinessResult(scores, settings.readiness);
     state.testCompleted = true;
     writeState(state);
     return delay(result);
@@ -519,7 +558,8 @@ export const demoApi = {
 
   async submitChallenge(code: string): Promise<ChallengeScoreResult> {
     requireUser();
-    return delay(buildChallengeResult(code));
+    const settings = readDemoSettings();
+    return delay(buildChallengeResult(code, settings.bootcamp));
   },
 
   async adminStats(): Promise<AdminStats> {
@@ -556,6 +596,7 @@ export const demoApi = {
             slug: l.slug,
             title: l.title,
             content: l.content,
+            videoUrl: l.videoUrl,
             durationMin: l.durationMin,
             sortOrder: l.sortOrder,
           }),
@@ -582,6 +623,7 @@ export const demoApi = {
         content: l.content,
         durationMin: l.durationMin ?? 10,
         sortOrder: l.sortOrder ?? i + 1,
+        videoUrl: null,
       })),
     };
     courses = [...courses, course];
@@ -642,9 +684,64 @@ export const demoApi = {
       content: dto.content,
       durationMin: dto.durationMin ?? 10,
       sortOrder: dto.sortOrder ?? course.lessons.length + 1,
+      videoUrl: null,
     };
     course.lessons = [...course.lessons, lesson];
     return delay(lesson);
+  },
+
+  async adminUpdateLesson(
+    courseSlug: string,
+    lessonSlug: string,
+    dto: UpdateLessonDto,
+  ): Promise<AdminLesson> {
+    requireUser();
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const index = course.lessons.findIndex((l) => l.slug === lessonSlug);
+    if (index < 0) throw new ApiError('Lesson not found', 404);
+    const current = course.lessons[index];
+    if (dto.slug && dto.slug !== lessonSlug && course.lessons.some((l) => l.slug === dto.slug)) {
+      throw new ApiError('Lesson slug already exists', 409);
+    }
+    const updated: DemoLesson = { ...current, ...dto };
+    course.lessons = course.lessons.map((l, i) => (i === index ? updated : l));
+    return delay(updated);
+  },
+
+  async adminDeleteLesson(courseSlug: string, lessonSlug: string): Promise<void> {
+    requireUser();
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    course.lessons = course.lessons.filter((l) => l.slug !== lessonSlug);
+    await delay(undefined);
+  },
+
+  async adminUploadLessonVideo(
+    courseSlug: string,
+    lessonSlug: string,
+    file: File,
+  ): Promise<AdminLesson> {
+    requireUser();
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const index = course.lessons.findIndex((l) => l.slug === lessonSlug);
+    if (index < 0) throw new ApiError('Lesson not found', 404);
+    const videoUrl = await fileToDataUrl(file);
+    const updated = { ...course.lessons[index], videoUrl };
+    course.lessons = course.lessons.map((l, i) => (i === index ? updated : l));
+    return delay(updated);
+  },
+
+  async adminDeleteLessonVideo(courseSlug: string, lessonSlug: string): Promise<AdminLesson> {
+    requireUser();
+    const course = courses.find((c) => c.slug === courseSlug);
+    if (!course) throw new ApiError('Course not found', 404);
+    const index = course.lessons.findIndex((l) => l.slug === lessonSlug);
+    if (index < 0) throw new ApiError('Lesson not found', 404);
+    const updated = { ...course.lessons[index], videoUrl: null };
+    course.lessons = course.lessons.map((l, i) => (i === index ? updated : l));
+    return delay(updated);
   },
 
   async adminListChallenges(): Promise<AdminChallenge[]> {
@@ -678,6 +775,12 @@ export const demoApi = {
     return delay(updated);
   },
 
+  async adminDeleteChallenge(slug: string): Promise<void> {
+    requireUser();
+    challenges = challenges.filter((c) => c.slug !== slug);
+    await delay(undefined);
+  },
+
   async adminListUsers(): Promise<AdminUser[]> {
     requireUser();
     return delay([
@@ -705,7 +808,53 @@ export const demoApi = {
     if (!user) throw new ApiError('User not found', 404);
     return delay({ ...user, role });
   },
+
+  async getSettings(): Promise<SiteSettings> {
+    return delay(readDemoSettings());
+  },
+
+  async adminGetSettings(): Promise<SiteSettings> {
+    requireUser();
+    return delay(readDemoSettings());
+  },
+
+  async adminUpdateSettings(dto: UpdateSiteSettingsDto): Promise<SiteSettings> {
+    requireUser();
+    const next = mergeSiteSettings(readDemoSettings(), dto);
+    writeDemoSettings(next);
+    return delay(next);
+  },
 };
+
+function readDemoSettings(): SiteSettings {
+  if (typeof window === 'undefined') return createDefaultSiteSettings();
+  try {
+    const raw = localStorage.getItem(DEMO_SETTINGS_KEY);
+    if (!raw) return createDefaultSiteSettings();
+    return mergeSiteSettings(createDefaultSiteSettings(), JSON.parse(raw) as SiteSettings);
+  } catch {
+    return createDefaultSiteSettings();
+  }
+}
+
+function writeDemoSettings(settings: SiteSettings): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(DEMO_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+
+function fileToDataUrl(file: File): Promise<string> {
+  const maxBytes = 25 * 1024 * 1024;
+  if (file.size > maxBytes) {
+    return Promise.reject(new ApiError('Demo mode supports videos up to 25 MB', 400));
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new ApiError('Failed to read video file', 400));
+    reader.readAsDataURL(file);
+  });
+}
 
 /** Ensure a signed-in demo session exists for browsing the full static site. */
 export function ensureDemoSession(): AuthUser {

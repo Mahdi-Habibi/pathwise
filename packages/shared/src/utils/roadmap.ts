@@ -2,8 +2,14 @@ import { GOAL_LABEL, STYLE_LABEL } from '../constants/labels';
 import { MODULE_PRICES, TRACKS } from '../constants/tracks';
 import type { AssessmentAnswers } from '../types/assessment';
 import type { RoadmapResponse, TrackKey } from '../types/roadmap';
+import type { SitePricingSettings, SiteTrackSettings } from '../types/site-settings';
 
 export type SkillLevelKey = 'absoluteBeginner' | 'confidentBeginner' | 'earlyIntermediate';
+
+export interface BuildRoadmapOptions {
+  tracks?: SiteTrackSettings[];
+  pricing?: Pick<SitePricingSettings, 'modulePrices' | 'bundleDiscountPercent'>;
+}
 
 export function skillLevel(skills: AssessmentAnswers['skills']): SkillLevelKey {
   const vals = Object.values(skills);
@@ -13,16 +19,33 @@ export function skillLevel(skills: AssessmentAnswers['skills']): SkillLevelKey {
   return 'earlyIntermediate';
 }
 
+function resolveTrack(
+  key: string,
+  tracks?: SiteTrackSettings[],
+): { name: string; modules: string[] } {
+  if (tracks?.length) {
+    const found = tracks.find((t) => t.key === key) ?? tracks[0];
+    if (found) return { name: found.name, modules: found.modules };
+  }
+  const fallback = TRACKS[key as TrackKey] ?? TRACKS.web;
+  return { name: fallback.name, modules: fallback.modules };
+}
+
 export function buildRoadmapFromAnswers(
   answers: AssessmentAnswers,
   enrolled = false,
   id = 'local',
+  options?: BuildRoadmapOptions,
 ): RoadmapResponse {
-  const primary = (answers.interests[0] || 'web') as TrackKey;
-  const track = TRACKS[primary];
+  const primary = (answers.interests[0] || options?.tracks?.[0]?.key || 'web') as TrackKey;
+  const track = resolveTrack(primary, options?.tracks);
   const level = skillLevel(answers.skills);
-  const total = MODULE_PRICES.reduce((a, b) => a + b, 0);
-  const discounted = Math.round(total * 0.8);
+  const modulePrices = options?.pricing?.modulePrices?.length
+    ? options.pricing.modulePrices
+    : MODULE_PRICES;
+  const discountPercent = options?.pricing?.bundleDiscountPercent ?? 20;
+  const total = modulePrices.reduce((a, b) => a + b, 0);
+  const discounted = Math.round(total * (1 - discountPercent / 100));
 
   return {
     id,
@@ -37,7 +60,7 @@ export function buildRoadmapFromAnswers(
       hours: answers.hours,
     },
     pricing: {
-      individual: MODULE_PRICES,
+      individual: [...modulePrices],
       total,
       discounted,
     },

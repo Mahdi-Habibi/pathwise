@@ -1,7 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { MAX_LESSON_VIDEO_BYTES } from '../media/media-storage.service';
 import { AdminService } from './admin.service';
 import {
   AdminCreateChallengeDto,
@@ -9,6 +23,7 @@ import {
   AdminCreateLessonDto,
   AdminUpdateChallengeDto,
   AdminUpdateCourseDto,
+  AdminUpdateLessonDto,
   AdminUpdateUserRoleDto,
 } from './dto/admin.dto';
 
@@ -48,6 +63,40 @@ export class AdminController {
     return this.adminService.createLesson(slug, dto);
   }
 
+  @Patch('courses/:slug/lessons/:lessonSlug')
+  updateLesson(
+    @Param('slug') slug: string,
+    @Param('lessonSlug') lessonSlug: string,
+    @Body() dto: AdminUpdateLessonDto,
+  ) {
+    return this.adminService.updateLesson(slug, lessonSlug, dto);
+  }
+
+  @Delete('courses/:slug/lessons/:lessonSlug')
+  deleteLesson(@Param('slug') slug: string, @Param('lessonSlug') lessonSlug: string) {
+    return this.adminService.deleteLesson(slug, lessonSlug);
+  }
+
+  @Post('courses/:slug/lessons/:lessonSlug/video')
+  @UseInterceptors(
+    FileInterceptor('video', {
+      storage: memoryStorage(),
+      limits: { fileSize: MAX_LESSON_VIDEO_BYTES },
+    }),
+  )
+  uploadLessonVideo(
+    @Param('slug') slug: string,
+    @Param('lessonSlug') lessonSlug: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.adminService.uploadLessonVideo(slug, lessonSlug, file);
+  }
+
+  @Delete('courses/:slug/lessons/:lessonSlug/video')
+  deleteLessonVideo(@Param('slug') slug: string, @Param('lessonSlug') lessonSlug: string) {
+    return this.adminService.deleteLessonVideo(slug, lessonSlug);
+  }
+
   @Get('challenges')
   listChallenges() {
     return this.adminService.listChallenges();
@@ -61,6 +110,11 @@ export class AdminController {
   @Patch('challenges/:slug')
   updateChallenge(@Param('slug') slug: string, @Body() dto: AdminUpdateChallengeDto) {
     return this.adminService.updateChallenge(slug, dto);
+  }
+
+  @Delete('challenges/:slug')
+  deleteChallenge(@Param('slug') slug: string) {
+    return this.adminService.deleteChallenge(slug);
   }
 
   @Get('users')

@@ -16,6 +16,7 @@ import { ChallengesModule } from './challenges/challenges.module';
 import { StripeModule } from './stripe/stripe.module';
 import { EmailModule } from './email/email.module';
 import { AdminModule } from './admin/admin.module';
+import { SiteSettingsModule } from './site-settings/site-settings.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AdminModule } from './admin/admin.module';
     StripeModule,
     EmailModule,
     AdminModule,
+    SiteSettingsModule,
   ],
   providers: [
     {

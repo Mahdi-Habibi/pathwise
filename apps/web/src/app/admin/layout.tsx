@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, BookOpen, Shield, Trophy, Users } from 'lucide-react';
+import { BarChart3, BookOpen, Settings, Shield, Trophy, Users } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
@@ -15,6 +15,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const nav = [
     { href: '/admin', label: t('admin.nav.stats'), icon: BarChart3, exact: true },
+    { href: '/admin/settings', label: t('admin.nav.settings'), icon: Settings },
     { href: '/admin/courses', label: t('admin.nav.courses'), icon: BookOpen },
     { href: '/admin/challenges', label: t('admin.nav.challenges'), icon: Trophy },
     { href: '/admin/users', label: t('admin.nav.users'), icon: Users },

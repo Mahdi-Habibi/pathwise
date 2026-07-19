@@ -70,6 +70,7 @@ export class CoursesService {
       title: lesson.title,
       durationMin: lesson.durationMin,
       completed: completedLessonIds.has(lesson.id),
+      hasVideo: Boolean(lesson.videoUrl),
     }));
 
     const enrolled = course.enrollments.length > 0;
@@ -126,7 +127,9 @@ export class CoursesService {
       title: lesson.title,
       durationMin: lesson.durationMin,
       completed: progress?.completed ?? false,
+      hasVideo: Boolean(lesson.videoUrl),
       content: lesson.content,
+      videoUrl: lesson.videoUrl ?? null,
       courseSlug: course.slug,
       courseTitle: course.title,
       prevSlug: prevLesson?.slug ?? null,

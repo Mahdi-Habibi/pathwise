@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsObject,
   IsOptional,
+  IsString,
   Max,
   Min,
   ValidateNested,
@@ -18,7 +19,6 @@ import type {
 } from '@pathwise/shared';
 
 const GOALS = ['job', 'startup', 'freelance', 'fun'] as const;
-const INTERESTS = ['web', 'ai', 'mobile', 'game', 'data', 'backend'] as const;
 const STYLES = ['video', 'reading', 'building'] as const;
 
 export class PersonalityAnswersDto {
@@ -46,7 +46,7 @@ export class AssessmentAnswersDto implements AssessmentAnswers {
   personality!: PersonalityAnswersDto;
 
   @IsArray()
-  @IsEnum(INTERESTS, { each: true })
+  @IsString({ each: true })
   interests!: Interest[];
 
   @IsOptional()

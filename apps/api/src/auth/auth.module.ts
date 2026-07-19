@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { EmailModule } from '../email/email.module';
+import { SiteSettingsModule } from '../site-settings/site-settings.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtRefreshStrategy } from './jwt-refresh.strategy';
@@ -12,6 +13,7 @@ import { parseExpiresInSeconds } from './auth.utils';
 @Module({
   imports: [
     EmailModule,
+    SiteSettingsModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
