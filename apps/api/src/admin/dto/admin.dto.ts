@@ -162,3 +162,26 @@ export class AdminUpdateUserRoleDto {
   @IsString()
   role!: 'LEARNER' | 'ADMIN';
 }
+
+export class AdminUpdateLessonDto {
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  content?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationMin?: number;
+
+  @IsOptional()
+  @IsInt()
+  sortOrder?: number;
+}

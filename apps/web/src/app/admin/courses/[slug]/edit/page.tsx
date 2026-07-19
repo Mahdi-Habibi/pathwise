@@ -17,15 +17,18 @@ export default function AdminEditCoursePage() {
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('');
   const [trackKey, setTrackKey] = useState('');
+  const [sortOrder, setSortOrder] = useState(0);
   const [published, setPublished] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
 
+  const [editingLesson, setEditingLesson] = useState<AdminLesson | null>(null);
   const [lessonSlug, setLessonSlug] = useState('');
   const [lessonTitle, setLessonTitle] = useState('');
   const [lessonContent, setLessonContent] = useState('');
   const [lessonDuration, setLessonDuration] = useState(10);
+  const [lessonSortOrder, setLessonSortOrder] = useState(0);
   const [lessonSubmitting, setLessonSubmitting] = useState(false);
 
   const loadCourse = useCallback(async () => {
@@ -37,6 +40,7 @@ export default function AdminEditCoursePage() {
     setDescription(found.description);
     setIcon(found.icon);
     setTrackKey(found.trackKey ?? '');
+    setSortOrder(found.sortOrder);
     setPublished(found.published);
   }, [slug, t]);
 
@@ -48,6 +52,24 @@ export default function AdminEditCoursePage() {
       .finally(() => setLoading(false));
   }, [loadCourse, t]);
 
+  const resetLessonForm = () => {
+    setEditingLesson(null);
+    setLessonSlug('');
+    setLessonTitle('');
+    setLessonContent('');
+    setLessonDuration(10);
+    setLessonSortOrder(0);
+  };
+
+  const startEditLesson = (lesson: AdminLesson) => {
+    setEditingLesson(lesson);
+    setLessonSlug(lesson.slug);
+    setLessonTitle(lesson.title);
+    setLessonContent(lesson.content);
+    setLessonDuration(lesson.durationMin);
+    setLessonSortOrder(lesson.sortOrder);
+  };
+
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -58,6 +80,7 @@ export default function AdminEditCoursePage() {
         description,
         icon,
         trackKey: trackKey || undefined,
+        sortOrder,
         published,
       });
       setCourse(updated);
@@ -67,27 +90,50 @@ export default function AdminEditCoursePage() {
     }
   };
 
-  const handleAddLesson = async (e: FormEvent) => {
+  const handleLessonSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLessonSubmitting(true);
     setError('');
     try {
-      await api.adminCreateLesson(slug, {
+      const payload = {
         slug: lessonSlug,
         title: lessonTitle,
         content: lessonContent,
         durationMin: lessonDuration,
-      });
-      setLessonSlug('');
-      setLessonTitle('');
-      setLessonContent('');
-      setLessonDuration(10);
+        sortOrder: lessonSortOrder || undefined,
+      };
+      if (editingLesson) {
+        await api.adminUpdateLesson(slug, editingLesson.slug, payload);
+        setSaved(t('admin.courses.lessonUpdated'));
+      } else {
+        await api.adminCreateLesson(slug, payload);
+        setSaved(t('admin.courses.lessonAdded'));
+      }
+      resetLessonForm();
       await loadCourse();
-      setSaved(t('admin.courses.lessonAdded'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('admin.courses.addLessonError'));
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : editingLesson
+            ? t('admin.courses.updateLessonError')
+            : t('admin.courses.addLessonError'),
+      );
     } finally {
       setLessonSubmitting(false);
+    }
+  };
+
+  const handleDeleteLesson = async (lesson: AdminLesson) => {
+    if (!confirm(t('admin.courses.deleteLessonConfirm', { slug: lesson.slug }))) return;
+    setError('');
+    try {
+      await api.adminDeleteLesson(slug, lesson.slug);
+      if (editingLesson?.id === lesson.id) resetLessonForm();
+      await loadCourse();
+      setSaved(t('admin.courses.lessonDeleted'));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('admin.courses.deleteLessonError'));
     }
   };
 
@@ -143,6 +189,14 @@ export default function AdminEditCoursePage() {
             <span>{t('admin.courses.field.trackKey')}</span>
             <input value={trackKey} onChange={(e) => setTrackKey(e.target.value)} />
           </label>
+          <label className="form-field">
+            <span>{t('admin.courses.field.sortOrder')}</span>
+            <input
+              type="number"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(Number(e.target.value))}
+            />
+          </label>
         </div>
         <label className="admin-checkbox">
           <input
@@ -169,6 +223,7 @@ export default function AdminEditCoursePage() {
                   <th>{t('admin.courses.col.title')}</th>
                   <th>{t('admin.courses.col.slug')}</th>
                   <th>{t('admin.courses.colDuration')}</th>
+                  <th>{t('admin.courses.col.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,6 +234,22 @@ export default function AdminEditCoursePage() {
                       <code>{lesson.slug}</code>
                     </td>
                     <td>{format.durationMinutes(lesson.durationMin)}</td>
+                    <td className="admin-actions">
+                      <button
+                        type="button"
+                        className="admin-link"
+                        onClick={() => startEditLesson(lesson)}
+                      >
+                        {t('common.edit')}
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-link danger"
+                        onClick={() => handleDeleteLesson(lesson)}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -186,8 +257,12 @@ export default function AdminEditCoursePage() {
           </div>
         )}
 
-        <h3>{t('admin.courses.addLesson')}</h3>
-        <form className="admin-form" onSubmit={handleAddLesson}>
+        <h3>
+          {editingLesson
+            ? t('admin.courses.editLesson', { slug: editingLesson.slug })
+            : t('admin.courses.addLesson')}
+        </h3>
+        <form className="admin-form" onSubmit={handleLessonSubmit}>
           <div className="admin-form-row">
             <label className="form-field">
               <span>{t('admin.courses.lessonSlug')}</span>
@@ -214,6 +289,14 @@ export default function AdminEditCoursePage() {
                 onChange={(e) => setLessonDuration(Number(e.target.value))}
               />
             </label>
+            <label className="form-field">
+              <span>{t('admin.courses.field.sortOrder')}</span>
+              <input
+                type="number"
+                value={lessonSortOrder}
+                onChange={(e) => setLessonSortOrder(Number(e.target.value))}
+              />
+            </label>
           </div>
           <label className="form-field">
             <span>{t('admin.courses.contentMarkdown')}</span>
@@ -225,9 +308,22 @@ export default function AdminEditCoursePage() {
               onChange={(e) => setLessonContent(e.target.value)}
             />
           </label>
-          <button type="submit" className="btn-next" disabled={lessonSubmitting}>
-            {lessonSubmitting ? t('admin.courses.adding') : t('admin.courses.addLesson')}
-          </button>
+          <div className="admin-form-actions">
+            <button type="submit" className="btn-next" disabled={lessonSubmitting}>
+              {lessonSubmitting
+                ? editingLesson
+                  ? t('admin.courses.updatingLesson')
+                  : t('admin.courses.adding')
+                : editingLesson
+                  ? t('admin.courses.updateLesson')
+                  : t('admin.courses.addLesson')}
+            </button>
+            {editingLesson && (
+              <button type="button" className="btn-outline-full" onClick={resetLessonForm}>
+                {t('admin.courses.cancelLessonEdit')}
+              </button>
+            )}
+          </div>
         </form>
       </section>
     </div>

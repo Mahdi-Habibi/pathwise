@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { createDefaultSiteSettings } from '@pathwise/shared';
 
 const prisma = new PrismaClient();
 
@@ -287,6 +288,14 @@ Use STAR (Situation, Task, Action, Result) to answer behavioral questions.
   console.log(`  Password: ${SEED_PASSWORD}`);
   console.log(`Seeded courses: javascript-core, interview-branding`);
   console.log(`Seeded challenge: fizzbuzz`);
+
+  const defaults = createDefaultSiteSettings();
+  await prisma.siteSetting.upsert({
+    where: { key: 'site' },
+    create: { key: 'site', value: JSON.stringify(defaults) },
+    update: {},
+  });
+  console.log('Seeded site settings');
 }
 
 main()

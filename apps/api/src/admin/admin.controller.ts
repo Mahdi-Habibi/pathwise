@@ -9,6 +9,7 @@ import {
   AdminCreateLessonDto,
   AdminUpdateChallengeDto,
   AdminUpdateCourseDto,
+  AdminUpdateLessonDto,
   AdminUpdateUserRoleDto,
 } from './dto/admin.dto';
 
@@ -48,6 +49,20 @@ export class AdminController {
     return this.adminService.createLesson(slug, dto);
   }
 
+  @Patch('courses/:slug/lessons/:lessonSlug')
+  updateLesson(
+    @Param('slug') slug: string,
+    @Param('lessonSlug') lessonSlug: string,
+    @Body() dto: AdminUpdateLessonDto,
+  ) {
+    return this.adminService.updateLesson(slug, lessonSlug, dto);
+  }
+
+  @Delete('courses/:slug/lessons/:lessonSlug')
+  deleteLesson(@Param('slug') slug: string, @Param('lessonSlug') lessonSlug: string) {
+    return this.adminService.deleteLesson(slug, lessonSlug);
+  }
+
   @Get('challenges')
   listChallenges() {
     return this.adminService.listChallenges();
@@ -61,6 +76,11 @@ export class AdminController {
   @Patch('challenges/:slug')
   updateChallenge(@Param('slug') slug: string, @Body() dto: AdminUpdateChallengeDto) {
     return this.adminService.updateChallenge(slug, dto);
+  }
+
+  @Delete('challenges/:slug')
+  deleteChallenge(@Param('slug') slug: string) {
+    return this.adminService.deleteChallenge(slug);
   }
 
   @Get('users')

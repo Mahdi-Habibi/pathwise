@@ -1,0 +1,690 @@
+'use client';
+
+import Link from 'next/link';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { createDefaultSiteSettings, type SiteSettings, type SiteTrackSettings } from '@pathwise/shared';
+import { useLanguage } from '@/context/LanguageProvider';
+import { api, ApiError, type AdminCourse } from '@/lib/api';
+
+type Section = 'general' | 'pricing' | 'tracks' | 'readiness' | 'bootcamp' | 'courses';
+
+export default function AdminSettingsPage() {
+  const { t } = useLanguage();
+  const [section, setSection] = useState<Section>('general');
+  const [settings, setSettings] = useState<SiteSettings>(createDefaultSiteSettings());
+  const [courses, setCourses] = useState<AdminCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState('');
+
+  const sections = useMemo(
+    () =>
+      [
+        { id: 'general' as const, label: t('admin.settings.nav.general') },
+        { id: 'pricing' as const, label: t('admin.settings.nav.pricing') },
+        { id: 'tracks' as const, label: t('admin.settings.nav.tracks') },
+        { id: 'readiness' as const, label: t('admin.settings.nav.readiness') },
+        { id: 'bootcamp' as const, label: t('admin.settings.nav.bootcamp') },
+        { id: 'courses' as const, label: t('admin.settings.nav.courses') },
+      ] as const,
+    [t],
+  );
+
+  const load = useCallback(async () => {
+    const [nextSettings, nextCourses] = await Promise.all([
+      api.adminGetSettings(),
+      api.adminListCourses(),
+    ]);
+    setSettings(nextSettings);
+    setCourses(nextCourses);
+  }, []);
+
+  useEffect(() => {
+    load()
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : t('admin.settings.loadError'));
+      })
+      .finally(() => setLoading(false));
+  }, [load, t]);
+
+  const persist = async (patch: Partial<SiteSettings>) => {
+    setSaving(true);
+    setError('');
+    setSaved('');
+    try {
+      const updated = await api.adminUpdateSettings(patch);
+      setSettings(updated);
+      setSaved(t('admin.settings.saved'));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('admin.settings.saveError'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveSection = async (e: FormEvent) => {
+    e.preventDefault();
+    if (section === 'general') await persist({ general: settings.general });
+    if (section === 'pricing') await persist({ pricing: settings.pricing });
+    if (section === 'tracks') await persist({ tracks: settings.tracks });
+    if (section === 'readiness') await persist({ readiness: settings.readiness });
+    if (section === 'bootcamp') await persist({ bootcamp: settings.bootcamp });
+  };
+
+  const handleDeleteCourse = async (slug: string) => {
+    if (!confirm(t('admin.courses.deleteConfirm', { slug }))) return;
+    try {
+      await api.adminDeleteCourse(slug);
+      setCourses((prev) => prev.filter((c) => c.slug !== slug));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('admin.courses.deleteError'));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="admin-content auth-loading">
+        <Loader2 size={24} className="spin" /> {t('admin.settings.loading')}
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-content">
+      <h1>{t('admin.settings.title')}</h1>
+      <p className="admin-sub">{t('admin.settings.sub')}</p>
+
+      <div className="admin-settings-tabs">
+        {sections.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`admin-settings-tab${section === item.id ? ' active' : ''}`}
+            onClick={() => {
+              setSection(item.id);
+              setSaved('');
+              setError('');
+            }}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {error && <p className="form-error">{error}</p>}
+      {saved && <p className="form-success">{saved}</p>}
+
+      {section === 'courses' ? (
+        <section className="admin-section">
+          <div className="admin-header-row">
+            <div>
+              <h2>{t('admin.courses.title')}</h2>
+              <p className="admin-sub">{t('admin.courses.sub')}</p>
+            </div>
+            <Link href="/admin/courses/new" className="btn-next admin-btn">
+              <Plus size={16} /> {t('admin.courses.new')}
+            </Link>
+          </div>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>{t('admin.courses.col.title')}</th>
+                  <th>{t('admin.courses.col.slug')}</th>
+                  <th>{t('admin.courses.col.lessons')}</th>
+                  <th>{t('admin.courses.col.status')}</th>
+                  <th>{t('admin.courses.col.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {courses.map((course) => (
+                  <tr key={course.id}>
+                    <td>
+                      <span className="admin-table-icon">{course.icon || '📘'}</span>
+                      {course.title}
+                    </td>
+                    <td>
+                      <code>{course.slug}</code>
+                    </td>
+                    <td>{course.lessonCount ?? course.lessons?.length ?? 0}</td>
+                    <td>
+                      <span className={`admin-badge${course.published ? ' ok' : ''}`}>
+                        {course.published
+                          ? t('domain.courseStatuses.published')
+                          : t('domain.courseStatuses.draft')}
+                      </span>
+                    </td>
+                    <td className="admin-actions">
+                      <Link href={`/admin/courses/${course.slug}/edit`} className="admin-link">
+                        {t('common.edit')}
+                      </Link>
+                      <button
+                        type="button"
+                        className="admin-link danger"
+                        onClick={() => handleDeleteCourse(course.slug)}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {courses.length === 0 && <p className="admin-sub">{t('admin.courses.empty')}</p>}
+        </section>
+      ) : (
+        <form className="admin-form" onSubmit={handleSaveSection}>
+          {section === 'general' && (
+            <>
+              <label className="form-field">
+                <span>{t('admin.settings.general.siteName')}</span>
+                <input
+                  required
+                  value={settings.general.siteName}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      general: { ...settings.general, siteName: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.general.tagline')}</span>
+                <input
+                  value={settings.general.tagline}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      general: { ...settings.general, tagline: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <div className="admin-form-row">
+                <label className="form-field">
+                  <span>{t('admin.settings.general.heroMinutes')}</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={settings.general.heroMinutes}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        general: { ...settings.general, heroMinutes: Number(e.target.value) },
+                      })
+                    }
+                  />
+                </label>
+                <label className="form-field">
+                  <span>{t('admin.settings.general.heroRoadmaps')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={settings.general.heroRoadmapsCount}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        general: {
+                          ...settings.general,
+                          heroRoadmapsCount: Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label className="form-field">
+                  <span>{t('admin.settings.general.heroMatch')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={settings.general.heroMatchPercent}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        general: {
+                          ...settings.general,
+                          heroMatchPercent: Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <label className="form-field">
+                <span>{t('admin.settings.general.supportEmail')}</span>
+                <input
+                  type="email"
+                  required
+                  value={settings.general.supportEmail}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      general: { ...settings.general, supportEmail: e.target.value },
+                    })
+                  }
+                />
+              </label>
+            </>
+          )}
+
+          {section === 'pricing' && (
+            <>
+              <div className="admin-form-row">
+                <label className="form-field">
+                  <span>{t('admin.settings.pricing.readiness')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={settings.pricing.readinessTestCents}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        pricing: {
+                          ...settings.pricing,
+                          readinessTestCents: Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label className="form-field">
+                  <span>{t('admin.settings.pricing.course')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={settings.pricing.courseCents}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        pricing: { ...settings.pricing, courseCents: Number(e.target.value) },
+                      })
+                    }
+                  />
+                </label>
+                <label className="form-field">
+                  <span>{t('admin.settings.pricing.discount')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={settings.pricing.bundleDiscountPercent}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        pricing: {
+                          ...settings.pricing,
+                          bundleDiscountPercent: Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <div className="admin-section">
+                <div className="admin-header-row">
+                  <h3>{t('admin.settings.pricing.modules')}</h3>
+                  <button
+                    type="button"
+                    className="btn-next admin-btn"
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        pricing: {
+                          ...settings.pricing,
+                          modulePrices: [...settings.pricing.modulePrices, 49],
+                        },
+                      })
+                    }
+                  >
+                    <Plus size={14} /> {t('admin.settings.pricing.addModule')}
+                  </button>
+                </div>
+                {settings.pricing.modulePrices.map((price, index) => (
+                  <div key={index} className="admin-inline-row">
+                    <label className="form-field">
+                      <span>
+                        {t('admin.settings.pricing.moduleN', { n: String(index + 1) })}
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={price}
+                        onChange={(e) => {
+                          const modulePrices = [...settings.pricing.modulePrices];
+                          modulePrices[index] = Number(e.target.value);
+                          setSettings({
+                            ...settings,
+                            pricing: { ...settings.pricing, modulePrices },
+                          });
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="admin-link danger"
+                      disabled={settings.pricing.modulePrices.length <= 1}
+                      onClick={() => {
+                        const modulePrices = settings.pricing.modulePrices.filter(
+                          (_, i) => i !== index,
+                        );
+                        setSettings({
+                          ...settings,
+                          pricing: { ...settings.pricing, modulePrices },
+                        });
+                      }}
+                    >
+                      <Trash2 size={14} /> {t('common.remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {section === 'tracks' && (
+            <TracksEditor
+              tracks={settings.tracks}
+              onChange={(tracks) => setSettings({ ...settings, tracks })}
+            />
+          )}
+
+          {section === 'readiness' && (
+            <>
+              <label className="form-field">
+                <span>{t('admin.settings.readiness.threshold')}</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={settings.readiness.passThreshold}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      readiness: {
+                        ...settings.readiness,
+                        passThreshold: Number(e.target.value),
+                      },
+                    })
+                  }
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.readiness.passTitle')}</span>
+                <input
+                  value={settings.readiness.passTitle}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      readiness: { ...settings.readiness, passTitle: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.readiness.passMessage')}</span>
+                <textarea
+                  className="admin-textarea"
+                  rows={3}
+                  value={settings.readiness.passMessage}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      readiness: { ...settings.readiness, passMessage: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.readiness.failTitle')}</span>
+                <input
+                  value={settings.readiness.failTitle}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      readiness: { ...settings.readiness, failTitle: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.readiness.failMessage')}</span>
+                <textarea
+                  className="admin-textarea"
+                  rows={3}
+                  value={settings.readiness.failMessage}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      readiness: { ...settings.readiness, failMessage: e.target.value },
+                    })
+                  }
+                />
+              </label>
+            </>
+          )}
+
+          {section === 'bootcamp' && (
+            <>
+              <div className="admin-form-row">
+                <label className="form-field">
+                  <span>{t('admin.settings.bootcamp.unlockScore')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={settings.bootcamp.unlockScoreThreshold}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        bootcamp: {
+                          ...settings.bootcamp,
+                          unlockScoreThreshold: Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label className="form-field">
+                  <span>{t('admin.settings.bootcamp.unlockCourse')}</span>
+                  <input
+                    value={settings.bootcamp.unlockCourseSlug}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        bootcamp: {
+                          ...settings.bootcamp,
+                          unlockCourseSlug: e.target.value.toLowerCase().replace(/\s+/g, '-'),
+                        },
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <div className="admin-form-row">
+                <label className="form-field">
+                  <span>{t('admin.settings.bootcamp.defaultRank')}</span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={settings.bootcamp.defaultRank}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        bootcamp: {
+                          ...settings.bootcamp,
+                          defaultRank: Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label className="form-field">
+                  <span>{t('admin.settings.bootcamp.defaultPoints')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={settings.bootcamp.defaultPoints}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        bootcamp: {
+                          ...settings.bootcamp,
+                          defaultPoints: Number(e.target.value),
+                        },
+                      })
+                    }
+                  />
+                </label>
+              </div>
+            </>
+          )}
+
+          <button type="submit" className="cta-primary" disabled={saving}>
+            {saving ? t('admin.settings.saving') : t('admin.settings.save')}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function TracksEditor({
+  tracks,
+  onChange,
+}: {
+  tracks: SiteTrackSettings[];
+  onChange: (tracks: SiteTrackSettings[]) => void;
+}) {
+  const { t } = useLanguage();
+
+  const updateTrack = (index: number, patch: Partial<SiteTrackSettings>) => {
+    const next = tracks.map((track, i) => (i === index ? { ...track, ...patch } : track));
+    onChange(next);
+  };
+
+  const addTrack = () => {
+    onChange([
+      ...tracks,
+      {
+        key: `track-${tracks.length + 1}`,
+        name: 'New track',
+        icon: '📘',
+        description: '',
+        modules: ['Module 1'],
+      },
+    ]);
+  };
+
+  const removeTrack = (index: number) => {
+    if (tracks.length <= 1) return;
+    onChange(tracks.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="admin-section">
+      <div className="admin-header-row">
+        <h3>{t('admin.settings.tracks.heading')}</h3>
+        <button type="button" className="btn-next admin-btn" onClick={addTrack}>
+          <Plus size={14} /> {t('admin.settings.tracks.add')}
+        </button>
+      </div>
+      {tracks.map((track, index) => (
+        <div key={`${track.key}-${index}`} className="admin-track-card">
+          <div className="admin-form-row">
+            <label className="form-field">
+              <span>{t('admin.settings.tracks.key')}</span>
+              <input
+                required
+                value={track.key}
+                onChange={(e) =>
+                  updateTrack(index, {
+                    key: e.target.value.toLowerCase().replace(/\s+/g, '-'),
+                  })
+                }
+              />
+            </label>
+            <label className="form-field">
+              <span>{t('admin.settings.tracks.name')}</span>
+              <input
+                required
+                value={track.name}
+                onChange={(e) => updateTrack(index, { name: e.target.value })}
+              />
+            </label>
+            <label className="form-field">
+              <span>{t('admin.settings.tracks.icon')}</span>
+              <input
+                value={track.icon}
+                onChange={(e) => updateTrack(index, { icon: e.target.value })}
+              />
+            </label>
+          </div>
+          <label className="form-field">
+            <span>{t('admin.settings.tracks.description')}</span>
+            <input
+              value={track.description}
+              onChange={(e) => updateTrack(index, { description: e.target.value })}
+            />
+          </label>
+          <div className="admin-header-row">
+            <h4>{t('admin.settings.tracks.modules')}</h4>
+            <button
+              type="button"
+              className="admin-link"
+              onClick={() =>
+                updateTrack(index, {
+                  modules: [...track.modules, `Module ${track.modules.length + 1}`],
+                })
+              }
+            >
+              <Plus size={14} /> {t('admin.settings.tracks.addModule')}
+            </button>
+          </div>
+          {track.modules.map((moduleName, moduleIndex) => (
+            <div key={moduleIndex} className="admin-inline-row">
+              <label className="form-field">
+                <span>
+                  {t('admin.settings.tracks.moduleN', { n: String(moduleIndex + 1) })}
+                </span>
+                <input
+                  required
+                  value={moduleName}
+                  onChange={(e) => {
+                    const modules = [...track.modules];
+                    modules[moduleIndex] = e.target.value;
+                    updateTrack(index, { modules });
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                className="admin-link danger"
+                disabled={track.modules.length <= 1}
+                onClick={() =>
+                  updateTrack(index, {
+                    modules: track.modules.filter((_, i) => i !== moduleIndex),
+                  })
+                }
+              >
+                <Trash2 size={14} /> {t('common.remove')}
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="admin-link danger"
+            disabled={tracks.length <= 1}
+            onClick={() => removeTrack(index)}
+          >
+            <Trash2 size={14} /> {t('admin.settings.tracks.remove')}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}

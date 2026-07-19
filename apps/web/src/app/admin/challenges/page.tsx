@@ -129,9 +129,34 @@ export default function AdminChallengesPage() {
                     {challenge.active ? t('common.active') : t('common.inactive')}
                   </span>
                 </td>
-                <td>
+                <td className="admin-actions">
                   <button type="button" className="admin-link" onClick={() => startEdit(challenge)}>
                     {t('common.edit')}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-link danger"
+                    onClick={async () => {
+                      if (!confirm(t('admin.challenges.deleteConfirm', { slug: challenge.slug }))) {
+                        return;
+                      }
+                      try {
+                        await api.adminDeleteChallenge(challenge.slug);
+                        if (editingSlug === challenge.slug) {
+                          setEditingSlug(null);
+                          setForm(emptyForm);
+                        }
+                        await load();
+                      } catch (err) {
+                        setError(
+                          err instanceof ApiError
+                            ? err.message
+                            : t('admin.challenges.deleteError'),
+                        );
+                      }
+                    }}
+                  >
+                    {t('common.delete')}
                   </button>
                 </td>
               </tr>

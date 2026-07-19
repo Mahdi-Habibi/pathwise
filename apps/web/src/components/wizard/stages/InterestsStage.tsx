@@ -2,6 +2,7 @@
 
 import type { AssessmentAnswers, Interest } from '@pathwise/shared';
 import { useLanguage } from '@/context/LanguageProvider';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { OptCard } from '../OptCard';
 import { INTEREST_OPTIONS } from '../wizardOptions';
 
@@ -12,6 +13,22 @@ interface Props {
 
 export function InterestsStage({ answers, onChange }: Props) {
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
+
+  const options =
+    settings.tracks.length > 0
+      ? settings.tracks.map((track) => ({
+          val: track.key as Interest,
+          icon: track.icon || '📘',
+          title: track.name,
+          desc: track.description,
+        }))
+      : INTEREST_OPTIONS.map(([val, icon]) => ({
+          val,
+          icon,
+          title: t(`wizard.interests.${val}.title`),
+          desc: t(`wizard.interests.${val}.desc`),
+        }));
 
   const toggleInterest = (val: Interest) => {
     const interests = [...answers.interests];
@@ -30,14 +47,14 @@ export function InterestsStage({ answers, onChange }: Props) {
       <div className="q-title">{t('wizard.interests.title')}</div>
       <div className="q-sub">{t('wizard.interests.sub')}</div>
       <div className="option-grid">
-        {INTEREST_OPTIONS.map(([val, icon]) => (
+        {options.map((opt) => (
           <OptCard
-            key={val}
-            icon={icon}
-            title={t(`wizard.interests.${val}.title`)}
-            desc={t(`wizard.interests.${val}.desc`)}
-            selected={answers.interests.includes(val)}
-            onSelect={() => toggleInterest(val)}
+            key={opt.val}
+            icon={opt.icon}
+            title={opt.title}
+            desc={opt.desc}
+            selected={answers.interests.includes(opt.val)}
+            onSelect={() => toggleInterest(opt.val)}
           />
         ))}
       </div>

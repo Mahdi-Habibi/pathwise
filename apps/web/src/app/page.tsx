@@ -3,14 +3,20 @@
 import Link from 'next/link';
 import { BookOpen, Map, Shield, Trophy } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageProvider';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export default function HomePage() {
   const { t, format } = useLanguage();
+  const { settings } = useSiteSettings();
+  const minutes = settings.general.heroMinutes;
+  const roadmaps = settings.general.heroRoadmapsCount;
+  const match = settings.general.heroMatchPercent;
+  const savings = settings.pricing.bundleDiscountPercent;
 
   return (
     <div className="page-content">
       <div className="app hero">
-        <span className="eyebrow">{t('landing.eyebrow', { minutes: format.number(6) })}</span>
+        <span className="eyebrow">{t('landing.eyebrow', { minutes: format.number(minutes) })}</span>
         <h1>{t('landing.heroTitle')}</h1>
         <p>{t('landing.heroBody')}</p>
         <div className="hero-actions">
@@ -22,11 +28,14 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="hero-note">
-          {t('landing.heroNote', { minutes: format.number(6), count: format.number(12400) })}
+          {t('landing.heroNote', {
+            minutes: format.number(minutes),
+            count: format.number(roadmaps),
+          })}
         </div>
         <div className="proof-row">
           <div className="proof-item">
-            <b>{format.percent(94)}</b>
+            <b>{format.percent(match)}</b>
             <span>{t('landing.proof.match')}</span>
           </div>
           <div className="proof-item">
@@ -34,7 +43,7 @@ export default function HomePage() {
             <span>{t('landing.proof.stages')}</span>
           </div>
           <div className="proof-item">
-            <b>{format.percent(20)}</b>
+            <b>{format.percent(savings)}</b>
             <span>{t('landing.proof.savings')}</span>
           </div>
         </div>

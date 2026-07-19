@@ -21,8 +21,11 @@ import type {
   ReadinessTestDto,
   RegisterDto,
   RoadmapResponse,
+  SiteSettings,
   UpdateChallengeDto,
   UpdateCourseDto,
+  UpdateLessonDto,
+  UpdateSiteSettingsDto,
   UserRole,
   AdminStats,
   AdminCourse,
@@ -44,8 +47,11 @@ export type {
   CreateCourseDto,
   UpdateCourseDto,
   CreateLessonDto,
+  UpdateLessonDto,
   CreateChallengeDto,
   UpdateChallengeDto,
+  SiteSettings,
+  UpdateSiteSettingsDto,
   AuthUser,
 };
 
@@ -286,6 +292,23 @@ const liveApi = {
     });
   },
 
+  adminUpdateLesson(
+    courseSlug: string,
+    lessonSlug: string,
+    dto: UpdateLessonDto,
+  ): Promise<AdminLesson> {
+    return request<AdminLesson>(`/admin/courses/${courseSlug}/lessons/${lessonSlug}`, {
+      method: 'PATCH',
+      body: JSON.stringify(dto),
+    });
+  },
+
+  adminDeleteLesson(courseSlug: string, lessonSlug: string): Promise<void> {
+    return request<void>(`/admin/courses/${courseSlug}/lessons/${lessonSlug}`, {
+      method: 'DELETE',
+    });
+  },
+
   adminListChallenges(): Promise<AdminChallenge[]> {
     return request<AdminChallenge[]>('/admin/challenges');
   },
@@ -304,6 +327,10 @@ const liveApi = {
     });
   },
 
+  adminDeleteChallenge(slug: string): Promise<void> {
+    return request<void>(`/admin/challenges/${slug}`, { method: 'DELETE' });
+  },
+
   adminListUsers(): Promise<AdminUser[]> {
     return request<AdminUser[]>('/admin/users');
   },
@@ -312,6 +339,21 @@ const liveApi = {
     return request<AdminUser>(`/admin/users/${userId}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ role }),
+    });
+  },
+
+  getSettings(): Promise<SiteSettings> {
+    return request<SiteSettings>('/settings');
+  },
+
+  adminGetSettings(): Promise<SiteSettings> {
+    return request<SiteSettings>('/admin/settings');
+  },
+
+  adminUpdateSettings(dto: UpdateSiteSettingsDto): Promise<SiteSettings> {
+    return request<SiteSettings>('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify(dto),
     });
   },
 };

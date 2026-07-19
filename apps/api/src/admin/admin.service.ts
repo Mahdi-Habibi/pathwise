@@ -13,6 +13,7 @@ import {
   AdminCreateLessonDto,
   AdminUpdateChallengeDto,
   AdminUpdateCourseDto,
+  AdminUpdateLessonDto,
   AdminUpdateUserRoleDto,
 } from './dto/admin.dto';
 
@@ -158,6 +159,54 @@ export class AdminService {
     return this.toAdminLesson(lesson);
   }
 
+  async updateLesson(
+    courseSlug: string,
+    lessonSlug: string,
+    dto: AdminUpdateLessonDto,
+  ): Promise<AdminLesson> {
+    const course = await this.ensureCourseBySlug(courseSlug);
+    const lesson = await this.prisma.lesson.findFirst({
+      where: { courseId: course.id, slug: lessonSlug },
+    });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
+    }
+
+    if (dto.slug && dto.slug !== lesson.slug) {
+      const conflict = await this.prisma.lesson.findFirst({
+        where: { courseId: course.id, slug: dto.slug, NOT: { id: lesson.id } },
+      });
+      if (conflict) {
+        throw new ConflictException(`Lesson slug "${dto.slug}" already exists in this course`);
+      }
+    }
+
+    const updated = await this.prisma.lesson.update({
+      where: { id: lesson.id },
+      data: {
+        slug: dto.slug,
+        title: dto.title,
+        content: dto.content,
+        durationMin: dto.durationMin,
+        sortOrder: dto.sortOrder,
+      },
+    });
+
+    return this.toAdminLesson(updated);
+  }
+
+  async deleteLesson(courseSlug: string, lessonSlug: string): Promise<{ deleted: true }> {
+    const course = await this.ensureCourseBySlug(courseSlug);
+    const lesson = await this.prisma.lesson.findFirst({
+      where: { courseId: course.id, slug: lessonSlug },
+    });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
+    }
+    await this.prisma.lesson.delete({ where: { id: lesson.id } });
+    return { deleted: true };
+  }
+
   async listChallenges(): Promise<AdminChallenge[]> {
     const challenges = await this.prisma.challenge.findMany({
       orderBy: { createdAt: 'desc' },
@@ -216,6 +265,12 @@ export class AdminService {
     });
 
     return this.toAdminChallenge(updated);
+  }
+
+  async deleteChallenge(slug: string): Promise<{ deleted: true }> {
+    const challenge = await this.ensureChallengeBySlug(slug);
+    await this.prisma.challenge.delete({ where: { id: challenge.id } });
+    return { deleted: true };
   }
 
   async listUsers(): Promise<AdminUser[]> {

@@ -86,3 +86,5 @@ export interface CreateChallengeDto {
 }
 
 export type UpdateChallengeDto = Partial<CreateChallengeDto>;
+
+export type UpdateLessonDto = Partial<CreateLessonDto>;

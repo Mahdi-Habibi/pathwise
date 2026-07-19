@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { addDurationToDate, parseExpiresInSeconds } from './auth.utils';
@@ -19,6 +20,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly siteSettings: SiteSettingsService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse & { refreshToken: string }> {
@@ -29,6 +31,7 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
+    const settings = await this.siteSettings.get();
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
     const user = await this.prisma.user.create({
       data: {
@@ -37,8 +40,8 @@ export class AuthService {
         passwordHash,
         bootcampProfile: {
           create: {
-            rank: 12,
-            points: 340,
+            rank: settings.bootcamp.defaultRank,
+            points: settings.bootcamp.defaultPoints,
           },
         },
       },

@@ -210,7 +210,8 @@ pnpm docker:up                # build images + start all services
 > **Schema reset:** `pnpm docker:db:reset` then `pnpm db:migrate && pnpm db:seed` (local dev), or `pnpm docker:down && pnpm docker:up` with `SEED_DATABASE=true` (full stack).
 
 **Demo account:** `alex@pathwise.dev` / `Pathwise123!`  
-**Admin account:** `admin@pathwise.dev` / `Pathwise123!`
+**Admin account:** `admin@pathwise.dev` / `Pathwise123!`  
+**Site settings:** `/admin/settings` — see [`docs/ADMIN_SETTINGS_CATALOG.md`](docs/ADMIN_SETTINGS_CATALOG.md) for the full controllable inventory.
 
 ## Docker
 
@@ -296,7 +297,8 @@ pnpm dev
 | PostgreSQL  | Docker Compose Postgres replaces SQLite for production-ready dev                     |
 | Stripe      | Real Checkout Sessions when `STRIPE_SECRET_KEY` is set; dev mode completes instantly |
 | Email       | Welcome, payment receipt, and readiness result emails via SMTP (or logged in dev)    |
-| Admin panel | `/admin` — courses, lessons, challenges, users, platform stats (ADMIN role)          |
+| Admin panel | `/admin` — settings, courses, lessons, challenges, users, platform stats (ADMIN role) |
+
 | E2E tests   | Playwright learner journey tests via `pnpm test:e2e`                                 |
 
 ### v2 environment variables
@@ -307,10 +309,11 @@ See `.env.example` for Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NE
 
 | Route               | Description                     |
 | ------------------- | ------------------------------- |
-| `/admin`            | Admin stats dashboard           |
-| `/admin/courses`    | Course CRUD + lesson management |
-| `/admin/challenges` | Bootcamp challenge management   |
-| `/admin/users`      | User list and role toggle       |
+| `/admin`            | Admin stats dashboard                              |
+| `/admin/settings`   | Site settings (general, pricing, tracks, rules, courses) |
+| `/admin/courses`    | Course CRUD + full lesson CRUD                     |
+| `/admin/challenges` | Bootcamp challenge CRUD                            |
+| `/admin/users`      | User list and role toggle                          |
 | `/checkout/success` | Stripe success return URL       |
 | `/checkout/cancel`  | Stripe cancel return URL        |
 
@@ -318,12 +321,14 @@ See `.env.example` for Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NE
 
 | Method                | Path                               | Auth  |
 | --------------------- | ---------------------------------- | ----- |
-| GET                   | `/api/admin/stats`                 | ADMIN |
-| GET/POST/PATCH/DELETE | `/api/admin/courses`               | ADMIN |
-| POST                  | `/api/admin/courses/:slug/lessons` | ADMIN |
-| GET/POST/PATCH        | `/api/admin/challenges`            | ADMIN |
-| GET                   | `/api/admin/users`                 | ADMIN |
-| PATCH                 | `/api/admin/users/:id/role`        | ADMIN |
+| GET                   | `/api/settings`                              | Public |
+| GET/PUT               | `/api/admin/settings`                        | ADMIN  |
+| GET                   | `/api/admin/stats`                           | ADMIN  |
+| GET/POST/PATCH/DELETE | `/api/admin/courses`                         | ADMIN  |
+| POST/PATCH/DELETE     | `/api/admin/courses/:slug/lessons`           | ADMIN  |
+| GET/POST/PATCH/DELETE | `/api/admin/challenges`                      | ADMIN  |
+| GET                   | `/api/admin/users`                           | ADMIN  |
+| PATCH                 | `/api/admin/users/:id/role`                  | ADMIN  |
 
 ## Security
 
