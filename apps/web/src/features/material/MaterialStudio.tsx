@@ -17,34 +17,42 @@ export function MaterialStudio() {
 
   return (
     <div ref={rootRef} className="material-studio-root">
+      <div className="bg-orb orb-a" aria-hidden="true" />
+      <div className="bg-orb orb-b" aria-hidden="true" />
+
       <section
         id="material-mode"
         className="view material-mode active"
         aria-label="استودیوی متریال"
       >
+        <Link className="material-brand" href="/">
+          <span className="material-brand-mark" aria-hidden="true" />
+          آکادمی کیا
+        </Link>
+
         <Link className="home-btn" href="/">
-          🏠 خانه
+          بازگشت به خانه
         </Link>
 
         <div className="material-head">
           <h2>استودیوی متریال</h2>
           <p>
-            ابزارهای حرفه‌ای برای پالت رنگ، آیکون، انیمیشن و بررسی استایل.
+            ابزارهای حرفه‌ای برای پالت رنگ، آیکون، انیمیشن و بررسی استایل — بخشی از آکادمی کیا.
           </p>
         </div>
 
         <div className="tabs" id="material-tabs">
           <button className="tab-btn active" data-tab="palette" type="button">
-            🎨 پالت
+            پالت
           </button>
           <button className="tab-btn" data-tab="icons" type="button">
-            ✨ آیکون (۵۵)
+            آیکون (۵۵)
           </button>
           <button className="tab-btn" data-tab="animations" type="button">
-            🌀 انیمیشن
+            انیمیشن
           </button>
           <button className="tab-btn" data-tab="style" type="button">
-            🛠️ ابزار استایل
+            ابزار استایل
           </button>
         </div>
 

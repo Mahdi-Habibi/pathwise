@@ -12,13 +12,13 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem('pathwise-theme') as Theme | null;
-    if (stored === 'light' || stored === 'dark') {
+    const stored = localStorage.getItem('kia-theme') as Theme | null;
+    if (stored === 'dark' || stored === 'light') {
       setTheme(stored);
     }
   }, []);
@@ -26,12 +26,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!mounted) return;
     const html = document.documentElement;
-    if (theme === 'light') {
-      html.dataset.theme = 'light';
-    } else {
-      delete html.dataset.theme;
-    }
-    localStorage.setItem('pathwise-theme', theme);
+    html.dataset.theme = theme;
+    localStorage.setItem('kia-theme', theme);
   }, [theme, mounted]);
 
   const toggleTheme = useCallback(() => {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, ChevronDown, LogIn, LogOut, Shield } from 'lucide-react';
+import { BookOpen, ChevronDown, LogOut, Shield } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { LanguageSelector } from '@/components/layout/LanguageSelector';
 import { useApp } from '@/context/AppProvider';
@@ -16,13 +16,13 @@ export function TopBar() {
   const { t } = useLanguage();
   const { toggleTheme } = useTheme();
   const { hasRoadmap } = useApp();
-  const { user, isAuthenticated, logout, loading } = useAuth();
+  const { user, logout, loading } = useAuth();
   const { settings } = useSiteSettings();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleLogoClick = () => {
-    router.push(hasRoadmap || isAuthenticated ? '/dashboard' : '/');
+    router.push(hasRoadmap ? '/dashboard' : '/education');
   };
 
   useEffect(() => {
@@ -55,23 +55,17 @@ export function TopBar() {
         <Link href="/education" className="top-nav-link">
           {t('landing.ctaEducation')}
         </Link>
-        {isAuthenticated && (
-          <>
-            <Link href="/courses" className="top-nav-link">
-              <BookOpen size={14} /> {t('nav.courses')}
-            </Link>
-            {user?.role === 'ADMIN' && (
-              <Link href="/admin" className="top-nav-link">
-                <Shield size={14} /> {t('nav.admin')}
-              </Link>
-            )}
-            {(hasRoadmap || isAuthenticated) && (
-              <Link href="/dashboard" className="top-nav-link">
-                {t('nav.dashboard')}
-              </Link>
-            )}
-          </>
+        <Link href="/courses" className="top-nav-link">
+          <BookOpen size={14} /> {t('nav.courses')}
+        </Link>
+        {user?.role === 'ADMIN' && (
+          <Link href="/admin" className="top-nav-link">
+            <Shield size={14} /> {t('nav.admin')}
+          </Link>
         )}
+        <Link href="/dashboard" className="top-nav-link">
+          {t('nav.dashboard')}
+        </Link>
       </nav>
 
       <div className="top-right">
@@ -87,7 +81,7 @@ export function TopBar() {
           <span className="theme-toggle-label">{t('nav.mode')}</span>
         </button>
 
-        {loading ? null : isAuthenticated && user ? (
+        {loading || !user ? null : (
           <div className="user-menu-wrap" ref={menuRef}>
             <button
               type="button"
@@ -103,7 +97,7 @@ export function TopBar() {
               <div className="user-dropdown">
                 <div className="user-dropdown-head">
                   <b>{user.name}</b>
-                  <span className="ltr-isolate">{user.email}</span>
+                  <span className="ltr-isolate">{user.email || user.phone}</span>
                 </div>
                 <Link
                   href="/dashboard"
@@ -141,10 +135,6 @@ export function TopBar() {
               </div>
             )}
           </div>
-        ) : (
-          <Link href="/login" className="top-login-btn">
-            <LogIn size={14} /> {t('nav.signIn')}
-          </Link>
         )}
       </div>
     </div>

@@ -15,7 +15,7 @@
 }
 .cta-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 36px -8px rgba(99, 102, 241, 0.55);
+  box-shadow: 0 12px 36px -8px rgba(31, 110, 140, 0.5);
 }
 .hero-actions {
   display: flex;
@@ -94,7 +94,7 @@
   line-height: 1.55;
 }
 .cta-secondary {
-  background: transparent;
+  background: var(--bg-card);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -102,11 +102,11 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  margin-inline-start: 12px;
   transition: 0.2s;
 }
 .cta-secondary:hover {
-  border-color: var(--indigo);
+  border-color: var(--kia-accent, var(--indigo));
+  box-shadow: var(--shadow-sm);
 }
 .btn-ghost {
   background: transparent;
@@ -141,10 +141,12 @@
 .back-link {
   color: var(--text-faint);
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   background: none;
   border: none;
+  text-decoration: none;
 }
 .back-link:hover {
-  color: var(--text);
+  color: var(--kia-accent, var(--text));
 }

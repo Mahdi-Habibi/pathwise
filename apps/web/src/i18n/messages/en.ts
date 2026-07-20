@@ -85,6 +85,8 @@ export const en = {
       'Kia Academy helps you explore design materials and start a guided learning journey tailored to your goals.',
     ctaMaterial: 'Material Studio',
     ctaEducation: 'Start Education',
+    materialHint: 'Palette, icons & motion — no signup needed',
+    educationHint: 'Register with your phone and begin learning',
     ctaAssessment: 'Start Your Free Assessment',
     ctaSignIn: 'Sign in',
     heroNote: 'Open materials freely · Education signup with Iranian phone number',

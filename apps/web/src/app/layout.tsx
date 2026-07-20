@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono, Vazirmatn } from 'next/font/google';
 import { ClientProviders } from '@/components/layout/ClientProviders';
-import { DemoBanner } from '@/components/layout/DemoBanner';
-import { Footer } from '@/components/layout/Footer';
-import { TopBar } from '@/components/layout/TopBar';
+import { SiteChrome } from '@/components/layout/SiteChrome';
 import { DEFAULT_LOCALE, dirForLocale } from '@/i18n/locales';
 import { messages } from '@/i18n/messages';
 import '@/styles/globals.css';
@@ -39,8 +37,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f5f6fb' },
-    { media: '(prefers-color-scheme: dark)', color: '#0b0e1a' },
+    { media: '(prefers-color-scheme: light)', color: '#e8f1f6' },
+    { media: '(prefers-color-scheme: dark)', color: '#071821' },
   ],
 };
 
@@ -53,14 +51,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang={locale}
       dir={dir}
       className={`${inter.variable} ${jetbrainsMono.variable} ${vazirmatn.variable}`}
+      data-theme="light"
       suppressHydrationWarning
     >
       <body>
         <ClientProviders initialLocale={locale}>
-          <DemoBanner />
-          <TopBar />
-          <main className="site-main">{children}</main>
-          <Footer />
+          <SiteChrome>{children}</SiteChrome>
         </ClientProviders>
       </body>
     </html>
