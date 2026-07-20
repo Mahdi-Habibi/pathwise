@@ -15,12 +15,14 @@ async function main() {
       name: 'Pathwise Admin',
       passwordHash,
       role: 'ADMIN',
+      profileComplete: true,
     },
     create: {
       name: 'Pathwise Admin',
       email: 'admin@pathwise.dev',
       passwordHash,
       role: 'ADMIN',
+      profileComplete: true,
     },
   });
 
@@ -29,11 +31,13 @@ async function main() {
     update: {
       name: 'Alex R.',
       passwordHash,
+      profileComplete: true,
     },
     create: {
       name: 'Alex R.',
       email: 'alex@pathwise.dev',
       passwordHash,
+      profileComplete: true,
       bootcampProfile: {
         create: {
           rank: 12,

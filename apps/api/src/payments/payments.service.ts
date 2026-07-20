@@ -27,6 +27,7 @@ export class PaymentsService {
         productType: dto.productType,
         productRef: dto.productRef ?? null,
         amountCents,
+        currency: 'irr',
         status: 'PENDING',
       },
     });
@@ -43,7 +44,7 @@ export class PaymentsService {
         payment.id,
         amountCents,
         productName,
-        user.email,
+        user.email ?? 'noreply@kia.academy',
         `${appUrl}/checkout/success?payment_id=${payment.id}`,
         `${appUrl}/checkout/cancel?payment_id=${payment.id}`,
       );
@@ -89,7 +90,7 @@ export class PaymentsService {
       {
         id: payment.user.id,
         name: payment.user.name,
-        email: payment.user.email,
+        email: payment.user.email ?? 'noreply@kia.academy',
       },
       completed,
     );
@@ -151,7 +152,7 @@ export class PaymentsService {
       {
         id: payment.user.id,
         name: payment.user.name,
-        email: payment.user.email,
+        email: payment.user.email ?? 'noreply@kia.academy',
       },
       completed,
     );

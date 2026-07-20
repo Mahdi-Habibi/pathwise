@@ -1,11 +1,11 @@
 export const en = {
   meta: {
-    title: 'Pathwise — Adaptive Learning Platform',
+    title: 'Kia Academy — Adaptive Learning Platform',
     description:
-      'Free goal discovery and paid readiness assessments that build a customized course roadmap — buy modules individually or as a discounted bundle with mentor support.',
+      'Persian-first learning academy for Iran: design materials studio, phone signup, personalized assessment, and guided courses.',
   },
   common: {
-    brand: 'Pathwise',
+    brand: 'Kia Academy',
     continue: 'Continue',
     loading: 'Loading…',
     back: '← Back',
@@ -79,22 +79,22 @@ export const en = {
     nativeFa: 'فارسی',
   },
   landing: {
-    eyebrow: 'Free Adaptive Assessment · {minutes} min',
-    heroTitle: "Don't guess your learning path. We build your roadmap for free.",
+    eyebrow: 'Kia Academy',
+    heroTitle: 'Learn, design, and grow — in one place.',
     heroBody:
-      'Pathwise is an adaptive education platform — answer honest questions about your goals, skills, and time, then get a personalized module sequence with mentor-supported bundles and skill-based unlocks.',
+      'Kia Academy helps you explore design materials and start a guided learning journey tailored to your goals.',
+    ctaMaterial: 'Material Studio',
+    ctaEducation: 'Start Education',
     ctaAssessment: 'Start Your Free Assessment',
     ctaSignIn: 'Sign in',
-    heroNote:
-      'No credit card for assessment · Takes about {minutes} minutes · {count}+ roadmaps generated',
+    heroNote: 'Open materials freely · Education signup with Iranian phone number',
     proof: {
       match: 'match satisfaction',
       stages: 'assessment stages',
       savings: 'bundle savings',
     },
-    howHeading: 'How Pathwise works',
-    howSub:
-      'A complete learning journey — from free discovery to paid readiness, guided courses, and competitive bootcamps.',
+    howHeading: 'How Kia Academy works',
+    howSub: 'Choose Material Studio for design tools, or Education to register and begin your assessment.',
     feature: {
       goal: {
         title: 'Free goal discovery',
@@ -112,6 +112,48 @@ export const en = {
         title: 'Bootcamp arena',
         body: 'Weekly coding challenges earn points and unlock bonus content like interview prep and personal branding courses.',
       },
+    },
+  },
+  education: {
+    phone: {
+      title: 'Sign up with phone',
+      sub: 'Enter your Iranian mobile number to receive a verification code.',
+      label: 'Mobile number',
+      placeholder: '09123456789',
+      submit: 'Send code',
+      submitting: 'Sending…',
+      invalid: 'Enter a valid Iranian mobile number (09xxxxxxxxx).',
+    },
+    otp: {
+      title: 'Enter verification code',
+      sub: 'We sent a 6-digit code to {phone}.',
+      label: 'Verification code',
+      placeholder: '123456',
+      submit: 'Verify',
+      submitting: 'Verifying…',
+      invalid: 'Enter the 6-digit code.',
+      resend: 'Resend code',
+      changePhone: 'Change number',
+      devHint: 'Dev code: {code}',
+    },
+    profile: {
+      title: 'Complete your profile',
+      sub: 'All fields are required to continue.',
+      firstName: 'First name',
+      lastName: 'Last name',
+      city: 'City',
+      email: 'Email',
+      phone: 'Phone',
+      submit: 'Save and continue',
+      submitting: 'Saving…',
+      emailInvalid: 'Enter a valid email address.',
+      unsafe: 'This field contains unsafe or spam-like content.',
+      required: 'This field is required.',
+    },
+    start: {
+      title: 'You are ready',
+      body: 'Your profile is complete. Start the assessment to build your learning path.',
+      cta: 'Start assessment',
     },
   },
   auth: {
@@ -521,7 +563,11 @@ export const en = {
     previous: 'Previous',
     next: 'Next',
     allLessons: 'All lessons →',
+    video: 'Lesson video',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit fullscreen',
     videoUnsupported: 'Your browser does not support embedded video.',
+    notesHint: 'Take notes while you watch and practice.',
   },
   bootcamp: {
     backDashboard: '← Back to Dashboard',

@@ -49,6 +49,12 @@ export function TopBar() {
       </button>
 
       <nav className="top-nav">
+        <Link href="/material" className="top-nav-link">
+          {t('landing.ctaMaterial')}
+        </Link>
+        <Link href="/education" className="top-nav-link">
+          {t('landing.ctaEducation')}
+        </Link>
         {isAuthenticated && (
           <>
             <Link href="/courses" className="top-nav-link">
