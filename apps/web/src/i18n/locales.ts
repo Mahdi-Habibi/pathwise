@@ -2,7 +2,7 @@ export const SUPPORTED_LOCALES = ['en', 'de', 'es', 'fa'] as const;
 
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
-export const DEFAULT_LOCALE: Locale = 'en';
+export const DEFAULT_LOCALE: Locale = 'fa';
 
 export const RTL_LOCALES = new Set<Locale>(['fa']);
 

@@ -7,6 +7,7 @@ import type {
   ChallengeScoreResult,
   ChallengeSubmissionDto,
   CheckoutDto,
+  CompleteProfileDto,
   CourseSummary,
   CreateChallengeDto,
   CreateCourseDto,
@@ -20,6 +21,8 @@ import type {
   ReadinessScores,
   ReadinessTestDto,
   RegisterDto,
+  RequestOtpDto,
+  RequestOtpResponse,
   RoadmapResponse,
   SiteSettings,
   UpdateChallengeDto,
@@ -27,6 +30,7 @@ import type {
   UpdateLessonDto,
   UpdateSiteSettingsDto,
   UserRole,
+  VerifyOtpDto,
   AdminStats,
   AdminCourse,
   AdminLesson,
@@ -108,7 +112,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     !skipAuth &&
     path !== '/auth/refresh' &&
     path !== '/auth/login' &&
-    path !== '/auth/register'
+    path !== '/auth/register' &&
+    path !== '/auth/otp/request' &&
+    path !== '/auth/otp/verify'
   ) {
     try {
       if (!refreshPromise) {
@@ -158,6 +164,35 @@ const liveApi = {
       method: 'POST',
       body: JSON.stringify(dto),
       skipAuth: true,
+    }).then((res) => {
+      setAccessToken(res.accessToken);
+      return res;
+    });
+  },
+
+  requestOtp(dto: RequestOtpDto): Promise<RequestOtpResponse> {
+    return request<RequestOtpResponse>('/auth/otp/request', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+      skipAuth: true,
+    });
+  },
+
+  verifyOtp(dto: VerifyOtpDto): Promise<AuthResponse> {
+    return request<AuthResponse>('/auth/otp/verify', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+      skipAuth: true,
+    }).then((res) => {
+      setAccessToken(res.accessToken);
+      return res;
+    });
+  },
+
+  completeProfile(dto: CompleteProfileDto): Promise<AuthResponse> {
+    return request<AuthResponse>('/auth/profile', {
+      method: 'POST',
+      body: JSON.stringify(dto),
     }).then((res) => {
       setAccessToken(res.accessToken);
       return res;

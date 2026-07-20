@@ -12,9 +12,10 @@ export interface Formatters {
 
 export function createFormatters(locale: Locale): Formatters {
   const numberFmt = new Intl.NumberFormat(locale);
+  const useIrr = locale === 'fa';
   const currencyFmt = new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'USD',
+    currency: useIrr ? 'IRR' : 'USD',
     maximumFractionDigits: 0,
   });
   const percentFmt = new Intl.NumberFormat(locale, {
@@ -29,11 +30,20 @@ export function createFormatters(locale: Locale): Formatters {
 
   return {
     number: (value) => numberFmt.format(value),
-    currency: (value) => currencyFmt.format(value),
+    currency: (value) => {
+      if (useIrr) {
+        // Show Toman-friendly label: amounts are stored in Rials.
+        return `${numberFmt.format(value)} ریال`;
+      }
+      return currencyFmt.format(value);
+    },
     percent: (value) => percentFmt.format(value / 100),
     date: (value) => dateFmt.format(new Date(value)),
-    durationMinutes: (minutes) => `${numberFmt.format(minutes)} min`,
-    durationHours: (hours) => `${numberFmt.format(hours)}h`,
-    points: (value) => `${numberFmt.format(value)} pts`,
+    durationMinutes: (minutes) =>
+      useIrr ? `${numberFmt.format(minutes)} دقیقه` : `${numberFmt.format(minutes)} min`,
+    durationHours: (hours) =>
+      useIrr ? `${numberFmt.format(hours)} ساعت` : `${numberFmt.format(hours)}h`,
+    points: (value) =>
+      useIrr ? `${numberFmt.format(value)} امتیاز` : `${numberFmt.format(value)} pts`,
   };
 }

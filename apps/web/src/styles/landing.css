@@ -1,4 +1,54 @@
 /* ================= LANDING ================= */
+.landing-minimal .landing-hero {
+  padding: clamp(48px, 10vh, 96px) 0 56px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.landing-header {
+  margin-bottom: 28px;
+}
+.landing-brand {
+  display: block;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 800;
+  color: var(--indigo-bright, #6c8cff);
+  letter-spacing: -0.02em;
+}
+.landing-eyebrow {
+  margin: 0.4rem 0 0;
+  color: var(--text-faint);
+  font-size: 0.95rem;
+}
+.landing-title {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0 0 18px;
+  max-width: 18ch;
+}
+.landing-body {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin: 0 0 32px;
+  max-width: 42ch;
+}
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+.landing-note {
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
 .hero {
   padding: 60px 0 40px;
   text-align: center;

@@ -49,7 +49,7 @@ export interface AdminChallenge {
 export interface AdminUser {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   role: UserRole;
   createdAt: string;
 }

@@ -91,6 +91,7 @@ describe('PaymentsService', () => {
         productType: 'ROADMAP_BUNDLE',
         productRef: 'rm-1',
         amountCents: 14900,
+        currency: 'irr',
         status: 'PENDING',
       },
     });
