@@ -18,7 +18,7 @@ type Step = 'phone' | 'otp' | 'profile' | 'start';
 
 export default function EducationPage() {
   return (
-    <div className="page-content">
+    <div className="page-content education-page">
       <EducationFlow />
     </div>
   );
@@ -39,6 +39,8 @@ function EducationFlow() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
+  /** OTP verified in this browser session — allows profile step without re-skipping phone on mount. */
+  const [otpVerified, setOtpVerified] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -47,11 +49,12 @@ function EducationFlow() {
       if (user?.phone) setPhone(user.phone);
       return;
     }
-    if (user && !user.profileComplete) {
-      setStep('profile');
-      if (user.phone) setPhone(user.phone);
+    // Always start at phone for incomplete guests — do not auto-jump to profile
+    // from a stale incomplete session. Profile only after OTP in this visit.
+    if (!otpVerified) {
+      setStep('phone');
     }
-  }, [authLoading, user, learnerState]);
+  }, [authLoading, user, learnerState, otpVerified]);
 
   const clearErrors = () => {
     setErrors({});
@@ -90,6 +93,7 @@ function EducationFlow() {
     try {
       const res = await api.verifyOtp({ phone, code: code.trim() });
       await refreshSession();
+      setOtpVerified(true);
       if (res.user.profileComplete) {
         setStep('start');
       } else {
@@ -149,8 +153,10 @@ function EducationFlow() {
 
   if (authLoading) {
     return (
-      <div className="app auth-card">
-        <p>{t('common.loading')}</p>
+      <div className="app auth-shell">
+        <div className="auth-card education-card">
+          <p className="auth-loading-inline">{t('common.loading')}</p>
+        </div>
       </div>
     );
   }
@@ -158,19 +164,22 @@ function EducationFlow() {
   if (step === 'start') {
     return (
       <RequireAuth nextPath="/education">
-        <div className="app auth-card education-card">
-          <h1>{t('education.start.title')}</h1>
-          <p className="auth-sub">{t('education.start.body')}</p>
-          <button
-            type="button"
-            className="cta-primary"
-            onClick={() => router.push('/assessment')}
-          >
-            {t('education.start.cta')}
-          </button>
-          <Link href="/" className="back-link">
-            {t('common.back')}
-          </Link>
+        <div className="app auth-shell">
+          <div className="auth-card education-card">
+            <span className="auth-step-badge">{t('education.start.title')}</span>
+            <h1>{t('education.start.title')}</h1>
+            <p className="auth-sub">{t('education.start.body')}</p>
+            <button
+              type="button"
+              className="cta-primary auth-submit"
+              onClick={() => router.push('/assessment')}
+            >
+              {t('education.start.cta')}
+            </button>
+            <Link href="/" className="back-link">
+              {t('common.back')}
+            </Link>
+          </div>
         </div>
       </RequireAuth>
     );
@@ -179,52 +188,67 @@ function EducationFlow() {
   if (step === 'profile') {
     return (
       <RequireAuth nextPath="/education">
-        <div className="app auth-card education-card">
-          <h1>{t('education.profile.title')}</h1>
-          <p className="auth-sub">{t('education.profile.sub')}</p>
-          <form className="auth-form" onSubmit={onCompleteProfile} noValidate>
-            <label>
-              {t('education.profile.phone')}
-              <input type="tel" value={phone || user?.phone || ''} disabled />
-            </label>
-            <label>
-              {t('education.profile.firstName')}
-              <input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                autoComplete="given-name"
-              />
-              {errors.firstName && <span className="form-error">{errors.firstName}</span>}
-            </label>
-            <label>
-              {t('education.profile.lastName')}
-              <input
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                autoComplete="family-name"
-              />
-              {errors.lastName && <span className="form-error">{errors.lastName}</span>}
-            </label>
-            <label>
-              {t('education.profile.city')}
-              <input value={city} onChange={(e) => setCity(e.target.value)} autoComplete="address-level2" />
-              {errors.city && <span className="form-error">{errors.city}</span>}
-            </label>
-            <label>
-              {t('education.profile.email')}
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-              {errors.email && <span className="form-error">{errors.email}</span>}
-            </label>
-            {formError && <p className="form-error">{formError}</p>}
-            <button type="submit" className="cta-primary" disabled={busy}>
-              {busy ? t('education.profile.submitting') : t('education.profile.submit')}
-            </button>
-          </form>
+        <div className="app auth-shell">
+          <div className="auth-card education-card">
+            <span className="auth-step-badge">۳ / ۳</span>
+            <h1>{t('education.profile.title')}</h1>
+            <p className="auth-sub">{t('education.profile.sub')}</p>
+            <form className="auth-form" onSubmit={onCompleteProfile} noValidate>
+              <label className="form-field">
+                <span>{t('education.profile.phone')}</span>
+                <input
+                  type="tel"
+                  value={phone || user?.phone || ''}
+                  disabled
+                  dir="ltr"
+                  className="ltr-isolate"
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('education.profile.firstName')}</span>
+                <input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  autoComplete="given-name"
+                />
+                {errors.firstName && <span className="form-error">{errors.firstName}</span>}
+              </label>
+              <label className="form-field">
+                <span>{t('education.profile.lastName')}</span>
+                <input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  autoComplete="family-name"
+                />
+                {errors.lastName && <span className="form-error">{errors.lastName}</span>}
+              </label>
+              <label className="form-field">
+                <span>{t('education.profile.city')}</span>
+                <input
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  autoComplete="address-level2"
+                />
+                {errors.city && <span className="form-error">{errors.city}</span>}
+              </label>
+              <label className="form-field">
+                <span>{t('education.profile.email')}</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  dir="ltr"
+                  className="ltr-isolate"
+                />
+                {errors.email && <span className="form-error">{errors.email}</span>}
+              </label>
+              {formError && <p className="form-error">{formError}</p>}
+              <button type="submit" className="cta-primary auth-submit" disabled={busy}>
+                {busy ? t('education.profile.submitting') : t('education.profile.submit')}
+              </button>
+            </form>
+          </div>
         </div>
       </RequireAuth>
     );
@@ -232,89 +256,103 @@ function EducationFlow() {
 
   if (step === 'otp') {
     return (
-      <div className="app auth-card education-card">
-        <h1>{t('education.otp.title')}</h1>
-        <p className="auth-sub">{t('education.otp.sub', { phone })}</p>
-        {devCode && (
-          <p className="form-hint">{t('education.otp.devHint', { code: devCode })}</p>
-        )}
-        <form className="auth-form" onSubmit={onVerifyOtp} noValidate>
-          <label>
-            {t('education.otp.label')}
-            <input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder={t('education.otp.placeholder')}
-            />
-            {errors.code && <span className="form-error">{errors.code}</span>}
-          </label>
-          {formError && <p className="form-error">{formError}</p>}
-          <button type="submit" className="cta-primary" disabled={busy}>
-            {busy ? t('education.otp.submitting') : t('education.otp.submit')}
-          </button>
-        </form>
-        <div className="auth-footer-row">
-          <button
-            type="button"
-            className="text-btn"
-            onClick={() => {
-              setStep('phone');
-              setCode('');
-              setDevCode(undefined);
-            }}
-          >
-            {t('education.otp.changePhone')}
-          </button>
-          <button
-            type="button"
-            className="text-btn"
-            disabled={busy}
-            onClick={async () => {
-              clearErrors();
-              setBusy(true);
-              try {
-                const res = await api.requestOtp({ phone });
-                setDevCode(res.devCode);
-              } catch (err) {
-                setFormError(err instanceof ApiError ? err.message : t('common.errorFallback'));
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            {t('education.otp.resend')}
-          </button>
+      <div className="app auth-shell">
+        <div className="auth-card education-card">
+          <span className="auth-step-badge">۲ / ۳</span>
+          <h1>{t('education.otp.title')}</h1>
+          <p className="auth-sub">{t('education.otp.sub', { phone })}</p>
+          {devCode && (
+            <p className="form-hint">{t('education.otp.devHint', { code: devCode })}</p>
+          )}
+          <form className="auth-form" onSubmit={onVerifyOtp} noValidate>
+            <label className="form-field">
+              <span>{t('education.otp.label')}</span>
+              <input
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder={t('education.otp.placeholder')}
+                dir="ltr"
+                className="ltr-isolate otp-input"
+              />
+              {errors.code && <span className="form-error">{errors.code}</span>}
+            </label>
+            {formError && <p className="form-error">{formError}</p>}
+            <button type="submit" className="cta-primary auth-submit" disabled={busy}>
+              {busy ? t('education.otp.submitting') : t('education.otp.submit')}
+            </button>
+          </form>
+          <div className="auth-footer-row">
+            <button
+              type="button"
+              className="text-btn"
+              onClick={() => {
+                setStep('phone');
+                setCode('');
+                setDevCode(undefined);
+                setOtpVerified(false);
+              }}
+            >
+              {t('education.otp.changePhone')}
+            </button>
+            <button
+              type="button"
+              className="text-btn"
+              disabled={busy}
+              onClick={async () => {
+                clearErrors();
+                setBusy(true);
+                try {
+                  const res = await api.requestOtp({ phone });
+                  setDevCode(res.devCode);
+                } catch (err) {
+                  setFormError(err instanceof ApiError ? err.message : t('common.errorFallback'));
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {t('education.otp.resend')}
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="app auth-card education-card">
-      <h1>{t('education.phone.title')}</h1>
-      <p className="auth-sub">{t('education.phone.sub')}</p>
-      <form className="auth-form" onSubmit={onRequestOtp} noValidate>
-        <label>
-          {t('education.phone.label')}
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder={t('education.phone.placeholder')}
-            autoComplete="tel"
-          />
-          {errors.phone && <span className="form-error">{errors.phone}</span>}
-        </label>
-        {formError && <p className="form-error">{formError}</p>}
-        <button type="submit" className="cta-primary" disabled={busy}>
-          {busy ? t('education.phone.submitting') : t('education.phone.submit')}
-        </button>
-      </form>
-      <Link href="/" className="back-link">
-        {t('common.back')}
-      </Link>
+    <div className="app auth-shell">
+      <div className="auth-card education-card">
+        <Link href="/" className="education-brand">
+          {t('common.brand')}
+        </Link>
+        <span className="auth-step-badge">۱ / ۳</span>
+        <h1>{t('education.phone.title')}</h1>
+        <p className="auth-sub">{t('education.phone.sub')}</p>
+        <form className="auth-form" onSubmit={onRequestOtp} noValidate>
+          <label className="form-field">
+            <span>{t('education.phone.label')}</span>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder={t('education.phone.placeholder')}
+              autoComplete="tel"
+              dir="ltr"
+              className="ltr-isolate"
+            />
+            {errors.phone && <span className="form-error">{errors.phone}</span>}
+          </label>
+          {formError && <p className="form-error">{formError}</p>}
+          <button type="submit" className="cta-primary auth-submit" disabled={busy}>
+            {busy ? t('education.phone.submitting') : t('education.phone.submit')}
+          </button>
+        </form>
+        <Link href="/" className="back-link">
+          {t('common.back')}
+        </Link>
+      </div>
     </div>
   );
 }

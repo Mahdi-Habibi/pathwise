@@ -1,54 +1,190 @@
 /* ================= LANDING ================= */
+.landing-minimal {
+  position: relative;
+  min-height: calc(100vh - 2rem);
+  overflow: hidden;
+}
+
+.landing-orbs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(10px);
+}
+
+.landing-orb-a {
+  width: min(420px, 70vw);
+  height: min(420px, 70vw);
+  top: -120px;
+  inset-inline-end: -80px;
+  background: radial-gradient(circle, rgba(46, 138, 153, 0.28), transparent 65%);
+  animation: landingDriftA 12s ease-in-out infinite;
+}
+
+.landing-orb-b {
+  width: min(340px, 60vw);
+  height: min(340px, 60vw);
+  bottom: -100px;
+  inset-inline-start: -70px;
+  background: radial-gradient(circle, rgba(201, 169, 89, 0.22), transparent 65%);
+  animation: landingDriftB 10s ease-in-out infinite;
+}
+
+@keyframes landingDriftA {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-22px, 14px);
+  }
+}
+
+@keyframes landingDriftB {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(18px, -12px);
+  }
+}
+
 .landing-minimal .landing-hero {
-  padding: clamp(48px, 10vh, 96px) 0 56px;
+  position: relative;
+  z-index: 1;
+  padding: clamp(56px, 12vh, 110px) 0 64px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
 }
+
 .landing-header {
   margin-bottom: 28px;
 }
+
 .landing-brand {
   display: block;
-  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-size: clamp(1.85rem, 5vw, 2.55rem);
   font-weight: 800;
-  color: var(--indigo-bright, #6c8cff);
-  letter-spacing: -0.02em;
+  color: var(--kia-deep, var(--indigo-bright));
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
+
 .landing-eyebrow {
-  margin: 0.4rem 0 0;
-  color: var(--text-faint);
+  margin: 0.55rem 0 0;
+  color: var(--kia-accent, var(--text-dim));
   font-size: 0.95rem;
+  font-weight: 600;
 }
+
 .landing-title {
-  font-size: clamp(28px, 5vw, 44px);
+  font-size: clamp(1.55rem, 4.2vw, 2.35rem);
   font-weight: 800;
   letter-spacing: -0.03em;
-  line-height: 1.2;
-  margin: 0 0 18px;
+  line-height: 1.25;
+  margin: 0 0 16px;
   max-width: 18ch;
+  color: var(--text);
 }
+
 .landing-body {
   font-size: 1.05rem;
   color: var(--text-dim);
-  line-height: 1.7;
-  margin: 0 0 32px;
+  line-height: 1.75;
+  margin: 0 0 36px;
   max-width: 42ch;
 }
+
 .landing-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: min(100%, 560px);
 }
+
+.landing-path-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: start;
+  text-decoration: none;
+  padding: 18px 18px 16px;
+  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.landing-path-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--kia-accent, var(--indigo));
+}
+
+.landing-path-card--accent {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--kia-accent) 14%, white) 0%,
+    var(--bg-card) 55%
+  );
+  border-color: color-mix(in srgb, var(--kia-accent) 35%, var(--border));
+}
+
+.landing-path-icon {
+  font-size: 1.15rem;
+  color: var(--kia-gold, var(--amber));
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.landing-path-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--kia-deep, var(--text));
+}
+
+.landing-path-desc {
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
 .landing-note {
-  margin-top: 20px;
+  margin-top: 22px;
   font-size: 0.85rem;
   color: var(--text-faint);
 }
+
+@media (max-width: 560px) {
+  .landing-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-orb-a,
+  .landing-orb-b {
+    animation: none;
+  }
+}
+
 .hero {
   padding: 60px 0 40px;
   text-align: center;

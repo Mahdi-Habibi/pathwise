@@ -12,7 +12,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -26,11 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!mounted) return;
     const html = document.documentElement;
-    if (theme === 'light') {
-      html.dataset.theme = 'light';
-    } else {
-      delete html.dataset.theme;
-    }
+    html.dataset.theme = theme;
     localStorage.setItem('pathwise-theme', theme);
   }, [theme, mounted]);
 

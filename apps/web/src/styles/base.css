@@ -1,100 +1,110 @@
-:root {
-  /* Surfaces (dark default) */
-  --bg: #070b14;
-  --bg-elevated: #0f1528;
-  --bg-card: #141c32;
-  --bg-glass: rgba(20, 28, 50, 0.72);
-  --border: #2a3558;
-  --border-soft: #1e2844;
+:root,
+[data-theme='light'] {
+  /* Kia Academy — light teal/gold (default) */
+  --kia-deep: #0a2f44;
+  --kia-accent: #1f6e8c;
+  --kia-soft: #2e8a99;
+  --kia-gold: #c9a959;
 
-  /* Text — all ≥ 4.5:1 on --bg / --bg-card */
-  --text: #f0f2fa;
-  --text-dim: #a8b0cc;
-  --text-faint: #8b93b0;
+  --bg: #e8f1f6;
+  --bg-elevated: #f7fbfd;
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-glass: rgba(255, 255, 255, 0.72);
+  --border: rgba(31, 110, 140, 0.22);
+  --border-soft: rgba(31, 110, 140, 0.12);
 
-  /* Accents for text, borders, icons on surfaces */
-  --indigo: #818cf8;
-  --indigo-bright: #a5b4fc;
-  --teal: #2dd4bf;
-  --emerald: #34d399;
-  --amber: #fbbf24;
-  --danger: #fca5a5;
+  --text: #0f1e2c;
+  --text-dim: #385e77;
+  --text-faint: #5d7f95;
 
-  /* Solid fills paired with --on-fill (≥ 4.5:1 white-on-fill) */
-  --indigo-fill: #4f46e5;
-  --teal-fill: #0f766e;
-  --emerald-fill: #047857;
+  /* Legacy token names mapped to Kia palette for one product look */
+  --indigo: var(--kia-accent);
+  --indigo-bright: var(--kia-deep);
+  --teal: var(--kia-soft);
+  --emerald: #1a7a5c;
+  --amber: var(--kia-gold);
+  --danger: #c0392b;
+
+  --indigo-fill: var(--kia-accent);
+  --teal-fill: var(--kia-deep);
+  --emerald-fill: #1a7a5c;
   --on-fill: #ffffff;
 
-  /* Soft tints */
-  --indigo-dim: rgba(129, 140, 248, 0.16);
-  --teal-dim: rgba(45, 212, 191, 0.14);
-  --emerald-dim: rgba(52, 211, 153, 0.14);
-  --amber-dim: rgba(251, 191, 36, 0.14);
-  --danger-dim: rgba(252, 165, 165, 0.14);
+  --indigo-dim: rgba(31, 110, 140, 0.12);
+  --teal-dim: rgba(46, 138, 153, 0.14);
+  --emerald-dim: rgba(26, 122, 92, 0.12);
+  --amber-dim: rgba(201, 169, 89, 0.18);
+  --danger-dim: rgba(192, 57, 43, 0.12);
 
-  /* Code chrome stays dark in both themes for readability */
-  --code-bg: #080a14;
-  --code-bg-elevated: #161a2e;
-  --code-text: #e8eaf6;
-  --code-muted: #a8b0cc;
-  --code-keyword: #a5b4fc;
-  --code-function: #fbbf24;
-  --medal-silver: #c5cbe0;
-  --medal-bronze: #e0a070;
+  --code-bg: #0a2f44;
+  --code-bg-elevated: #123a52;
+  --code-text: #e8f1f6;
+  --code-muted: #9bb8c9;
+  --code-keyword: #7ec8de;
+  --code-function: #e2c77a;
+  --medal-silver: #6b8496;
+  --medal-bronze: #9a6b2f;
 
-  --gradient-brand: linear-gradient(135deg, var(--indigo-fill) 0%, var(--teal-fill) 100%);
+  --gradient-brand: linear-gradient(135deg, var(--kia-deep) 0%, var(--kia-accent) 55%, var(--kia-soft) 100%);
   --gradient-hero:
-    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(129, 140, 248, 0.28), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(45, 212, 191, 0.12), transparent);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.24);
-  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.32);
-  --shadow-glow: 0 8px 40px -8px rgba(79, 70, 229, 0.45);
+    radial-gradient(ellipse 80% 55% at 50% -15%, rgba(46, 138, 153, 0.28), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(201, 169, 89, 0.18), transparent 55%),
+    radial-gradient(circle at top, #e9f0fa 0%, #d6e3f0 100%);
+  --shadow-sm: 0 2px 10px rgba(10, 47, 68, 0.08);
+  --shadow-md: 0 16px 40px -18px rgba(10, 47, 68, 0.28);
+  --shadow-glow: 0 12px 36px -10px rgba(31, 110, 140, 0.45);
   --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
   --radius: 16px;
-  --radius-sm: 10px;
+  --radius-sm: 12px;
   --space-section: 80px;
 }
 
-[data-theme='light'] {
-  --bg: #f8fafc;
-  --bg-elevated: #ffffff;
-  --bg-card: #ffffff;
-  --bg-glass: rgba(255, 255, 255, 0.85);
-  --border: #e2e8f0;
-  --border-soft: #f1f5f9;
+[data-theme='dark'] {
+  --kia-deep: #7ec8de;
+  --kia-accent: #3d9bb5;
+  --kia-soft: #2e8a99;
+  --kia-gold: #d4b86a;
 
-  --text: #0f172a;
-  --text-dim: #475569;
-  --text-faint: #64748b;
+  --bg: #071821;
+  --bg-elevated: #0d2433;
+  --bg-card: #123044;
+  --bg-glass: rgba(13, 36, 51, 0.82);
+  --border: rgba(126, 200, 222, 0.22);
+  --border-soft: rgba(126, 200, 222, 0.12);
 
-  --indigo: #4f46e5;
-  --indigo-bright: #4338ca;
-  --teal: #0f766e;
-  --emerald: #047857;
-  --amber: #b45309;
-  --danger: #dc2626;
+  --text: #e8f1f6;
+  --text-dim: #9bb8c9;
+  --text-faint: #6f8fa3;
 
-  --indigo-fill: #4f46e5;
-  --teal-fill: #0f766e;
+  --indigo: #7ec8de;
+  --indigo-bright: #a8dced;
+  --teal: #5ec4c8;
+  --emerald: #4ade80;
+  --amber: #d4b86a;
+  --danger: #f0a0a0;
+
+  --indigo-fill: #1f6e8c;
+  --teal-fill: #0a2f44;
   --emerald-fill: #047857;
+  --on-fill: #ffffff;
 
-  --indigo-dim: rgba(79, 70, 229, 0.1);
-  --teal-dim: rgba(15, 118, 110, 0.1);
-  --emerald-dim: rgba(4, 120, 87, 0.1);
-  --amber-dim: rgba(180, 83, 9, 0.12);
-  --danger-dim: rgba(220, 38, 38, 0.1);
+  --indigo-dim: rgba(126, 200, 222, 0.14);
+  --teal-dim: rgba(94, 196, 200, 0.14);
+  --emerald-dim: rgba(74, 222, 128, 0.12);
+  --amber-dim: rgba(212, 184, 106, 0.14);
+  --danger-dim: rgba(240, 160, 160, 0.14);
 
-  --medal-silver: #64748b;
-  --medal-bronze: #9a3412;
+  --medal-silver: #9bb8c9;
+  --medal-bronze: #c9a959;
 
+  --gradient-brand: linear-gradient(135deg, #0a2f44 0%, #1f6e8c 100%);
   --gradient-hero:
-    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(79, 70, 229, 0.12), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 118, 110, 0.08), transparent);
-  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 8px 32px rgba(15, 23, 42, 0.08);
-  --shadow-glow: 0 8px 40px -8px rgba(79, 70, 229, 0.25);
+    radial-gradient(ellipse 80% 55% at 50% -15%, rgba(31, 110, 140, 0.35), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(201, 169, 89, 0.12), transparent 55%);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 16px 40px -12px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 12px 36px -10px rgba(31, 110, 140, 0.55);
 }
 
 * {
@@ -188,6 +198,10 @@ input[type='email'],
 .site-main {
   flex: 1 0 auto;
   width: 100%;
+}
+
+.site-main--guest {
+  min-height: 100vh;
 }
 
 .app {

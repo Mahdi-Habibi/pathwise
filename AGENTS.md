@@ -17,11 +17,13 @@ Monorepo: Node `>=22.13`, pnpm `11.13.0` via Corepack. Standard commands live in
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Minimal Persian landing (Material + Education CTAs) |
+| `/` | Minimal Persian landing (Material + Education CTAs) — **no site header** for guests |
 | `/material` | Material Studio (ported, modular under `apps/web/src/features/material`) |
-| `/education` | Iranian phone OTP → profile → assessment gate |
+| `/education` | Iranian phone OTP → profile → assessment gate (always phone-first; never auto-skips OTP) |
 | `/assessment` | Wizard (requires complete profile) |
 | `/learn/...` | Lesson player + video fullscreen + notes |
+
+Site `TopBar` / `Footer` render only after `profileComplete` (successful registration). Guests use landing CTAs only.
 
 ### Auth / OTP
 

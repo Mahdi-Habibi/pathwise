@@ -38,7 +38,7 @@
   width: 24px;
   height: 24px;
   border-radius: 7px;
-  background: linear-gradient(135deg, var(--indigo-fill), var(--teal-fill));
+  background: linear-gradient(135deg, var(--kia-deep, var(--teal-fill)), var(--kia-accent, var(--indigo-fill)));
 }
 
 .footer-brand p {

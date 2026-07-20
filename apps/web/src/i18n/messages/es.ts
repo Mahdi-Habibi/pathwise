@@ -86,6 +86,8 @@ export const es = {
       'Pathwise es una plataforma educativa adaptativa — responde con sinceridad sobre tus objetivos, habilidades y tiempo, y obtén una secuencia de módulos personalizada con paquetes con mentor y desbloqueos por habilidad.',
     ctaMaterial: 'Material Studio',
     ctaEducation: 'Start Education',
+    materialHint: 'Paleta, iconos y motion — sin registro',
+    educationHint: 'Regístrate con tu móvil y empieza a aprender',
     ctaAssessment: 'Empieza tu evaluación gratuita',
     ctaSignIn: 'Iniciar sesión',
     heroNote:
