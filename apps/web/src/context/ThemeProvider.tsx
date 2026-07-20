@@ -17,8 +17,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem('pathwise-theme') as Theme | null;
-    if (stored === 'light' || stored === 'dark') {
+    const stored = localStorage.getItem('kia-theme') as Theme | null;
+    if (stored === 'dark' || stored === 'light') {
       setTheme(stored);
     }
   }, []);
@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (!mounted) return;
     const html = document.documentElement;
     html.dataset.theme = theme;
-    localStorage.setItem('pathwise-theme', theme);
+    localStorage.setItem('kia-theme', theme);
   }, [theme, mounted]);
 
   const toggleTheme = useCallback(() => {

@@ -1344,9 +1344,15 @@
   padding: 1rem 1.25rem 2rem;
   font-family: var(--font-vazirmatn), var(--font-inter), Tahoma, sans-serif;
   color: var(--text-main);
-  background: transparent;
+  background: radial-gradient(circle at top, rgba(233, 240, 250, 0.95) 0%, rgba(214, 227, 240, 0.9) 100%);
   overflow-x: hidden;
   line-height: 1.5;
+  z-index: 1;
+}
+
+.material-studio-root .material-mode {
+  position: relative;
+  z-index: 2;
 }
 
 .material-studio-root .material-brand {
