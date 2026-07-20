@@ -165,3 +165,29 @@
 .user-dropdown-item.danger {
   color: var(--danger);
 }
+
+/* Education funnel */
+.education-card {
+  max-width: 460px;
+}
+.auth-footer-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+.text-btn {
+  background: none;
+  border: 0;
+  color: var(--indigo-bright, #6c8cff);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.form-hint {
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  background: var(--indigo-dim, rgba(108, 140, 255, 0.12));
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.7rem;
+}

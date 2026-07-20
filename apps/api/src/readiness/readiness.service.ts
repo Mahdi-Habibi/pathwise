@@ -38,7 +38,7 @@ export class ReadinessService {
       where: { id: userId },
     });
     await this.emailService.sendReadinessResults(
-      { id: user.id, name: user.name, email: user.email },
+      { id: user.id, name: user.name, email: user.email ?? 'noreply@kia.academy' },
       result,
     );
 

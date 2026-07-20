@@ -84,6 +84,8 @@ export const es = {
     heroTitle: 'No adivines tu ruta de aprendizaje. Creamos tu roadmap gratis.',
     heroBody:
       'Pathwise es una plataforma educativa adaptativa — responde con sinceridad sobre tus objetivos, habilidades y tiempo, y obtén una secuencia de módulos personalizada con paquetes con mentor y desbloqueos por habilidad.',
+    ctaMaterial: 'Material Studio',
+    ctaEducation: 'Start Education',
     ctaAssessment: 'Empieza tu evaluación gratuita',
     ctaSignIn: 'Iniciar sesión',
     heroNote:
@@ -115,6 +117,50 @@ export const es = {
       },
     },
   },
+
+  education: {
+    phone: {
+      title: 'Sign up with phone',
+      sub: 'Enter your Iranian mobile number to receive a verification code.',
+      label: 'Mobile number',
+      placeholder: '09123456789',
+      submit: 'Send code',
+      submitting: 'Sending…',
+      invalid: 'Enter a valid Iranian mobile number (09xxxxxxxxx).',
+    },
+    otp: {
+      title: 'Enter verification code',
+      sub: 'We sent a 6-digit code to {phone}.',
+      label: 'Verification code',
+      placeholder: '123456',
+      submit: 'Verify',
+      submitting: 'Verifying…',
+      invalid: 'Enter the 6-digit code.',
+      resend: 'Resend code',
+      changePhone: 'Change number',
+      devHint: 'Dev code: {code}',
+    },
+    profile: {
+      title: 'Complete your profile',
+      sub: 'All fields are required to continue.',
+      firstName: 'First name',
+      lastName: 'Last name',
+      city: 'City',
+      email: 'Email',
+      phone: 'Phone',
+      submit: 'Save and continue',
+      submitting: 'Saving…',
+      emailInvalid: 'Enter a valid email address.',
+      unsafe: 'This field contains unsafe or spam-like content.',
+      required: 'This field is required.',
+    },
+    start: {
+      title: 'You are ready',
+      body: 'Your profile is complete. Start the assessment to build your learning path.',
+      cta: 'Start assessment',
+    },
+  },
+
   auth: {
     login: {
       eyebrow: 'Bienvenido de nuevo',
@@ -522,6 +568,10 @@ export const es = {
     previous: 'Anterior',
     next: 'Siguiente',
     allLessons: 'Todas las lecciones →',
+        video: 'Lesson video',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit fullscreen',
+    notesHint: 'Take notes while you watch and practice.',
     videoUnsupported: 'Tu navegador no admite video incrustado.',
   },
   bootcamp: {

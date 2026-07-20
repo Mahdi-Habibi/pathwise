@@ -8,7 +8,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import type { AuthResponse, AuthUser, LearnerState } from '@pathwise/shared';
+import type { AuthResponse, AuthUser, LearnerState, RequestOtpResponse } from '@pathwise/shared';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -16,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { CompleteProfileDto, RequestOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { ConfigService } from '@nestjs/config';
 import { parseExpiresInSeconds } from './auth.utils';
 
@@ -42,6 +43,33 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponse> {
     const result = await this.authService.login(dto);
+    this.setRefreshCookie(res, result.refreshToken);
+    return this.stripRefreshToken(result);
+  }
+
+  @Post('otp/request')
+  requestOtp(@Body() dto: RequestOtpDto): Promise<RequestOtpResponse> {
+    return this.authService.requestOtp(dto.phone);
+  }
+
+  @Post('otp/verify')
+  async verifyOtp(
+    @Body() dto: VerifyOtpDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponse> {
+    const result = await this.authService.verifyOtp(dto.phone, dto.code);
+    this.setRefreshCookie(res, result.refreshToken);
+    return this.stripRefreshToken(result);
+  }
+
+  @Post('profile')
+  @UseGuards(JwtAuthGuard)
+  async completeProfile(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CompleteProfileDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponse> {
+    const result = await this.authService.completeProfile(user.id, dto);
     this.setRefreshCookie(res, result.refreshToken);
     return this.stripRefreshToken(result);
   }
@@ -84,7 +112,6 @@ export class AuthController {
     const refreshExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
     const maxAge = parseExpiresInSeconds(refreshExpiresIn) * 1000;
     const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
-    // Cross-origin frontends (e.g. GitHub Pages → hosted API) need SameSite=None; Secure.
     const corsOrigin = this.configService.get<string>('CORS_ORIGIN', 'http://localhost:3000');
     const crossSite = /github\.io/i.test(corsOrigin) || process.env.COOKIE_SAMESITE === 'none';
 

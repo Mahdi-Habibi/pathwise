@@ -84,6 +84,8 @@ export const de = {
     heroTitle: 'Raten Sie nicht Ihren Lernpfad. Wir erstellen Ihre Roadmap kostenlos.',
     heroBody:
       'Pathwise ist eine adaptive Bildungsplattform — beantworten Sie ehrliche Fragen zu Ihren Zielen, Fähigkeiten und Ihrer Zeit und erhalten Sie eine personalisierte Modulreihenfolge mit mentorunterstützten Paketen und fähigkeitsbasierten Freischaltungen.',
+    ctaMaterial: 'Material Studio',
+    ctaEducation: 'Start Education',
     ctaAssessment: 'Kostenlose Bewertung starten',
     ctaSignIn: 'Anmelden',
     heroNote:
@@ -115,6 +117,50 @@ export const de = {
       },
     },
   },
+
+  education: {
+    phone: {
+      title: 'Sign up with phone',
+      sub: 'Enter your Iranian mobile number to receive a verification code.',
+      label: 'Mobile number',
+      placeholder: '09123456789',
+      submit: 'Send code',
+      submitting: 'Sending…',
+      invalid: 'Enter a valid Iranian mobile number (09xxxxxxxxx).',
+    },
+    otp: {
+      title: 'Enter verification code',
+      sub: 'We sent a 6-digit code to {phone}.',
+      label: 'Verification code',
+      placeholder: '123456',
+      submit: 'Verify',
+      submitting: 'Verifying…',
+      invalid: 'Enter the 6-digit code.',
+      resend: 'Resend code',
+      changePhone: 'Change number',
+      devHint: 'Dev code: {code}',
+    },
+    profile: {
+      title: 'Complete your profile',
+      sub: 'All fields are required to continue.',
+      firstName: 'First name',
+      lastName: 'Last name',
+      city: 'City',
+      email: 'Email',
+      phone: 'Phone',
+      submit: 'Save and continue',
+      submitting: 'Saving…',
+      emailInvalid: 'Enter a valid email address.',
+      unsafe: 'This field contains unsafe or spam-like content.',
+      required: 'This field is required.',
+    },
+    start: {
+      title: 'You are ready',
+      body: 'Your profile is complete. Start the assessment to build your learning path.',
+      cta: 'Start assessment',
+    },
+  },
+
   auth: {
     login: {
       eyebrow: 'Willkommen zurück',
@@ -523,6 +569,10 @@ export const de = {
     previous: 'Zurück',
     next: 'Weiter',
     allLessons: 'Alle Lektionen →',
+        video: 'Lesson video',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit fullscreen',
+    notesHint: 'Take notes while you watch and practice.',
     videoUnsupported: 'Ihr Browser unterstützt eingebettete Videos nicht.',
   },
   bootcamp: {

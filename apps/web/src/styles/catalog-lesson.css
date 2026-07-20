@@ -174,3 +174,78 @@
 .legal-shell a {
   color: var(--indigo-bright);
 }
+
+.kia-lesson-shell .lesson-video-block {
+  margin: 1rem 0 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+.lesson-video-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.lesson-video-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.lesson-fullscreen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated, rgba(255,255,255,0.06));
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+.kia-lesson-shell .lesson-video {
+  margin: 0;
+  background: #000;
+}
+.kia-lesson-shell .lesson-video video {
+  width: 100%;
+  max-height: min(70vh, 540px);
+  display: block;
+}
+.lesson-video-block:fullscreen,
+.lesson-video-block:-webkit-full-screen {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+.lesson-video-block:fullscreen .lesson-video video,
+.lesson-video-block:-webkit-full-screen .lesson-video video {
+  max-height: calc(100vh - 52px);
+  height: 100%;
+}
+.lesson-notes-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.lesson-notes-panel h3 {
+  margin: 0 0 0.55rem;
+  font-size: 1rem;
+}
+.lesson-note-editor {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 0.8rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated, rgba(255,255,255,0.04));
+  color: inherit;
+  padding: 0.7rem;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.6;
+}

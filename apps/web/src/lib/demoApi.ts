@@ -49,14 +49,18 @@ const DEMO_LEARNER: AuthUser = {
   id: 'demo-learner',
   name: 'Alex R.',
   email: 'alex@pathwise.dev',
+  phone: '09120000001',
   role: 'LEARNER',
+  profileComplete: true,
 };
 
 const DEMO_ADMIN: AuthUser = {
   id: 'demo-admin',
   name: 'Pathwise Admin',
   email: 'admin@pathwise.dev',
+  phone: null,
   role: 'ADMIN',
+  profileComplete: true,
 };
 
 interface DemoLesson {
@@ -305,6 +309,7 @@ function learnerStateFor(user: AuthUser): LearnerState {
     roadmapEnrolled: state.roadmapEnrolled,
     readinessPaid: state.readinessPaid,
     testCompleted: state.testCompleted,
+    profileComplete: user.profileComplete,
     entitlements: state.entitlements,
     enrollments: state.enrollments,
   };
@@ -349,26 +354,65 @@ export const demoApi = {
         id: `demo-${Date.now()}`,
         name: dto.name,
         email: dto.email,
+        phone: null,
         role: 'LEARNER',
+        profileComplete: true,
       }),
     );
   },
 
   async login(dto: LoginDto): Promise<AuthResponse> {
     const email = dto.email.trim().toLowerCase();
-    if (email === DEMO_ADMIN.email.toLowerCase()) {
+    const adminEmail = (DEMO_ADMIN.email ?? '').toLowerCase();
+    const learnerEmail = (DEMO_LEARNER.email ?? '').toLowerCase();
+    if (email === adminEmail) {
       return delay(authResponse(DEMO_ADMIN));
     }
-    if (email === DEMO_LEARNER.email.toLowerCase() || email.includes('@')) {
+    if (email === learnerEmail || email.includes('@')) {
       return delay(
         authResponse({
           ...DEMO_LEARNER,
           email: dto.email,
-          name: email === DEMO_LEARNER.email.toLowerCase() ? DEMO_LEARNER.name : dto.email.split('@')[0],
+          name: email === learnerEmail ? DEMO_LEARNER.name : dto.email.split('@')[0],
         }),
       );
     }
     throw new ApiError('Invalid credentials', 401);
+  },
+
+  async requestOtp(dto: { phone: string }): Promise<{ phone: string; expiresInSeconds: number; devCode?: string }> {
+    const phone = dto.phone;
+    return delay({ phone, expiresInSeconds: 300, devCode: '123456' });
+  },
+
+  async verifyOtp(dto: { phone: string; code: string }): Promise<AuthResponse> {
+    if (dto.code !== '123456') throw new ApiError('Invalid verification code', 401);
+    return delay(
+      authResponse({
+        id: `demo-phone-${dto.phone}`,
+        name: '',
+        email: null,
+        phone: dto.phone,
+        role: 'LEARNER',
+        profileComplete: false,
+      }),
+    );
+  },
+
+  async completeProfile(dto: {
+    firstName: string;
+    lastName: string;
+    city: string;
+    email: string;
+  }): Promise<AuthResponse> {
+    const user = requireUser();
+    const next: AuthUser = {
+      ...user,
+      name: `${dto.firstName} ${dto.lastName}`.trim(),
+      email: dto.email,
+      profileComplete: true,
+    };
+    return delay(authResponse(next));
   },
 
   async logout(): Promise<void> {

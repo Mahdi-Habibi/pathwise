@@ -1,9 +1,27 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import type { AuthResponse, AuthTokens, AuthUser, LearnerState } from '@pathwise/shared';
+import type {
+  AuthResponse,
+  AuthTokens,
+  AuthUser,
+  CompleteProfileDto,
+  LearnerState,
+  RequestOtpResponse,
+} from '@pathwise/shared';
+import {
+  containsUnsafeText,
+  isValidEmail,
+  normalizeIranianPhone,
+  sanitizeProfileText,
+} from '@pathwise/shared';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes, randomInt } from 'crypto';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
@@ -12,6 +30,8 @@ import { RegisterDto } from './dto/register.dto';
 import { addDurationToDate, parseExpiresInSeconds } from './auth.utils';
 
 const BCRYPT_ROUNDS = 12;
+const OTP_TTL_MS = 5 * 60 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
 
 @Injectable()
 export class AuthService {
@@ -24,9 +44,8 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse & { refreshToken: string }> {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase() },
-    });
+    const email = dto.email.toLowerCase();
+    const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new ConflictException('Email already registered');
     }
@@ -36,8 +55,9 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
-        email: dto.email.toLowerCase(),
+        email,
         passwordHash,
+        profileComplete: true,
         bootcampProfile: {
           create: {
             rank: settings.bootcamp.defaultRank,
@@ -50,7 +70,7 @@ export class AuthService {
     await this.emailService.sendWelcome({
       id: user.id,
       name: user.name,
-      email: user.email,
+      email: user.email ?? email,
     });
 
     return this.issueAuthResponse(this.toAuthUser(user));
@@ -60,13 +80,161 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
-    if (!user) {
+    if (!user?.passwordHash) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    return this.issueAuthResponse(this.toAuthUser(user));
+  }
+
+  async requestOtp(rawPhone: string): Promise<RequestOtpResponse> {
+    const phone = normalizeIranianPhone(rawPhone);
+    if (!phone) {
+      throw new BadRequestException('Invalid Iranian phone number');
+    }
+
+    const code = String(randomInt(100000, 999999));
+    const codeHash = this.hashOtp(phone, code);
+    const expiresAt = new Date(Date.now() + OTP_TTL_MS);
+
+    await this.prisma.phoneOtp.updateMany({
+      where: { phone, consumedAt: null },
+      data: { consumedAt: new Date() },
+    });
+
+    await this.prisma.phoneOtp.create({
+      data: { phone, codeHash, expiresAt },
+    });
+
+    // SMS provider hook — log for operators; expose code only in dev when configured.
+    console.info(`[otp] phone=${phone} code=${code}`);
+
+    const expose =
+      this.configService.get<string>('OTP_DEV_EXPOSE') === 'true' ||
+      this.configService.get<string>('NODE_ENV') !== 'production';
+
+    return {
+      phone,
+      expiresInSeconds: Math.floor(OTP_TTL_MS / 1000),
+      ...(expose ? { devCode: code } : {}),
+    };
+  }
+
+  async verifyOtp(
+    rawPhone: string,
+    code: string,
+  ): Promise<AuthResponse & { refreshToken: string }> {
+    const phone = normalizeIranianPhone(rawPhone);
+    if (!phone) {
+      throw new BadRequestException('Invalid Iranian phone number');
+    }
+    if (!/^\d{6}$/.test(code)) {
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    const otp = await this.prisma.phoneOtp.findFirst({
+      where: { phone, consumedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!otp || otp.expiresAt < new Date()) {
+      throw new UnauthorizedException('Code expired or not found');
+    }
+    if (otp.attempts >= OTP_MAX_ATTEMPTS) {
+      throw new UnauthorizedException('Too many attempts. Request a new code.');
+    }
+
+    const ok = otp.codeHash === this.hashOtp(phone, code);
+    if (!ok) {
+      await this.prisma.phoneOtp.update({
+        where: { id: otp.id },
+        data: { attempts: { increment: 1 } },
+      });
+      throw new UnauthorizedException('Invalid verification code');
+    }
+
+    await this.prisma.phoneOtp.update({
+      where: { id: otp.id },
+      data: { consumedAt: new Date() },
+    });
+
+    let user = await this.prisma.user.findUnique({ where: { phone } });
+    if (!user) {
+      const settings = await this.siteSettings.get();
+      user = await this.prisma.user.create({
+        data: {
+          phone,
+          phoneVerified: true,
+          name: '',
+          profileComplete: false,
+          bootcampProfile: {
+            create: {
+              rank: settings.bootcamp.defaultRank,
+              points: settings.bootcamp.defaultPoints,
+            },
+          },
+        },
+      });
+    } else if (!user.phoneVerified) {
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { phoneVerified: true },
+      });
+    }
+
+    return this.issueAuthResponse(this.toAuthUser(user));
+  }
+
+  async completeProfile(
+    userId: string,
+    dto: CompleteProfileDto,
+  ): Promise<AuthResponse & { refreshToken: string }> {
+    const firstName = sanitizeProfileText(dto.firstName);
+    const lastName = sanitizeProfileText(dto.lastName);
+    const city = sanitizeProfileText(dto.city);
+    const email = dto.email.trim().toLowerCase();
+
+    if (!firstName || !lastName || !city) {
+      throw new BadRequestException('All profile fields are required');
+    }
+    if (
+      containsUnsafeText(firstName) ||
+      containsUnsafeText(lastName) ||
+      containsUnsafeText(city)
+    ) {
+      throw new BadRequestException('Profile contains unsafe content');
+    }
+    if (!isValidEmail(email) || containsUnsafeText(email)) {
+      throw new BadRequestException('Invalid email address');
+    }
+
+    const emailOwner = await this.prisma.user.findUnique({ where: { email } });
+    if (emailOwner && emailOwner.id !== userId) {
+      throw new ConflictException('Email already registered');
+    }
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName,
+        lastName,
+        city,
+        email,
+        name: `${firstName} ${lastName}`.trim(),
+        profileComplete: true,
+      },
+    });
+
+    if (user.email) {
+      await this.emailService.sendWelcome({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      });
     }
 
     return this.issueAuthResponse(this.toAuthUser(user));
@@ -159,17 +327,24 @@ export class AuthService {
           entitlement.resourceType === 'readiness' && entitlement.resourceId === 'test',
       );
 
+    const authUser = this.toAuthUser(user);
+
     return {
-      user: this.toAuthUser(user),
+      user: authUser,
       hasRoadmap,
       roadmapEnrolled,
       readinessPaid,
       testCompleted: readinessTests.length > 0,
+      profileComplete: authUser.profileComplete,
       entitlements: entitlements.map(
         (entitlement) => `${entitlement.resourceType}:${entitlement.resourceId}`,
       ),
       enrollments: enrollments.map((enrollment) => enrollment.course.slug),
     };
+  }
+
+  private hashOtp(phone: string, code: string): string {
+    return createHash('sha256').update(`${phone}:${code}`).digest('hex');
   }
 
   private async issueAuthResponse(
@@ -195,7 +370,11 @@ export class AuthService {
     });
 
     const accessToken = await this.jwtService.signAsync(
-      { sub: user.id, email: user.email, role: user.role },
+      {
+        sub: user.id,
+        email: user.email ?? user.phone ?? '',
+        role: user.role,
+      },
       {
         secret: this.configService.getOrThrow<string>('JWT_SECRET'),
         expiresIn: parseExpiresInSeconds(accessExpiresIn),
@@ -225,14 +404,18 @@ export class AuthService {
   private toAuthUser(user: {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
+    phone?: string | null;
     role: 'LEARNER' | 'ADMIN';
+    profileComplete?: boolean;
   }): AuthUser {
     return {
       id: user.id,
       name: user.name,
       email: user.email,
+      phone: user.phone ?? null,
       role: user.role,
+      profileComplete: Boolean(user.profileComplete),
     };
   }
 }

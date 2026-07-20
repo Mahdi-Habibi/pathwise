@@ -33,14 +33,20 @@ enum EntitlementSource {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  passwordHash  String
-  role          UserRole  @default(LEARNER)
-  emailVerified Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  name            String    @default("")
+  firstName       String?
+  lastName        String?
+  city            String?
+  phone           String?   @unique
+  phoneVerified   Boolean   @default(false)
+  email           String?   @unique
+  passwordHash    String?
+  role            UserRole  @default(LEARNER)
+  emailVerified   Boolean   @default(false)
+  profileComplete Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   refreshTokens        RefreshToken[]
   assessments          Assessment[]
@@ -52,6 +58,18 @@ model User {
   entitlements         Entitlement[]
   enrollments          Enrollment[]
   lessonProgress       LessonProgress[]
+}
+
+model PhoneOtp {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone])
 }
 
 model RefreshToken {
@@ -129,9 +147,10 @@ model Payment {
   productType ProductType
   productRef  String?
   amountCents Int
-  currency    String        @default("usd")
+  currency    String        @default("irr")
   status      PaymentStatus @default(PENDING)
   stripeId    String?
+  gatewayRef  String?
   metadata    String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
