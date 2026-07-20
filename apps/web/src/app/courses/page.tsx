@@ -5,6 +5,7 @@ import { BookOpen, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError } from '@/lib/api';
 
@@ -69,6 +70,7 @@ export default function CoursesPage() {
   return (
     <div className="page-content">
       <div className="app catalog-shell">
+        <PageBackButton href="/dashboard" />
         <span className="eyebrow">
           <BookOpen size={14} className="inline-leading-icon" />
           {t('courses.eyebrow')}

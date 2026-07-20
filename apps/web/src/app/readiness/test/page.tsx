@@ -9,15 +9,14 @@ import { FileExplorerTask } from '@/components/readiness/FileExplorerTask';
 import { FlowchartTask } from '@/components/readiness/FlowchartTask';
 import { ReorderTask } from '@/components/readiness/ReorderTask';
 import { ProgressTrack } from '@/components/ui/ProgressTrack';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useApp } from '@/context/AppProvider';
-import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { readinessModuleMessageKey } from '@/i18n/domain';
 
 export default function ReadinessTestPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { learnerState } = useAuth();
   const {
     readinessModuleIndex: modIndex,
     setReadinessModuleIndex,
@@ -30,12 +29,6 @@ export default function ReadinessTestPage() {
 
   const moduleName = READINESS_MODULES[modIndex]!;
   const isLastModule = modIndex >= READINESS_MODULES.length - 1;
-
-  useEffect(() => {
-    if (learnerState && !learnerState.readinessPaid) {
-      router.replace('/checkout?product=READINESS_TEST');
-    }
-  }, [learnerState, router]);
 
   useEffect(() => {
     setCanContinue(!!readinessScores[moduleName]);
@@ -76,6 +69,7 @@ export default function ReadinessTestPage() {
   return (
     <div className="page-content">
       <div className="app test-shell">
+        <PageBackButton href="/readiness" />
         <div className="test-top">
           <span className="module-tag">{t(readinessModuleMessageKey(moduleName))}</span>
           <span className="module-tag">

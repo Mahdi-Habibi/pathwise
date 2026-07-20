@@ -12,14 +12,31 @@ async function main() {
   const admin = await prisma.user.upsert({
     where: { email: 'admin@pathwise.dev' },
     update: {
-      name: 'Pathwise Admin',
+      name: 'Pathwise Super Admin',
+      passwordHash,
+      role: 'SUPER_ADMIN',
+      profileComplete: true,
+    },
+    create: {
+      name: 'Pathwise Super Admin',
+      email: 'admin@pathwise.dev',
+      passwordHash,
+      role: 'SUPER_ADMIN',
+      profileComplete: true,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'moderator@pathwise.dev' },
+    update: {
+      name: 'Pathwise Moderator',
       passwordHash,
       role: 'ADMIN',
       profileComplete: true,
     },
     create: {
-      name: 'Pathwise Admin',
-      email: 'admin@pathwise.dev',
+      name: 'Pathwise Moderator',
+      email: 'moderator@pathwise.dev',
       passwordHash,
       role: 'ADMIN',
       profileComplete: true,

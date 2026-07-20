@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEmail,
   IsInt,
   IsNumber,
@@ -128,6 +129,28 @@ export class SiteBootcampDto {
   defaultPoints?: number;
 }
 
+export class SiteAdminAccessDto {
+  @IsOptional()
+  @IsBoolean()
+  stats?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  settings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  courses?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  challenges?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  users?: boolean;
+}
+
 export class UpdateSiteSettingsBodyDto {
   @IsOptional()
   @ValidateNested()
@@ -154,4 +177,9 @@ export class UpdateSiteSettingsBodyDto {
   @ValidateNested()
   @Type(() => SiteBootcampDto)
   bootcamp?: SiteBootcampDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => SiteAdminAccessDto)
+  adminAccess?: SiteAdminAccessDto;
 }

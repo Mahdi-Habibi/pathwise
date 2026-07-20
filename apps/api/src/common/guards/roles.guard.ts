@@ -3,6 +3,13 @@ import { Reflector } from '@nestjs/core';
 import type { AuthUser, UserRole } from '@pathwise/shared';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
+function roleSatisfies(userRole: UserRole, required: UserRole): boolean {
+  if (userRole === required) return true;
+  // SUPER_ADMIN inherits every ADMIN capability.
+  if (required === 'ADMIN' && userRole === 'SUPER_ADMIN') return true;
+  return false;
+}
+
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
@@ -20,7 +27,7 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<{ user: AuthUser }>();
     const user = request.user;
 
-    if (!user || !requiredRoles.includes(user.role)) {
+    if (!user || !requiredRoles.some((role) => roleSatisfies(user.role, role))) {
       throw new ForbiddenException('Insufficient permissions');
     }
 

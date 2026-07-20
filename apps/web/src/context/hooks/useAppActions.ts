@@ -67,13 +67,14 @@ export function useAppActions({
     const roadmap = buildRoadmapFromAnswers(state.answers);
     try {
       const remote = await api.saveRoadmap(state.answers);
-      patch({ roadmap: remote, stageIndex: 0 });
+      patch({ roadmap: remote, stageIndex: 0, hasRoadmap: true });
       await api.saveAssessment(state.answers);
+      await refreshSession();
     } catch {
       // Offline / unauthenticated: keep a local roadmap so the UX continues.
-      patch({ roadmap, stageIndex: 0 });
+      patch({ roadmap, stageIndex: 0, hasRoadmap: true });
     }
-  }, [state.answers, patch]);
+  }, [state.answers, patch, refreshSession]);
 
   const enrollBundle = useCallback(
     async (onEnrolled?: () => void) => {

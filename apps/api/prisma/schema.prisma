@@ -10,6 +10,7 @@ datasource db {
 enum UserRole {
   LEARNER
   ADMIN
+  SUPER_ADMIN
 }
 
 enum PaymentStatus {

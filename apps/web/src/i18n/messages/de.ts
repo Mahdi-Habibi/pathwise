@@ -358,6 +358,7 @@ export const de = {
     fallbackNextCourse: 'JavaScript-Kern',
   },
   roadmap: {
+    backResults: '← Zurück zu den Vorbereitungsergebnissen',
     aha: 'Ihre Roadmap ist bereit',
     title: 'Ihr {trackName}-Pfad ist bereit.',
     bundleSuffix: 'Roadmap',
@@ -404,8 +405,11 @@ export const de = {
     gate: {
       eyebrowPaid: 'Schaltet fortgeschrittene Module frei',
       eyebrowUnpaid: 'Kostenpflichtige Bewertung',
+      eyebrowFree: 'Kostenloser Vorbereitungstest',
       title: 'Beweisen Sie Ihre Bereitschaft. Schalten Sie die nächste Stufe Ihrer Roadmap frei.',
       desc: 'Eine kurze, interaktive Bewertung über fünf praktische Fähigkeitsbereiche — kein Trivia, sondern echte Aufgaben wie in Ihren ersten echten Modulen.',
+      descFree:
+        'Dieser zweite Vorbereitungstest ist kostenlos und beginnt direkt nach Ihrer Zielbewertung. Schließen Sie ihn ab, um Ihre personalisierte Roadmap freizuschalten.',
       computer: {
         title: 'Computer-Kompetenz',
         desc: 'Dateien und Ordner wie in einer echten Entwicklungsumgebung navigieren',
@@ -427,9 +431,12 @@ export const de = {
         desc: 'Lücken in einem echten Code-Snippet ausfüllen',
       },
       priceTag: '19 $',
+      priceFree: 'Kostenlos',
       priceMeta: 'einmalig · ca. 15 Minuten',
       loading: 'Wird geladen…',
       viewResults: 'Ergebnisse ansehen',
+      viewRoadmap: 'Roadmap ansehen',
+      backAssessment: '← Zurück zur Bewertung',
       start: 'Test starten',
       unlock: 'Freischalten & Starten — 19 $',
     },
@@ -524,6 +531,8 @@ export const de = {
       needsWork: 'Wiederholung nötig',
       backDashboard: 'Zurück zu meinem Dashboard',
       browseCourses: 'Kurse durchsuchen',
+      viewRoadmap: 'Meine Roadmap ansehen',
+      backTest: '← Zurück zum Vorbereitungstest',
     },
     verdict: {
       pass: {
@@ -592,6 +601,21 @@ export const de = {
     progressLabel: 'Kursfortschritt',
     lessonsNav: 'Lektionen',
     duration: '{minutes} Min.',
+    playgroundTitle: 'Code-Spielwiese',
+    autoRun: 'Auto-Ausführung',
+    run: 'Ausführen',
+    resetCode: 'Zurücksetzen',
+    codeEditor: 'Code-Editor',
+    previewFrame: 'Live-Vorschau',
+    console: 'Konsole',
+    clearConsole: 'Leeren',
+    consoleEmpty: 'Konsolenausgabe erscheint hier…',
+    preview: {
+      fluid: 'Fluid',
+      desktop: 'Desktop',
+      tablet: 'Tablet',
+      mobile: 'Mobil',
+    },
   },
   bootcamp: {
     backDashboard: '← Zurück zum Dashboard',
@@ -759,6 +783,9 @@ export const de = {
       makeLearner: 'Zum Lernenden machen',
       makeAdmin: 'Zum Admin machen',
       updating: 'Wird aktualisiert…',
+      changeRole: 'Rolle ändern',
+      roleUpdated: 'Rolle aktualisiert.',
+      onlySuper: 'Nur ein Super-Admin kann diese Rolle zuweisen.',
     },
     courses: {
       title: 'Kurse',
@@ -883,6 +910,17 @@ export const de = {
         readiness: 'Readiness',
         bootcamp: 'Bootcamp',
         courses: 'Kurse',
+        adminAccess: 'Admin-Zugang',
+      },
+      adminAccess: {
+        title: 'Zugang zum Admin-Bereich',
+        sub: 'Legen Sie fest, welche Bereiche des Admin-Panels normale Admins öffnen können. Super-Admins haben immer vollen Zugang.',
+        stats: 'Statistik-Dashboard',
+        settings: 'Website-Einstellungen',
+        courses: 'Kurse',
+        challenges: 'Challenges',
+        users: 'Benutzer & Rollen',
+        superOnly: 'Nur Super-Admins können diese Berechtigungen bearbeiten.',
       },
       general: {
         siteName: 'Seitenname',
@@ -1125,6 +1163,7 @@ export const de = {
     roles: {
       learner: 'LERNENDER',
       admin: 'ADMIN',
+      superAdmin: 'SUPER-ADMIN',
     },
     payments: {
       pending: 'AUSSTEHEND',

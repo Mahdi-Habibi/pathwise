@@ -56,10 +56,10 @@ const DEMO_LEARNER: AuthUser = {
 
 const DEMO_ADMIN: AuthUser = {
   id: 'demo-admin',
-  name: 'Pathwise Admin',
+  name: 'Pathwise Super Admin',
   email: 'admin@pathwise.dev',
   phone: null,
-  role: 'ADMIN',
+  role: 'SUPER_ADMIN',
   profileComplete: true,
 };
 
@@ -592,7 +592,7 @@ export const demoApi = {
   async saveReadinessTest(scores: ReadinessScores): Promise<ReadinessResult> {
     requireUser();
     const state = readState();
-    if (!state.readinessPaid) throw new ApiError('Readiness test not purchased', 402);
+    // Preparations (readiness) test is free after the first assessment.
     const settings = readDemoSettings();
     const result = computeReadinessResult(scores, settings.readiness);
     state.testCompleted = true;

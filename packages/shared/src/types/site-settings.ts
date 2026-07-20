@@ -41,12 +41,22 @@ export interface SiteBootcampSettings {
   defaultPoints: number;
 }
 
+/** What regular ADMIN users may access. SUPER_ADMIN always has full access. */
+export interface SiteAdminAccessSettings {
+  stats: boolean;
+  settings: boolean;
+  courses: boolean;
+  challenges: boolean;
+  users: boolean;
+}
+
 export interface SiteSettings {
   general: SiteGeneralSettings;
   pricing: SitePricingSettings;
   tracks: SiteTrackSettings[];
   readiness: SiteReadinessSettings;
   bootcamp: SiteBootcampSettings;
+  adminAccess: SiteAdminAccessSettings;
 }
 
 export type SiteSettingsSection = keyof SiteSettings;
@@ -57,4 +67,5 @@ export interface UpdateSiteSettingsDto {
   tracks?: SiteTrackSettings[];
   readiness?: Partial<SiteReadinessSettings>;
   bootcamp?: Partial<SiteBootcampSettings>;
+  adminAccess?: Partial<SiteAdminAccessSettings>;
 }

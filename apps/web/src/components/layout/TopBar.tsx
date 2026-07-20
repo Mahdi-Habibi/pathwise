@@ -120,7 +120,7 @@ export function TopBar() {
                 >
                   {t('nav.rewards')}
                 </Link>
-                {user.role === 'ADMIN' && (
+                {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
                   <Link
                     href="/admin"
                     className="user-dropdown-item"

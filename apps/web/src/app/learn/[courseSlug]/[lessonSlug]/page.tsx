@@ -6,7 +6,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type { LessonDetail, LessonSummary } from '@pathwise/shared';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { LessonPlayground } from '@/components/lesson/LessonPlayground';
 import { LessonVideo } from '@/components/lesson/LessonVideo';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError } from '@/lib/api';
 import { markdownToHtml } from '@/lib/markdown';
@@ -182,9 +184,7 @@ function LessonPlayerContent({
             <article className="lesson-content-card glass-panel">
               <div className="lesson-top-row">
                 <div>
-                  <Link href="/courses" className="back-link lesson-back">
-                    <ArrowLeft size={16} className="nav-arrow" aria-hidden /> {lesson.courseTitle}
-                  </Link>
+                  <PageBackButton href="/courses" label={t('lesson.backToCourses')} />
                   <h1>{lesson.title}</h1>
                   <div className="lesson-meta">
                     <span className="meta-chip">{format.durationMinutes(lesson.durationMin)}</span>
@@ -259,6 +259,8 @@ function LessonPlayerContent({
                   placeholder={t('lesson.notesHint')}
                 />
               </article>
+
+              <LessonPlayground storageKey={`kia-lesson-code:${courseSlug}:${lessonSlug}`} />
             </section>
           </section>
         </div>

@@ -385,6 +385,145 @@
   line-height: 1.6;
 }
 
+.kia-lesson-shell .editor-card {
+  padding: 1.1rem 1.15rem 1.2rem;
+}
+.kia-lesson-shell .editor-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.kia-lesson-shell .editor-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--kia-deep, var(--text));
+}
+.kia-lesson-shell .control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+.kia-lesson-shell .check-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.kia-lesson-shell .preview-toolbar,
+.kia-lesson-shell .editor-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.65rem;
+}
+.kia-lesson-shell .editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.85rem;
+  min-width: 0;
+}
+.kia-lesson-shell .code-editor {
+  width: 100%;
+  min-height: 280px;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--code-bg, #0a2f44);
+  color: var(--code-text, #e8f1f6);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  padding: 0.85rem;
+  resize: vertical;
+}
+.kia-lesson-shell .preview-stack {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.kia-lesson-shell .preview-frame-wrap {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: #fff;
+  min-height: 220px;
+}
+.kia-lesson-shell .code-preview {
+  width: 100%;
+  min-height: 220px;
+  border: 0;
+  display: block;
+  background: #fff;
+}
+.kia-lesson-shell .console-panel {
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+.kia-lesson-shell .console-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+.kia-lesson-shell .console-output {
+  max-height: 160px;
+  overflow: auto;
+  padding: 0.55rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.kia-lesson-shell .console-line {
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+.kia-lesson-shell .console-line.error {
+  color: var(--danger);
+}
+.kia-lesson-shell .console-line.warn {
+  color: var(--amber);
+}
+.kia-lesson-shell .pill-btn.active {
+  background: var(--indigo-dim);
+  border-color: var(--kia-accent, var(--indigo));
+  color: var(--kia-deep, var(--text));
+}
+
+@media (max-width: 900px) {
+  .kia-lesson-shell .learn-layout {
+    grid-template-columns: 1fr;
+  }
+  .kia-lesson-shell .learn-sidebar {
+    position: static;
+    max-height: none;
+  }
+  .kia-lesson-shell .editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .kia-lesson-shell .lesson-shell,
+  .lesson-shell {
+    padding-inline: 0;
+  }
+  .kia-lesson-shell .lesson-content-card,
+  .kia-lesson-shell .notes-card,
+  .kia-lesson-shell .editor-card,
+  .kia-lesson-shell .learn-sidebar {
+    padding: 0.9rem;
+  }
+}
+
 .lesson-md h1,
 .lesson-md h2,
 .lesson-md h3 {
@@ -424,16 +563,6 @@
 .lesson-md pre code {
   background: none;
   padding: 0;
-}
-
-@media (max-width: 900px) {
-  .kia-lesson-shell .learn-layout {
-    grid-template-columns: 1fr;
-  }
-  .kia-lesson-shell .learn-sidebar {
-    position: static;
-    max-height: none;
-  }
 }
 
 /* ===== Legal ===== */

@@ -160,7 +160,7 @@ export class AdminUpdateChallengeDto {
 
 export class AdminUpdateUserRoleDto {
   @IsString()
-  role!: 'LEARNER' | 'ADMIN';
+  role!: 'LEARNER' | 'ADMIN' | 'SUPER_ADMIN';
 }
 
 export class AdminUpdateLessonDto {

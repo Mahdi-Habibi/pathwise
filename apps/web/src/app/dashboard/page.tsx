@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { buildRoadmapFromAnswers } from '@pathwise/shared';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useApp } from '@/context/AppProvider';
 import { useAuth } from '@/context/AuthProvider';
 import { useT } from '@/context/LanguageProvider';
@@ -33,6 +34,7 @@ export default function DashboardPage() {
     return (
       <div className="page-content">
         <div className="app hub">
+          <PageBackButton href="/" />
           <h2>
             {user?.name
               ? t('dashboard.welcomeNamed', { name: user.name.split(' ')[0] })
@@ -68,6 +70,7 @@ export default function DashboardPage() {
   return (
     <div className="page-content">
       <div className="app hub">
+        <PageBackButton href="/" />
         <h2>{t('dashboard.welcomeBack', { name: firstName })}</h2>
         <p className="sub">{t('dashboard.hub.sub')}</p>
         <div className="tile-grid">

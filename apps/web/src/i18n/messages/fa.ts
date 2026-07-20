@@ -353,6 +353,7 @@ export const fa = {
     fallbackNextCourse: 'JavaScript هسته',
   },
   roadmap: {
+    backResults: '← بازگشت به نتایج آمادگی',
     aha: 'نقشه راه تو آماده است',
     title: 'مسیر {trackName} شما آماده است.',
     bundleSuffix: 'نقشه راه',
@@ -399,8 +400,11 @@ export const fa = {
     gate: {
       eyebrowPaid: 'ماژول‌های پیشرفته را باز می‌کند',
       eyebrowUnpaid: 'ارزیابی پولی',
+      eyebrowFree: 'آزمون آمادگی رایگان',
       title: 'نشان بده آماده‌ای. مرحله بعدی نقشه راهت را باز کن.',
       desc: 'یک ارزیابی کوتاه و تعاملی در پنج ناحیه عملی — نه دانستنی، بلکه وظایف واقعی مانند اولین ماژول‌ها.',
+      descFree:
+        'این آزمون دوم آمادگی رایگان است و بلافاصله بعد از ارزیابی هدف شروع می‌شود. با تکمیل آن، نقشه راه شخصی‌سازی‌شده‌ات باز می‌شود.',
       computer: {
         title: 'سواد رایانه‌ای کامپیوتر',
         desc: 'مانند محیط واقعی توسعه، فایل‌ها و پوشه‌ها را پیمایش کن',
@@ -422,9 +426,12 @@ export const fa = {
         desc: 'جایخالی یک قطعه کد واقعی را پر کن',
       },
       priceTag: '$19',
+      priceFree: 'رایگان',
       priceMeta: 'یک‌بار · ~۱۵ دقیقه',
       loading: 'در حال بارگذاری…',
       viewResults: 'مشاهده نتایج',
+      viewRoadmap: 'مشاهده نقشه راه',
+      backAssessment: '← بازگشت به ارزیابی',
       start: 'شروع آزمون',
       unlock: 'باز کردن و شروع — $19',
     },
@@ -519,6 +526,8 @@ export const fa = {
       needsWork: 'نیاز به مرور',
       backDashboard: 'بازگشت به پانل من',
       browseCourses: 'مشاهده دوره‌ها',
+      viewRoadmap: 'مشاهده نقشه راه من',
+      backTest: '← بازگشت به آزمون آمادگی',
     },
     verdict: {
       pass: {
@@ -585,6 +594,21 @@ export const fa = {
     progressLabel: 'پیشرفت دوره',
     lessonsNav: 'درس‌ها',
     duration: '{minutes} دقیقه',
+    playgroundTitle: 'زمین تمرین کد',
+    autoRun: 'اجرای خودکار',
+    run: 'اجرا',
+    resetCode: 'بازنشانی',
+    codeEditor: 'ویرایشگر کد',
+    previewFrame: 'پیش‌نمایش زنده',
+    console: 'کنسول',
+    clearConsole: 'پاک کردن',
+    consoleEmpty: 'خروجی کنسول اینجا نمایش داده می‌شود…',
+    preview: {
+      fluid: 'شناور',
+      desktop: 'دسکتاپ',
+      tablet: 'تبلت',
+      mobile: 'موبایل',
+    },
   },
   bootcamp: {
     backDashboard: '← بازگشت به پانل',
@@ -748,6 +772,9 @@ export const fa = {
       makeLearner: 'تبدیل به یادگیرنده',
       makeAdmin: 'تبدیل به مدیر',
       updating: 'در حال به‌روزرسانی…',
+      changeRole: 'تغییر نقش',
+      roleUpdated: 'نقش به‌روزرسانی شد.',
+      onlySuper: 'فقط یک سوپر ادمین می‌تواند این نقش را اختصاص دهد.',
     },
     courses: {
       title: 'دوره‌ها',
@@ -872,6 +899,17 @@ export const fa = {
         readiness: 'آمادگی',
         bootcamp: 'بوت‌کمپ',
         courses: 'دوره‌ها',
+        adminAccess: 'دسترسی ادمین',
+      },
+      adminAccess: {
+        title: 'دسترسی به پنل ادمین',
+        sub: 'مشخص کنید ادمین‌های عادی به کدام بخش‌های پنل ادمین دسترسی دارند. سوپر ادمین‌ها همیشه دسترسی کامل دارند.',
+        stats: 'داشبورد آمار',
+        settings: 'تنظیمات سایت',
+        courses: 'دوره‌ها',
+        challenges: 'چالش‌ها',
+        users: 'کاربران و نقش‌ها',
+        superOnly: 'فقط سوپر ادمین‌ها می‌توانند این مجوزها را ویرایش کنند.',
       },
       general: {
         siteName: 'نام سایت',
@@ -1113,6 +1151,7 @@ export const fa = {
     roles: {
       learner: 'یادگیرنده',
       admin: 'مدیر',
+      superAdmin: 'سوپر ادمین',
     },
     payments: {
       pending: 'در انتظار',

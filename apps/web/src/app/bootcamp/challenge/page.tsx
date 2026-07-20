@@ -4,6 +4,7 @@ import { scoreFizzBuzz } from '@pathwise/shared';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useApp } from '@/context/AppProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 
@@ -69,9 +70,7 @@ function ChallengeContent() {
     <div className="page-content">
       <div className="app challenge-shell">
         <div className="ch-top">
-          <button type="button" className="back-link" onClick={() => router.push('/bootcamp')}>
-            {t('bootcamp.solver.back')}
-          </button>
+          <PageBackButton href="/bootcamp" label={t('bootcamp.solver.back')} />
           <div
             className="timer-box"
             style={{ color: seconds < 60 ? 'var(--indigo-bright)' : 'var(--amber)' }}

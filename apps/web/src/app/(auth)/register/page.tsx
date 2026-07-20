@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
 import { FormEvent, useState } from 'react';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useAuth } from '@/context/AuthProvider';
 import { useT } from '@/context/LanguageProvider';
 
@@ -34,6 +35,7 @@ export default function RegisterPage() {
   return (
     <div className="page-content">
       <div className="app auth-shell">
+        <PageBackButton href="/" />
         <div className="auth-card">
           <span className="eyebrow">
             <UserPlus size={14} className="inline-leading-icon" />

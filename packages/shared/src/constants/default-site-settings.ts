@@ -58,6 +58,13 @@ export function createDefaultSiteSettings(): SiteSettings {
       defaultRank: 12,
       defaultPoints: 340,
     },
+    adminAccess: {
+      stats: true,
+      settings: false,
+      courses: true,
+      challenges: true,
+      users: false,
+    },
   };
 }
 
@@ -69,6 +76,7 @@ export function mergeSiteSettings(
     tracks: SiteSettings['tracks'];
     readiness: Partial<SiteSettings['readiness']>;
     bootcamp: Partial<SiteSettings['bootcamp']>;
+    adminAccess: Partial<SiteSettings['adminAccess']>;
   }>,
 ): SiteSettings {
   return {
@@ -83,5 +91,6 @@ export function mergeSiteSettings(
     tracks: patch.tracks ? patch.tracks.map((t) => ({ ...t, modules: [...t.modules] })) : base.tracks.map((t) => ({ ...t, modules: [...t.modules] })),
     readiness: { ...base.readiness, ...patch.readiness },
     bootcamp: { ...base.bootcamp, ...patch.bootcamp },
+    adminAccess: { ...base.adminAccess, ...patch.adminAccess },
   };
 }
