@@ -25,6 +25,12 @@ Monorepo: Node `>=22.13`, pnpm `11.13.0` via Corepack. Standard commands live in
 
 Site `TopBar` / `Footer` render only after `profileComplete` (successful registration). Guests use landing CTAs only.
 
+### Readiness test caveats
+
+- During the live test, MCQ/file-drop UI must **not** reveal correctness (no green/red). Scoring is silent until `/readiness/results`.
+- Finishing the last module always navigates to `/readiness/results` (local scorecard fallback if API save fails).
+- Lesson player at `/learn/...` uses Kia Learn layout (sidebar + video block + notes). Seeded JS lessons include sample `videoUrl`s for local demos.
+
 ### Auth / OTP
 
 - Phone-first OTP: `POST /api/auth/otp/request`, `POST /api/auth/otp/verify`, `POST /api/auth/profile`
