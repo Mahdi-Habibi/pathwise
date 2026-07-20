@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useApp } from '@/context/AppProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 
@@ -22,6 +23,7 @@ export default function RewardsPage() {
     <RequireAuth nextPath="/rewards">
       <div className="page-content">
         <div className="app rewards">
+          <PageBackButton href="/dashboard" />
           <h2>{t('rewards.title')}</h2>
           <p className="sub">{t('rewards.sub')}</p>
           <div className="reward-grid">

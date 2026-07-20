@@ -4,7 +4,9 @@ import { Check, CreditCard, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { api, ApiError } from '@/lib/api';
+import { useApp } from '@/context/AppProvider';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
@@ -18,9 +20,10 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const { t, format } = useLanguage();
   const { refreshSession, learnerState } = useAuth();
+  const { roadmap } = useApp();
   const { settings } = useSiteSettings();
   const initialProduct = (searchParams.get('product') as ProductChoice) ?? 'READINESS_TEST';
-  const roadmapId = searchParams.get('roadmapId');
+  const roadmapId = searchParams.get('roadmapId') ?? roadmap?.id ?? null;
   const [product, setProduct] = useState<ProductChoice>(
     initialProduct === 'ROADMAP_BUNDLE' ? 'ROADMAP_BUNDLE' : 'READINESS_TEST',
   );
@@ -106,6 +109,7 @@ function CheckoutContent() {
   return (
     <div className="page-content">
       <div className="app checkout-shell">
+        <PageBackButton href={product === 'ROADMAP_BUNDLE' ? '/roadmap' : '/readiness'} />
         <span className="eyebrow amber">
           <CreditCard size={14} className="inline-leading-icon" />
           {t('checkout.eyebrow')}

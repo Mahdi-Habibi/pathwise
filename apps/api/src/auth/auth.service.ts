@@ -406,7 +406,7 @@ export class AuthService {
     name: string;
     email: string | null;
     phone?: string | null;
-    role: 'LEARNER' | 'ADMIN';
+    role: AuthUser['role'];
     profileComplete?: boolean;
   }): AuthUser {
     return {

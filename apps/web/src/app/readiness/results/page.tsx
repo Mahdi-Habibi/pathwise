@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import { computeReadinessResult, READINESS_MODULES } from '@pathwise/shared';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { RadarChart } from '@/components/readiness/RadarChart';
 import { useApp } from '@/context/AppProvider';
 import { useLanguage } from '@/context/LanguageProvider';
@@ -53,6 +54,7 @@ export default function ReadinessResultsPage() {
   return (
     <div className="page-content">
       <div className="app results">
+        <PageBackButton href="/readiness" label={t('readiness.results.backTest')} />
         <div className="results-tag">{t('readiness.results.tag')}</div>
         <h2>{t('readiness.results.title')}</h2>
         <p className="sub">{t('readiness.results.sub')}</p>
@@ -95,11 +97,11 @@ export default function ReadinessResultsPage() {
             <p>{t(`readiness.verdict.${verdictKey}.unlockSub`)}</p>
           </div>
           <div className="results-actions">
-            <button type="button" className="cta-primary" onClick={() => router.push('/dashboard')}>
-              {t('readiness.results.backDashboard')}
+            <button type="button" className="cta-primary" onClick={() => router.push('/roadmap')}>
+              {t('readiness.results.viewRoadmap')}
             </button>
-            <button type="button" className="cta-secondary" onClick={() => router.push('/courses')}>
-              {t('readiness.results.browseCourses')}
+            <button type="button" className="cta-secondary" onClick={() => router.push('/dashboard')}>
+              {t('readiness.results.backDashboard')}
             </button>
           </div>
         </div>

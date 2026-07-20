@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import type {
   AdminChallenge,
   AdminCourse,
   AdminLesson,
   AdminStats,
   AdminUser,
+  AuthUser,
 } from '@pathwise/shared';
 import { MediaStorageService } from '../media/media-storage.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -348,10 +349,20 @@ export class AdminService {
     }));
   }
 
-  async updateUserRole(id: string, dto: AdminUpdateUserRoleDto): Promise<AdminUser> {
+  async updateUserRole(
+    id: string,
+    dto: AdminUpdateUserRoleDto,
+    actor: AuthUser,
+  ): Promise<AdminUser> {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User ${id} not found`);
+    }
+
+    if (actor.role !== 'SUPER_ADMIN') {
+      if (dto.role === 'SUPER_ADMIN' || user.role === 'SUPER_ADMIN') {
+        throw new ForbiddenException('Only super admins can manage super-admin roles');
+      }
     }
 
     const updated = await this.prisma.user.update({

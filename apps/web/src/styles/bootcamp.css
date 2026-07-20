@@ -182,6 +182,9 @@
   flex-wrap: wrap;
   gap: 14px;
 }
+.ch-top .page-back-wrap {
+  margin-bottom: 0;
+}
 .timer-box {
   font-family: var(--font-mono);
   font-size: 20px;

@@ -1,9 +1,10 @@
 'use client';
 
-import Link from 'next/link';
+import { hasRoadmapEntitlement } from '@pathwise/shared';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { buildRoadmapFromAnswers } from '@pathwise/shared';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { PurchaseSection } from '@/components/roadmap/PurchaseSection';
 import { RoadmapTree } from '@/components/roadmap/RoadmapTree';
 import { useApp } from '@/context/AppProvider';
@@ -13,18 +14,20 @@ import { goalMessageKey, levelMessageKey, styleMessageKey, trackMessageKey } fro
 
 export default function RoadmapPage() {
   const router = useRouter();
-  const { answers, roadmap, enrollBundle, openPurchaseModal, hydrated } = useApp();
-  const { isAuthenticated, learnerState } = useAuth();
+  const { answers, roadmap, enrollBundle, openPurchaseModal, hydrated, testCompleted } = useApp();
+  const { isAuthenticated, learnerState, loading: authLoading } = useAuth();
   const { t, format } = useLanguage();
 
   const data = roadmap ?? buildRoadmapFromAnswers(answers);
   const trackName = t(trackMessageKey(data.trackKey));
+  const roadmapId = data.id ?? roadmap?.id;
 
   useEffect(() => {
-    if (hydrated && !answers.goal) {
+    if (!hydrated || authLoading) return;
+    if (!answers.goal && !roadmap?.id && !learnerState?.hasRoadmap) {
       router.replace('/assessment');
     }
-  }, [hydrated, answers.goal, router]);
+  }, [hydrated, authLoading, answers.goal, roadmap?.id, learnerState?.hasRoadmap, router]);
 
   const handleEnroll = () => {
     if (!isAuthenticated) {
@@ -32,15 +35,18 @@ export default function RoadmapPage() {
       return;
     }
     if (!learnerState?.roadmapEnrolled) {
-      const hasBundle =
-        learnerState?.entitlements.includes('ROADMAP_BUNDLE') ||
-        learnerState?.entitlements.some((e) => e.includes('bundle'));
+      const hasBundle = hasRoadmapEntitlement(learnerState?.entitlements ?? [], roadmapId);
       if (!hasBundle) {
-        router.push('/checkout?product=ROADMAP_BUNDLE');
+        if (!roadmapId) {
+          // Ensure assessment produced a persisted roadmap before checkout.
+          router.push('/assessment');
+          return;
+        }
+        router.push(`/checkout?product=ROADMAP_BUNDLE&roadmapId=${encodeURIComponent(roadmapId)}`);
         return;
       }
     }
-    enrollBundle(() => router.push('/dashboard'));
+    void enrollBundle(() => router.push('/dashboard'));
   };
 
   const handleBrowseCourses = () => {
@@ -54,6 +60,10 @@ export default function RoadmapPage() {
   return (
     <div className="page-content">
       <div className="app result-shell">
+        <PageBackButton
+          href={testCompleted ? '/readiness/results' : '/readiness'}
+          label={t('roadmap.backResults')}
+        />
         <div className="aha">{t('roadmap.aha')}</div>
         <h2>{t('roadmap.title', { trackName })}</h2>
         <div className="profile-strip">
@@ -79,19 +89,6 @@ export default function RoadmapPage() {
           onBrowseCourses={handleBrowseCourses}
           onEnrollBundle={handleEnroll}
         />
-
-        <div className="teaser">
-          <div className="teaser-left">
-            <div className="teaser-icon">🔒</div>
-            <div>
-              <h5>{t('roadmap.teaser.title')}</h5>
-              <p>{t('roadmap.teaser.body')}</p>
-            </div>
-          </div>
-          <Link href="/readiness" className="teaser-btn" style={{ textDecoration: 'none' }}>
-            {t('roadmap.teaser.cta', { price: format.currency(19) })}
-          </Link>
-        </div>
       </div>
     </div>
   );

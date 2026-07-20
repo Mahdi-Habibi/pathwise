@@ -10,6 +10,7 @@ import {
   sanitizeProfileText,
 } from '@pathwise/shared';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError } from '@/lib/api';
@@ -19,6 +20,7 @@ type Step = 'phone' | 'otp' | 'profile' | 'start';
 export default function EducationPage() {
   return (
     <div className="page-content education-page">
+      <PageBackButton href="/" />
       <EducationFlow />
     </div>
   );

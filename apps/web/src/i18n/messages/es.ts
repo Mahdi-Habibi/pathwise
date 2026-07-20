@@ -358,6 +358,7 @@ export const es = {
     fallbackNextCourse: 'JavaScript esencial',
   },
   roadmap: {
+    backResults: '← Volver a los resultados de preparación',
     aha: 'Tu roadmap está listo',
     title: 'Tu ruta de {trackName} está lista.',
     bundleSuffix: 'Roadmap',
@@ -404,8 +405,11 @@ export const es = {
     gate: {
       eyebrowPaid: 'Desbloquea módulos avanzados',
       eyebrowUnpaid: 'Evaluación de pago',
+      eyebrowFree: 'Prueba de preparación gratuita',
       title: 'Demuestra que estás listo. Desbloquea la siguiente etapa de tu roadmap.',
       desc: 'Una evaluación breve e interactiva en cinco áreas prácticas — no trivia, sino tareas reales como las de tus primeros módulos.',
+      descFree:
+        'Esta segunda prueba de preparación es gratuita y comienza justo después de tu evaluación de objetivos. Complétala para desbloquear tu roadmap personalizado.',
       computer: {
         title: 'Alfabetización informática',
         desc: 'Navega archivos y carpetas como en un entorno real de desarrollo',
@@ -427,9 +431,12 @@ export const es = {
         desc: 'Completa los espacios en un fragmento de código real',
       },
       priceTag: '$19',
+      priceFree: 'Gratis',
       priceMeta: 'pago único · ~15 minutos',
       loading: 'Cargando…',
       viewResults: 'Ver resultados',
+      viewRoadmap: 'Ver roadmap',
+      backAssessment: '← Volver a la evaluación',
       start: 'Empezar prueba',
       unlock: 'Desbloquear y empezar — $19',
     },
@@ -524,6 +531,8 @@ export const es = {
       needsWork: 'Necesita repaso',
       backDashboard: 'Volver a mi panel',
       browseCourses: 'Ver cursos',
+      viewRoadmap: 'Ver mi roadmap',
+      backTest: '← Volver a la prueba de preparación',
     },
     verdict: {
       pass: {
@@ -591,6 +600,21 @@ export const es = {
     progressLabel: 'Progreso del curso',
     lessonsNav: 'Lecciones',
     duration: '{minutes} min',
+    playgroundTitle: 'Zona de código',
+    autoRun: 'Ejecución automática',
+    run: 'Ejecutar',
+    resetCode: 'Restablecer',
+    codeEditor: 'Editor de código',
+    previewFrame: 'Vista previa en vivo',
+    console: 'Consola',
+    clearConsole: 'Limpiar',
+    consoleEmpty: 'La salida de la consola aparecerá aquí…',
+    preview: {
+      fluid: 'Fluido',
+      desktop: 'Escritorio',
+      tablet: 'Tablet',
+      mobile: 'Móvil',
+    },
   },
   bootcamp: {
     backDashboard: '← Volver al panel',
@@ -755,6 +779,9 @@ export const es = {
       makeLearner: 'Hacer estudiante',
       makeAdmin: 'Hacer admin',
       updating: 'Actualizando…',
+      changeRole: 'Cambiar rol',
+      roleUpdated: 'Rol actualizado.',
+      onlySuper: 'Solo un super admin puede asignar este rol.',
     },
     courses: {
       title: 'Cursos',
@@ -879,6 +906,17 @@ export const es = {
         readiness: 'Preparación',
         bootcamp: 'Bootcamp',
         courses: 'Cursos',
+        adminAccess: 'Acceso de admin',
+      },
+      adminAccess: {
+        title: 'Acceso al panel de admin',
+        sub: 'Elige qué secciones del panel de admin pueden abrir los admins normales. Los super admins siempre tienen acceso completo.',
+        stats: 'Panel de estadísticas',
+        settings: 'Ajustes del sitio',
+        courses: 'Cursos',
+        challenges: 'Retos',
+        users: 'Usuarios y roles',
+        superOnly: 'Solo los super admins pueden editar estos permisos.',
       },
       general: {
         siteName: 'Nombre del sitio',
@@ -1121,6 +1159,7 @@ export const es = {
     roles: {
       learner: 'ESTUDIANTE',
       admin: 'ADMIN',
+      superAdmin: 'SUPER ADMIN',
     },
     payments: {
       pending: 'PENDIENTE',

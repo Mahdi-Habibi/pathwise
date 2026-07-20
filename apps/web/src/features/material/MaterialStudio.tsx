@@ -25,14 +25,15 @@ export function MaterialStudio() {
         className="view material-mode active"
         aria-label="استودیوی متریال"
       >
-        <Link className="material-brand" href="/">
-          <span className="material-brand-mark" aria-hidden="true" />
-          آکادمی کیا
-        </Link>
-
-        <Link className="home-btn" href="/">
-          بازگشت به خانه
-        </Link>
+        <div className="material-topbar">
+          <Link className="material-brand" href="/">
+            <span className="material-brand-mark" aria-hidden="true" />
+            آکادمی کیا
+          </Link>
+          <Link className="home-btn" href="/">
+            بازگشت
+          </Link>
+        </div>
 
         <div className="material-head">
           <h2>استودیوی متریال</h2>

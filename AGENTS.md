@@ -20,16 +20,32 @@ Monorepo: Node `>=22.13`, pnpm `11.13.0` via Corepack. Standard commands live in
 | `/` | Minimal Persian landing (Material + Education CTAs) — **no site header** for guests |
 | `/material` | Material Studio (ported, modular under `apps/web/src/features/material`) |
 | `/education` | Iranian phone OTP → profile → assessment gate (always phone-first; never auto-skips OTP) |
-| `/assessment` | Wizard (requires complete profile) |
-| `/learn/...` | Lesson player + video fullscreen + notes |
+| `/assessment` | First goal wizard (requires complete profile) → then free readiness test |
+| `/readiness` / `/readiness/test` | Free preparations (readiness) test — no purchase required |
+| `/readiness/results` | Scorecard → continue to `/roadmap` |
+| `/roadmap` | Personalized roadmap + bundle checkout (`roadmapId` required) |
+| `/learn/...` | Lesson player + video + notes + HTML/CSS/JS playground |
 
 Site `TopBar` / `Footer` render only after `profileComplete` (successful registration). Guests use landing CTAs only.
+
+### Learner flow (important)
+
+1. Assessment (`/assessment`) saves roadmap answers.
+2. Immediately starts free readiness/preparations test (`/readiness/test`).
+3. Results → roadmap (`/roadmap`).
+4. Roadmap bundle checkout must include `?roadmapId=…` (missing id shows a misleading “complete the assessment” error).
+
+### Admin roles
+
+- `SUPER_ADMIN` — full admin panel; configures `settings.adminAccess` (what regular `ADMIN` may open).
+- `ADMIN` — limited by `adminAccess` flags (defaults: stats/courses/challenges on; settings/users off).
+- Seed: `admin@pathwise.dev` is `SUPER_ADMIN`; `moderator@pathwise.dev` is `ADMIN` (password `Pathwise123!`).
 
 ### Readiness test caveats
 
 - During the live test, MCQ/file-drop UI must **not** reveal correctness (no green/red). Scoring is silent until `/readiness/results`.
 - Finishing the last module always navigates to `/readiness/results` (local scorecard fallback if API save fails).
-- Lesson player at `/learn/...` uses Kia Learn layout (sidebar + video block + notes). Seeded JS lessons include sample `videoUrl`s for local demos.
+- Lesson player at `/learn/...` uses Kia Learn layout (sidebar + video block + notes + code playground). Seeded JS lessons include sample `videoUrl`s for local demos.
 
 ### Auth / OTP
 

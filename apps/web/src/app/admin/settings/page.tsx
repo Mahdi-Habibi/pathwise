@@ -3,14 +3,29 @@
 import Link from 'next/link';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
-import { createDefaultSiteSettings, type SiteSettings, type SiteTrackSettings } from '@pathwise/shared';
+import {
+  createDefaultSiteSettings,
+  type SiteAdminAccessSettings,
+  type SiteSettings,
+  type SiteTrackSettings,
+} from '@pathwise/shared';
+import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError, type AdminCourse } from '@/lib/api';
 
-type Section = 'general' | 'pricing' | 'tracks' | 'readiness' | 'bootcamp' | 'courses';
+type Section =
+  | 'general'
+  | 'pricing'
+  | 'tracks'
+  | 'readiness'
+  | 'bootcamp'
+  | 'courses'
+  | 'adminAccess';
 
 export default function AdminSettingsPage() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const isSuper = user?.role === 'SUPER_ADMIN';
   const [section, setSection] = useState<Section>('general');
   const [settings, setSettings] = useState<SiteSettings>(createDefaultSiteSettings());
   const [courses, setCourses] = useState<AdminCourse[]>([]);
@@ -19,18 +34,20 @@ export default function AdminSettingsPage() {
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
 
-  const sections = useMemo(
-    () =>
-      [
-        { id: 'general' as const, label: t('admin.settings.nav.general') },
-        { id: 'pricing' as const, label: t('admin.settings.nav.pricing') },
-        { id: 'tracks' as const, label: t('admin.settings.nav.tracks') },
-        { id: 'readiness' as const, label: t('admin.settings.nav.readiness') },
-        { id: 'bootcamp' as const, label: t('admin.settings.nav.bootcamp') },
-        { id: 'courses' as const, label: t('admin.settings.nav.courses') },
-      ] as const,
-    [t],
-  );
+  const sections = useMemo(() => {
+    const items: Array<{ id: Section; label: string }> = [
+      { id: 'general', label: t('admin.settings.nav.general') },
+      { id: 'pricing', label: t('admin.settings.nav.pricing') },
+      { id: 'tracks', label: t('admin.settings.nav.tracks') },
+      { id: 'readiness', label: t('admin.settings.nav.readiness') },
+      { id: 'bootcamp', label: t('admin.settings.nav.bootcamp') },
+      { id: 'courses', label: t('admin.settings.nav.courses') },
+    ];
+    if (isSuper) {
+      items.push({ id: 'adminAccess', label: t('admin.settings.nav.adminAccess') });
+    }
+    return items;
+  }, [t, isSuper]);
 
   const load = useCallback(async () => {
     const [nextSettings, nextCourses] = await Promise.all([
@@ -71,6 +88,7 @@ export default function AdminSettingsPage() {
     if (section === 'tracks') await persist({ tracks: settings.tracks });
     if (section === 'readiness') await persist({ readiness: settings.readiness });
     if (section === 'bootcamp') await persist({ bootcamp: settings.bootcamp });
+    if (section === 'adminAccess') await persist({ adminAccess: settings.adminAccess });
   };
 
   const handleDeleteCourse = async (slug: string) => {
@@ -544,6 +562,13 @@ export default function AdminSettingsPage() {
             </>
           )}
 
+          {section === 'adminAccess' && isSuper && (
+            <AdminAccessFields
+              access={settings.adminAccess}
+              onChange={(adminAccess) => setSettings({ ...settings, adminAccess })}
+            />
+          )}
+
           <button type="submit" className="cta-primary" disabled={saving}>
             {saving ? t('admin.settings.saving') : t('admin.settings.save')}
           </button>
@@ -684,6 +709,41 @@ function TracksEditor({
             <Trash2 size={14} /> {t('admin.settings.tracks.remove')}
           </button>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function AdminAccessFields({
+  access,
+  onChange,
+}: {
+  access: SiteAdminAccessSettings;
+  onChange: (access: SiteAdminAccessSettings) => void;
+}) {
+  const { t } = useLanguage();
+  const keys: Array<keyof SiteAdminAccessSettings> = [
+    'stats',
+    'settings',
+    'courses',
+    'challenges',
+    'users',
+  ];
+
+  return (
+    <div className="admin-access-fields">
+      <h2>{t('admin.settings.adminAccess.title')}</h2>
+      <p className="admin-sub">{t('admin.settings.adminAccess.sub')}</p>
+      <p className="admin-sub">{t('admin.settings.adminAccess.superOnly')}</p>
+      {keys.map((key) => (
+        <label key={key} className="admin-access-toggle">
+          <input
+            type="checkbox"
+            checked={access[key]}
+            onChange={(e) => onChange({ ...access, [key]: e.target.checked })}
+          />
+          <span>{t(`admin.settings.adminAccess.${key}`)}</span>
+        </label>
       ))}
     </div>
   );

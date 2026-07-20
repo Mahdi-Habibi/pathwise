@@ -12,6 +12,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import type { AuthUser } from '@pathwise/shared';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -123,7 +125,11 @@ export class AdminController {
   }
 
   @Patch('users/:id/role')
-  updateUserRole(@Param('id') id: string, @Body() dto: AdminUpdateUserRoleDto) {
-    return this.adminService.updateUserRole(id, dto);
+  updateUserRole(
+    @CurrentUser() actor: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: AdminUpdateUserRoleDto,
+  ) {
+    return this.adminService.updateUserRole(id, dto, actor);
   }
 }

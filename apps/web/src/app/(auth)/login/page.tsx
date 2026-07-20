@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LogIn } from 'lucide-react';
 import { FormEvent, Suspense, useState } from 'react';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useAuth } from '@/context/AuthProvider';
 import { useT } from '@/context/LanguageProvider';
 
@@ -36,6 +37,7 @@ function LoginForm() {
   return (
     <div className="page-content">
       <div className="app auth-shell">
+        <PageBackButton href="/" />
         <div className="auth-card">
           <span className="eyebrow">
             <LogIn size={14} className="inline-leading-icon" />

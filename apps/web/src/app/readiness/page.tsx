@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Lock, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useApp } from '@/context/AppProvider';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
@@ -10,35 +11,28 @@ export default function ReadinessGatePage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { resetReadinessTest, testCompleted } = useApp();
-  const { learnerState, loading, isAuthenticated } = useAuth();
-
-  const readinessPaid = learnerState?.readinessPaid ?? false;
+  const { loading, isAuthenticated } = useAuth();
 
   const startTest = () => {
     if (!isAuthenticated) {
       router.push('/login?next=/readiness');
       return;
     }
-    if (!readinessPaid) {
-      router.push('/checkout?product=READINESS_TEST');
-      return;
-    }
+    // Preparations test is free after assessment — no purchase gate.
     resetReadinessTest();
     router.push('/readiness/test');
   };
 
   const goResults = () => router.push('/readiness/results');
+  const goRoadmap = () => router.push('/roadmap');
 
   return (
     <div className="page-content">
       <div className="app gate">
-        <span className="eyebrow amber">
-          {readinessPaid
-            ? `🔓 ${t('readiness.gate.eyebrowPaid')}`
-            : `🔒 ${t('readiness.gate.eyebrowUnpaid')}`}
-        </span>
+        <PageBackButton href="/assessment" label={t('readiness.gate.backAssessment')} />
+        <span className="eyebrow amber">🔓 {t('readiness.gate.eyebrowFree')}</span>
         <h1>{t('readiness.gate.title')}</h1>
-        <p className="desc">{t('readiness.gate.desc')}</p>
+        <p className="desc">{t('readiness.gate.descFree')}</p>
         <div className="cover-grid">
           <div className="cover-card">
             <span className="ci">🗂️</span>
@@ -68,7 +62,7 @@ export default function ReadinessGatePage() {
         </div>
         <div className="gate-footer">
           <div className="price-tag">
-            {t('readiness.gate.priceTag')}
+            {t('readiness.gate.priceFree')}
             <span>{t('readiness.gate.priceMeta')}</span>
           </div>
           {loading ? (
@@ -76,17 +70,17 @@ export default function ReadinessGatePage() {
               <Loader2 size={18} className="spin" /> {t('readiness.gate.loading')}
             </button>
           ) : testCompleted ? (
-            <button type="button" className="cta-primary" onClick={goResults}>
-              {t('readiness.gate.viewResults')}
-            </button>
-          ) : readinessPaid ? (
-            <button type="button" className="cta-primary" onClick={startTest}>
-              {t('readiness.gate.start')}
-            </button>
+            <div className="gate-actions">
+              <button type="button" className="cta-primary" onClick={goResults}>
+                {t('readiness.gate.viewResults')}
+              </button>
+              <button type="button" className="cta-secondary" onClick={goRoadmap}>
+                {t('readiness.gate.viewRoadmap')}
+              </button>
+            </div>
           ) : (
             <button type="button" className="cta-primary" onClick={startTest}>
-              <Lock size={16} className="inline-leading-icon inline-leading-icon--spacious" />
-              {t('readiness.gate.unlock')}
+              {t('readiness.gate.start')}
             </button>
           )}
         </div>

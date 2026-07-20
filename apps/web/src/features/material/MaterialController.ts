@@ -626,7 +626,7 @@ export class MaterialController {
     target.innerHTML = list
       .map(
         (font) =>
-          `<button class="font-card" data-font-name="${font.name}" type="button" style="font-family:${font.family};font-size:${this.state.fontPreviewSize}px;">${font.name}</button>`,
+          `<button class="font-card" data-font-name="${font.name}" type="button" style="font-family:${font.family};font-size:${Math.min(this.state.fontPreviewSize, 28)}px;">${escapeHtml(font.name)}</button>`,
       )
       .join("");
   }

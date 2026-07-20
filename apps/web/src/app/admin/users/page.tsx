@@ -2,12 +2,21 @@
 
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import type { UserRole } from '@pathwise/shared';
+import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError, type AdminUser } from '@/lib/api';
-import type { UserRole } from '@pathwise/shared';
+
+function roleLabel(role: UserRole, t: (key: string) => string): string {
+  if (role === 'SUPER_ADMIN') return t('domain.roles.superAdmin');
+  if (role === 'ADMIN') return t('domain.roles.admin');
+  return t('domain.roles.learner');
+}
 
 export default function AdminUsersPage() {
   const { t, format } = useLanguage();
+  const { user: me } = useAuth();
+  const isSuper = me?.role === 'SUPER_ADMIN';
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,8 +32,12 @@ export default function AdminUsersPage() {
       .finally(() => setLoading(false));
   }, [t]);
 
-  const toggleRole = async (user: AdminUser) => {
-    const nextRole: UserRole = user.role === 'ADMIN' ? 'LEARNER' : 'ADMIN';
+  const changeRole = async (user: AdminUser, nextRole: UserRole) => {
+    if (user.role === nextRole) return;
+    if (nextRole === 'SUPER_ADMIN' && !isSuper) {
+      setError(t('admin.users.onlySuper'));
+      return;
+    }
     setUpdatingId(user.id);
     setError('');
     try {
@@ -69,24 +82,33 @@ export default function AdminUsersPage() {
                 <td>{user.name}</td>
                 <td>{user.email}</td>
                 <td>
-                  <span className={`admin-badge${user.role === 'ADMIN' ? ' ok' : ''}`}>
-                    {user.role === 'ADMIN' ? t('domain.roles.admin') : t('domain.roles.learner')}
+                  <span
+                    className={`admin-badge${
+                      user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? ' ok' : ''
+                    }`}
+                  >
+                    {roleLabel(user.role, t)}
                   </span>
                 </td>
                 <td>{format.date(user.createdAt)}</td>
                 <td>
-                  <button
-                    type="button"
-                    className="admin-link"
-                    disabled={updatingId === user.id}
-                    onClick={() => toggleRole(user)}
-                  >
-                    {updatingId === user.id
-                      ? t('admin.users.updating')
-                      : user.role === 'ADMIN'
-                        ? t('admin.users.makeLearner')
-                        : t('admin.users.makeAdmin')}
-                  </button>
+                  <label className="admin-role-picker">
+                    <span className="sr-only">{t('admin.users.changeRole')}</span>
+                    <select
+                      value={user.role}
+                      disabled={updatingId === user.id || (!isSuper && user.role === 'SUPER_ADMIN')}
+                      onChange={(e) => changeRole(user, e.target.value as UserRole)}
+                    >
+                      <option value="LEARNER">{t('domain.roles.learner')}</option>
+                      <option value="ADMIN">{t('domain.roles.admin')}</option>
+                      {isSuper && (
+                        <option value="SUPER_ADMIN">{t('domain.roles.superAdmin')}</option>
+                      )}
+                    </select>
+                  </label>
+                  {updatingId === user.id && (
+                    <span className="admin-inline-status">{t('admin.users.updating')}</span>
+                  )}
                 </td>
               </tr>
             ))}
