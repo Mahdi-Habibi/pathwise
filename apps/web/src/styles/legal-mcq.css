@@ -37,12 +37,7 @@
   border-color: var(--indigo-bright);
   background: var(--indigo-dim);
 }
-.mcq-option.correct {
-  border-color: var(--emerald);
-}
-.mcq-option.wrong {
-  border-color: var(--danger);
-}
+/* Correctness is never shown during the live readiness test */
 .mcq-letter {
   font-family: var(--font-mono);
   font-weight: 700;

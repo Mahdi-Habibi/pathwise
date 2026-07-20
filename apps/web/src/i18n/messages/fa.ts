@@ -431,6 +431,8 @@ export const fa = {
     test: {
       skip: 'فعلاً رد کن',
       continue: 'ادامه',
+      seeResults: 'مشاهده نتایج',
+      finishing: 'در حال ذخیره نتایج…',
       progress: '{current} / {total}',
     },
     file: {
@@ -512,7 +514,11 @@ export const fa = {
       tag: 'ارزیابی تکمیل شد',
       title: 'نتیجه عملکرد شما این است.',
       sub: 'امتیازهایت مشخص می‌کند کدام ماژول بعداً باز می‌شود و چقدر پشتیبانی دریافت می‌کنی.',
+      average: 'امتیاز کلی',
+      passed: 'قبول',
+      needsWork: 'نیاز به مرور',
       backDashboard: 'بازگشت به پانل من',
+      browseCourses: 'مشاهده دوره‌ها',
     },
     verdict: {
       pass: {
@@ -568,7 +574,17 @@ export const fa = {
     fullscreen: 'تمام‌صفحه',
     exitFullscreen: 'خروج از تمام‌صفحه',
     videoUnsupported: 'مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.',
+    videoPlaceholder: 'ویدیوی این درس به‌محض آماده‌شدن اینجا نمایش داده می‌شود.',
     notesHint: 'هنگام تماشا و تمرین یادداشت بردارید.',
+    notesTitle: 'یادداشت درس',
+    notesCopy: 'کپی یادداشت',
+    notesCopied: 'کپی شد',
+    sidebarBrand: 'استودیوی یادگیری',
+    searchLessons: 'جستجوی درس‌ها',
+    searchPlaceholder: 'جستجو بر اساس عنوان…',
+    progressLabel: 'پیشرفت دوره',
+    lessonsNav: 'درس‌ها',
+    duration: '{minutes} دقیقه',
   },
   bootcamp: {
     backDashboard: '← بازگشت به پانل',

@@ -17,12 +17,12 @@ const FOLDERS = [
 export function FileExplorerTask({ onComplete }: FileExplorerTaskProps) {
   const { t } = useLanguage();
   const [dropped, setDropped] = useState(false);
-  const [correctFolder, setCorrectFolder] = useState<string | null>(null);
+  const [droppedFolder, setDroppedFolder] = useState<string | null>(null);
 
   const handleDrop = (folderId: string, isCorrect: boolean) => {
     if (dropped) return;
     setDropped(true);
-    setCorrectFolder(isCorrect ? folderId : null);
+    setDroppedFolder(folderId);
     onComplete(isCorrect ? 1 : 0, 1);
   };
 
@@ -54,7 +54,7 @@ export function FileExplorerTask({ onComplete }: FileExplorerTaskProps) {
               id={id}
               label={t(`readiness.file.folder.${id}`)}
               icon={icon}
-              showCorrect={correctFolder === id}
+              showDropped={droppedFolder === id}
               disabled={dropped}
               onDrop={() => handleDrop(id, isCorrect)}
             />
@@ -69,14 +69,14 @@ function FolderDrop({
   id,
   label,
   icon,
-  showCorrect,
+  showDropped,
   disabled,
   onDrop,
 }: {
   id: string;
   label: string;
   icon: string;
-  showCorrect: boolean;
+  showDropped: boolean;
   disabled: boolean;
   onDrop: () => void;
 }) {
@@ -85,7 +85,7 @@ function FolderDrop({
   return (
     <div
       ref={zone.ref}
-      className={`folder-drop pointer-drop-zone${zone.dragOver ? ' dragover' : ''}${showCorrect ? ' correct' : ''}`}
+      className={`folder-drop pointer-drop-zone${zone.dragOver ? ' dragover' : ''}${showDropped ? ' dropped' : ''}`}
       onDragOver={zone.dropProps.onDragOver}
       onDragLeave={zone.dropProps.onDragLeave}
       onDrop={zone.dropProps.onDrop}

@@ -26,8 +26,10 @@ export default function ReadinessTestPage() {
     completeReadinessTest,
   } = useApp();
   const [canContinue, setCanContinue] = useState(false);
+  const [finishing, setFinishing] = useState(false);
 
   const moduleName = READINESS_MODULES[modIndex]!;
+  const isLastModule = modIndex >= READINESS_MODULES.length - 1;
 
   useEffect(() => {
     if (learnerState && !learnerState.readinessPaid) {
@@ -55,12 +57,19 @@ export default function ReadinessTestPage() {
   };
 
   const goNext = async () => {
-    if (modIndex < READINESS_MODULES.length - 1) {
+    if (finishing) return;
+    if (!isLastModule) {
       setReadinessModuleIndex(modIndex + 1);
       setCanContinue(!!readinessScores[READINESS_MODULES[modIndex + 1]!]);
-    } else {
+      return;
+    }
+    setFinishing(true);
+    try {
       await completeReadinessTest();
-      router.push('/readiness/results');
+      router.replace('/readiness/results');
+    } catch {
+      // Still open results — local scores remain available for the scorecard.
+      router.replace('/readiness/results');
     }
   };
 
@@ -90,16 +99,20 @@ export default function ReadinessTestPage() {
         {modIndex === 4 && <CodeFillTask onComplete={handleComplete} />}
 
         <div className="test-nav">
-          <button type="button" className="btn-ghost" onClick={skipModule}>
+          <button type="button" className="btn-ghost" onClick={skipModule} disabled={finishing}>
             {t('readiness.test.skip')}
           </button>
           <button
             type="button"
             className="btn-next"
             onClick={() => void goNext()}
-            disabled={!canContinue && !readinessScores[moduleName]}
+            disabled={finishing || (!canContinue && !readinessScores[moduleName])}
           >
-            {t('readiness.test.continue')}
+            {finishing
+              ? t('readiness.test.finishing')
+              : isLastModule
+                ? t('readiness.test.seeResults')
+                : t('readiness.test.continue')}
           </button>
         </div>
       </div>

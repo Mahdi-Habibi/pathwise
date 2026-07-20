@@ -94,6 +94,8 @@ async function main() {
       title: 'Variables & Types',
       durationMin: 12,
       sortOrder: 1,
+      // Public sample used so the lesson video player is visible in local/dev.
+      videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
       content: `# Variables & Types
 
 Learn how JavaScript stores data with \`let\`, \`const\`, and primitive types.
@@ -111,6 +113,7 @@ Declare a \`const\` for your name and a \`let\` counter starting at zero.`,
       title: 'Functions & Scope',
       durationMin: 15,
       sortOrder: 2,
+      videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm',
       content: `# Functions & Scope
 
 Functions encapsulate logic. Scope determines where variables are visible.
@@ -128,6 +131,7 @@ Write a function \`greet(name)\` that returns \`Hello, ${'${name}'}!\`.`,
       title: 'Async/Await',
       durationMin: 18,
       sortOrder: 3,
+      videoUrl: null as string | null,
       content: `# Async/Await
 
 Modern JavaScript uses Promises and \`async/await\` for non-blocking I/O.
@@ -155,10 +159,16 @@ Fetch JSON from an API and log the first item.`,
         content: lesson.content,
         durationMin: lesson.durationMin,
         sortOrder: lesson.sortOrder,
+        videoUrl: lesson.videoUrl,
       },
       create: {
         courseId: javascriptCore.id,
-        ...lesson,
+        slug: lesson.slug,
+        title: lesson.title,
+        content: lesson.content,
+        durationMin: lesson.durationMin,
+        sortOrder: lesson.sortOrder,
+        videoUrl: lesson.videoUrl,
       },
     });
   }
