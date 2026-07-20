@@ -150,14 +150,21 @@ export function useAppActions({
   );
 
   const completeReadinessTest = useCallback(async () => {
+    const scores = state.readinessScores;
+    let result = computeReadinessResult(scores);
     try {
-      const remote = await api.saveReadinessTest(state.readinessScores);
-      setReadinessResult(remote);
+      result = await api.saveReadinessTest(scores);
     } catch {
-      setReadinessResult(computeReadinessResult(state.readinessScores));
+      // Keep local result so the learner still sees a scorecard offline.
     }
-    patch({ testCompleted: true, readinessModuleIndex: 0 });
-    await refreshSession();
+    setReadinessResult(result);
+    patch({ testCompleted: true, readinessModuleIndex: 0, readinessScores: scores });
+    try {
+      await refreshSession();
+    } catch {
+      // Session refresh is best-effort; results UI must still open.
+    }
+    return result;
   }, [state.readinessScores, patch, refreshSession, setReadinessResult]);
 
   const submitChallenge = useCallback(

@@ -84,7 +84,7 @@ export function EnglishReadinessTask({ onComplete }: EnglishReadinessTaskProps) 
             <button
               key={`${QUESTION_KEYS[current]}-${OPTION_KEYS[i]}`}
               type="button"
-              className={`mcq-option${selected === i ? ' selected' : ''}${answers[current] === i && i === q.correct ? ' correct' : ''}${answers[current] === i && i !== q.correct ? ' wrong' : ''}`}
+              className={`mcq-option${selected === i ? ' selected' : ''}`}
               onClick={() => pickOption(i)}
             >
               <span className="mcq-letter">{String.fromCharCode(65 + i)}</span>

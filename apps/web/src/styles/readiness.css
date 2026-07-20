@@ -1,6 +1,6 @@
 /* ================= READINESS GATE ================= */
 .gate {
-  padding: 36px 0 80px;
+  padding: clamp(1.75rem, 4vw, 2.25rem) 0 clamp(3rem, 8vw, 5rem);
   max-width: 900px;
   margin: 0 auto;
 }
@@ -81,7 +81,7 @@
 
 /* ================= READINESS TEST ================= */
 .test-shell {
-  padding: 36px 0 80px;
+  padding: clamp(1.75rem, 4vw, 2.25rem) 0 clamp(3rem, 8vw, 5rem);
   max-width: 900px;
   margin: 0 auto;
 }
@@ -181,9 +181,10 @@
   border-color: var(--indigo-bright);
   background: var(--indigo-dim);
 }
-.folder-drop.correct {
-  border-color: var(--emerald);
-  background: var(--emerald-dim);
+/* Neutral drop state — never reveal correctness mid-test */
+.folder-drop.dropped {
+  border-color: var(--indigo-bright);
+  background: var(--indigo-dim);
 }
 .folder-drop .fd-icon {
   font-size: 24px;
@@ -312,7 +313,7 @@
 
 /* ================= TEST RESULTS ================= */
 .results {
-  padding: 40px 0 90px;
+  padding: clamp(1.75rem, 4vw, 2.5rem) 0 clamp(3.5rem, 9vw, 5.5rem);
   max-width: 900px;
   margin: 0 auto;
 }
@@ -334,6 +335,57 @@
   color: var(--text-dim);
   font-size: 15px;
   max-width: 520px;
+}
+.results-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+.results-avg-label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  margin-bottom: 0.2rem;
+}
+.results-avg-value {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 800;
+  color: var(--kia-deep, var(--indigo-bright));
+  letter-spacing: -0.03em;
+}
+.results-pass-chip {
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+}
+.results-pass-chip[data-passed='true'] {
+  color: var(--emerald);
+  background: var(--emerald-dim);
+  border-color: color-mix(in srgb, var(--emerald) 40%, var(--border));
+}
+.results-pass-chip[data-passed='false'] {
+  color: var(--amber);
+  background: var(--amber-dim);
+  border-color: color-mix(in srgb, var(--amber) 40%, var(--border));
+}
+.results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.results-actions .cta-secondary {
+  margin-inline-start: 0;
 }
 .results-grid {
   display: grid;

@@ -431,6 +431,8 @@ export const en = {
     test: {
       skip: 'Skip for now',
       continue: 'Continue',
+      seeResults: 'See results',
+      finishing: 'Saving results…',
       progress: '{current} / {total}',
     },
     file: {
@@ -512,7 +514,11 @@ export const en = {
       tag: 'Assessment complete',
       title: "Here's how you did.",
       sub: "Your scores shape which modules unlock next and how much support you're offered along the way.",
+      average: 'Overall score',
+      passed: 'Passed',
+      needsWork: 'Needs review',
       backDashboard: 'Back to My Dashboard',
+      browseCourses: 'Browse courses',
     },
     verdict: {
       pass: {
@@ -569,7 +575,17 @@ export const en = {
     fullscreen: 'Fullscreen',
     exitFullscreen: 'Exit fullscreen',
     videoUnsupported: 'Your browser does not support embedded video.',
+    videoPlaceholder: 'Video for this lesson will appear here when available.',
     notesHint: 'Take notes while you watch and practice.',
+    notesTitle: 'Lesson notes',
+    notesCopy: 'Copy note',
+    notesCopied: 'Copied',
+    sidebarBrand: 'Learning Studio',
+    searchLessons: 'Search lessons',
+    searchPlaceholder: 'Search by title…',
+    progressLabel: 'Course progress',
+    lessonsNav: 'Lessons',
+    duration: '{minutes} min',
   },
   bootcamp: {
     backDashboard: '← Back to Dashboard',

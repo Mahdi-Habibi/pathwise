@@ -1,42 +1,42 @@
 /* ===== Catalog ===== */
 .catalog-shell {
-  padding: 40px 24px 80px;
+  padding: clamp(1.5rem, 4vw, 2.5rem) 0 clamp(3rem, 8vw, 5rem);
 }
 .catalog-shell h1 {
-  font-size: 32px;
-  margin: 12px 0;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  margin: 0.75rem 0;
 }
 .catalog-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: 28px;
+  gap: 1rem;
+  margin-top: 1.75rem;
 }
 .catalog-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 22px;
+  border-radius: 0.9rem;
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .catalog-icon {
-  font-size: 28px;
+  font-size: 1.75rem;
 }
 .catalog-card h3 {
-  font-size: 17px;
+  font-size: 1.05rem;
 }
 .catalog-card p {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: var(--text-dim);
   flex: 1;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .catalog-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-faint);
   font-family: var(--font-mono);
 }
@@ -44,55 +44,352 @@
   color: var(--emerald);
 }
 .catalog-actions {
-  margin-top: 8px;
+  margin-top: 0.5rem;
 }
 
-/* ===== Lesson player ===== */
+/* ===== Lesson player (Kia Learn layout) ===== */
 .lesson-shell {
-  max-width: 760px;
-  padding: 32px 24px 80px;
+  max-width: 1180px;
+  padding: clamp(1.25rem, 3vw, 2rem) 0 clamp(3rem, 8vw, 5rem);
 }
-.lesson-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0 28px;
+
+.kia-lesson-shell .learn-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
 }
-.lesson-header h1 {
-  font-size: 28px;
-  flex: 1;
+
+.kia-lesson-shell .learn-sidebar {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding: 1rem;
 }
-.lesson-done {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--emerald);
-  font-size: 13px;
+
+.kia-lesson-shell .sidebar-head {
+  margin-bottom: 0.85rem;
 }
-.lesson-video {
-  margin: 0 0 24px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #0b0f19;
+
+.kia-lesson-shell .learn-brand {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  color: var(--kia-deep, var(--indigo-bright));
 }
-.lesson-video video {
+
+.kia-lesson-shell .muted {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+
+.kia-lesson-shell .field-label {
   display: block;
-  width: 100%;
-  max-height: min(70vh, 640px);
-  background: #000;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 0.35rem;
 }
-.lesson-content {
+
+.kia-lesson-shell .input,
+.kia-lesson-shell .note-editor {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: 0.85rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.kia-lesson-shell .input:focus,
+.kia-lesson-shell .note-editor:focus {
+  border-color: var(--kia-accent, var(--indigo));
+  box-shadow: 0 0 0 3px rgba(31, 110, 140, 0.15);
+}
+
+.kia-lesson-shell .learn-progress {
+  margin-top: 0.85rem;
+  padding: 0.75rem;
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+  border: 1px solid var(--border-soft);
+}
+
+.kia-lesson-shell .learn-progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.kia-lesson-shell .progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+  margin-top: 0.45rem;
+}
+
+.kia-lesson-shell .progress-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--gradient-brand);
+}
+
+.kia-lesson-shell .lesson-nav {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.kia-lesson-shell .lesson-nav-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: 0.85rem;
+  padding: 0.7rem 0.8rem;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.kia-lesson-shell .lesson-nav-item:hover,
+.kia-lesson-shell .lesson-nav-item.active {
+  border-color: var(--kia-accent, var(--indigo));
+  background: var(--indigo-dim);
+}
+
+.kia-lesson-shell .lesson-nav-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.kia-lesson-shell .lesson-nav-meta {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.kia-lesson-shell .learn-main {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.kia-lesson-shell .glass-panel {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 28px;
-  margin-bottom: 24px;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
 }
+
+.kia-lesson-shell .lesson-content-card,
+.kia-lesson-shell .notes-card {
+  padding: 1.1rem 1.15rem 1.2rem;
+}
+
+.kia-lesson-shell .lesson-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.kia-lesson-shell .lesson-back {
+  display: inline-flex;
+  margin-bottom: 0.55rem;
+}
+
+.kia-lesson-shell .lesson-content-card h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.kia-lesson-shell .lesson-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.kia-lesson-shell .meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.kia-lesson-shell .meta-chip--done {
+  color: var(--emerald);
+  border-color: color-mix(in srgb, var(--emerald) 35%, var(--border));
+  background: var(--emerald-dim);
+}
+
+.kia-lesson-shell .lesson-video-block {
+  margin: 0.85rem 0 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.lesson-video-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.lesson-video-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lesson-fullscreen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.kia-lesson-shell .lesson-video {
+  margin: 0;
+  background: #0b0f19;
+}
+
+.kia-lesson-shell .lesson-video video {
+  width: 100%;
+  max-height: min(70vh, 540px);
+  display: block;
+}
+
+.lesson-video-placeholder {
+  min-height: min(42vh, 320px);
+  display: grid;
+  place-content: center;
+  gap: 0.55rem;
+  text-align: center;
+  color: var(--text-faint);
+  padding: 2rem 1.25rem;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(31, 110, 140, 0.18), transparent 55%),
+    #0b0f19;
+}
+
+.lesson-video-placeholder span {
+  font-size: 1.6rem;
+  color: var(--kia-gold, var(--amber));
+}
+
+.lesson-video-placeholder p {
+  margin: 0;
+  max-width: 28ch;
+  line-height: 1.5;
+  color: #c9d7e2;
+}
+
+.lesson-video-block:fullscreen,
+.lesson-video-block:-webkit-full-screen {
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-video-block:fullscreen .lesson-video video,
+.lesson-video-block:-webkit-full-screen .lesson-video video {
+  max-height: calc(100vh - 52px);
+  height: 100%;
+}
+
+.kia-lesson-shell .lesson-description {
+  color: var(--text-dim);
+  line-height: 1.75;
+  margin-top: 0.35rem;
+}
+
+.kia-lesson-shell .lesson-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.kia-lesson-shell .pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.kia-lesson-shell .pill-btn:hover {
+  border-color: var(--kia-accent, var(--indigo));
+}
+
+.kia-lesson-shell .pill-btn--primary {
+  background: var(--gradient-brand);
+  border-color: transparent;
+  color: var(--on-fill);
+}
+
+.kia-lesson-shell .learn-utility-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.kia-lesson-shell .notes-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  color: var(--kia-deep, var(--text));
+}
+
+.kia-lesson-shell .note-editor {
+  margin-top: 0.75rem;
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
 .lesson-md h1,
 .lesson-md h2,
 .lesson-md h3 {
   margin: 1em 0 0.5em;
+  color: var(--text);
 }
 .lesson-md h1:first-child,
 .lesson-md h2:first-child,
@@ -120,7 +417,7 @@
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 16px;
+  padding: 1rem;
   overflow-x: auto;
   margin: 1em 0;
 }
@@ -128,124 +425,48 @@
   background: none;
   padding: 0;
 }
-.lesson-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.lesson-footer-center {
-  flex: 1;
-  display: flex;
-  justify-content: center;
+
+@media (max-width: 900px) {
+  .kia-lesson-shell .learn-layout {
+    grid-template-columns: 1fr;
+  }
+  .kia-lesson-shell .learn-sidebar {
+    position: static;
+    max-height: none;
+  }
 }
 
 /* ===== Legal ===== */
 .legal-shell {
   max-width: 680px;
-  padding: 48px 24px 80px;
+  padding: clamp(2rem, 5vw, 3rem) 0 clamp(3rem, 8vw, 5rem);
 }
 .legal-shell h1 {
-  font-size: 32px;
-  margin-bottom: 8px;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 .legal-updated {
   color: var(--text-faint);
-  font-size: 13px;
-  margin-bottom: 32px;
+  font-size: 0.85rem;
+  margin-bottom: 2rem;
 }
 .legal-shell section {
-  margin-bottom: 28px;
+  margin-bottom: 1.75rem;
 }
 .legal-shell h2 {
-  font-size: 18px;
-  margin-bottom: 10px;
+  font-size: 1.1rem;
+  margin-bottom: 0.65rem;
 }
 .legal-shell p,
 .legal-shell li {
   color: var(--text-dim);
   line-height: 1.7;
-  font-size: 15px;
+  font-size: 0.95rem;
 }
 .legal-shell ul {
-  margin-block: 8px 0;
+  margin-block: 0.5rem 0;
   margin-inline: 1.2em 0;
 }
 .legal-shell a {
   color: var(--indigo-bright);
-}
-
-.kia-lesson-shell .lesson-video-block {
-  margin: 1rem 0 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  overflow: hidden;
-  background: var(--bg-card);
-}
-.lesson-video-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-.lesson-video-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-.lesson-fullscreen-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated, rgba(255,255,255,0.06));
-  color: inherit;
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  cursor: pointer;
-  font-size: 0.82rem;
-}
-.kia-lesson-shell .lesson-video {
-  margin: 0;
-  background: #000;
-}
-.kia-lesson-shell .lesson-video video {
-  width: 100%;
-  max-height: min(70vh, 540px);
-  display: block;
-}
-.lesson-video-block:fullscreen,
-.lesson-video-block:-webkit-full-screen {
-  background: #000;
-  display: flex;
-  flex-direction: column;
-}
-.lesson-video-block:fullscreen .lesson-video video,
-.lesson-video-block:-webkit-full-screen .lesson-video video {
-  max-height: calc(100vh - 52px);
-  height: 100%;
-}
-.lesson-notes-panel {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-}
-.lesson-notes-panel h3 {
-  margin: 0 0 0.55rem;
-  font-size: 1rem;
-}
-.lesson-note-editor {
-  width: 100%;
-  min-height: 120px;
-  border-radius: 0.8rem;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated, rgba(255,255,255,0.04));
-  color: inherit;
-  padding: 0.7rem;
-  resize: vertical;
-  font: inherit;
-  line-height: 1.6;
 }
