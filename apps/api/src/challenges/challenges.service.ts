@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { ChallengeScoreResult } from '@pathwise/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
-import { buildChallengeResult } from './challenge.utils';
+import { buildChallengeResult } from '@pathwise/shared';
 import { CreateChallengeSubmissionDto } from './dto/create-challenge-submission.dto';
 
 export interface ChallengeSubmissionResponse extends ChallengeScoreResult {

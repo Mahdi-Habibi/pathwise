@@ -1,6 +1,5 @@
 import type {
   AssessmentAnswers,
-  AssessmentResponse,
   AuthResponse,
   AuthTokens,
   AuthUser,
@@ -439,8 +438,7 @@ export const demoApi = {
     const state = readState();
     const settings = readDemoSettings();
     let amountCents = 0;
-    if (dto.productType === 'READINESS_TEST') amountCents = settings.pricing.readinessTestCents;
-    else if (dto.productType === 'COURSE') amountCents = settings.pricing.courseCents;
+    if (dto.productType === 'COURSE') amountCents = settings.pricing.courseCents;
     else if (dto.productType === 'ROADMAP_BUNDLE') {
       const answers = state.lastAnswers ?? defaultState().lastAnswers!;
       const roadmap = buildRoadmapFromAnswers(answers, false, 'local', {
@@ -457,10 +455,6 @@ export const demoApi = {
       status: 'COMPLETED',
     };
     state.payments = [payment, ...state.payments];
-    if (dto.productType === 'READINESS_TEST') {
-      state.readinessPaid = true;
-      state.entitlements = Array.from(new Set([...state.entitlements, 'READINESS_TEST']));
-    }
     if (dto.productType === 'ROADMAP_BUNDLE') {
       state.roadmapEnrolled = true;
       state.hasRoadmap = true;
@@ -544,19 +538,6 @@ export const demoApi = {
       writeState(state);
     }
     await delay(undefined);
-  },
-
-  async saveAssessment(answers: AssessmentAnswers): Promise<AssessmentResponse> {
-    requireUser();
-    const state = readState();
-    state.lastAnswers = answers;
-    state.hasRoadmap = true;
-    writeState(state);
-    return delay({
-      id: `assessment-${Date.now()}`,
-      answers,
-      createdAt: new Date().toISOString(),
-    });
   },
 
   async saveRoadmap(answers: AssessmentAnswers): Promise<RoadmapResponse> {

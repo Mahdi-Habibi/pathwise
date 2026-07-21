@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { RoadmapResponse } from '@pathwise/shared';
+import { buildRoadmapFromAnswers } from '@pathwise/shared';
+import { AssessmentsService } from '../assessments/assessments.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
-import { buildRoadmapFromAnswers } from './roadmap.utils';
 import { CreateRoadmapDto } from './dto/create-roadmap.dto';
 
 @Injectable()
@@ -10,9 +11,11 @@ export class RoadmapsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly siteSettings: SiteSettingsService,
+    private readonly assessmentsService: AssessmentsService,
   ) {}
 
   async create(dto: CreateRoadmapDto, userId: string): Promise<RoadmapResponse> {
+    const assessment = await this.assessmentsService.create({ answers: dto.answers }, userId);
     const settings = await this.siteSettings.get();
     const built = buildRoadmapFromAnswers(dto.answers, false, 'local', {
       tracks: settings.tracks,
@@ -25,7 +28,7 @@ export class RoadmapsService {
     const record = await this.prisma.roadmap.create({
       data: {
         userId,
-        assessmentId: dto.assessmentId,
+        assessmentId: dto.assessmentId ?? assessment.id,
         trackKey: built.trackKey,
         trackName: built.trackName,
         modules: JSON.stringify(built.modules),

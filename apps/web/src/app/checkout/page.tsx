@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
-type ProductChoice = 'READINESS_TEST' | 'ROADMAP_BUNDLE' | 'COURSE';
+type ProductChoice = 'ROADMAP_BUNDLE' | 'COURSE';
 
 const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
@@ -34,12 +34,7 @@ function CheckoutContent() {
   );
   const isCourseCheckout = queryProduct === 'COURSE' && courseSlugs.length > 0;
 
-  const initialProduct: ProductChoice =
-    queryProduct === 'ROADMAP_BUNDLE'
-      ? 'ROADMAP_BUNDLE'
-      : queryProduct === 'COURSE'
-        ? 'COURSE'
-        : 'READINESS_TEST';
+  const initialProduct: ProductChoice = queryProduct === 'COURSE' ? 'COURSE' : 'ROADMAP_BUNDLE';
 
   const roadmapId = searchParams.get('roadmapId') ?? roadmap?.id ?? null;
   const [product, setProduct] = useState<ProductChoice>(initialProduct);
@@ -48,7 +43,6 @@ function CheckoutContent() {
   const [success, setSuccess] = useState('');
   const [returnProcessing, setReturnProcessing] = useState(false);
 
-  const readinessPrice = settings.pricing.readinessTestCents / 100;
   const courseUnitPrice = settings.pricing.courseCents / 100;
   const courseTotal = courseSlugs.length * courseUnitPrice;
   const sessionId = searchParams.get('session_id');
@@ -117,13 +111,7 @@ function CheckoutContent() {
         await refreshSession();
         setSuccess(t('checkout.successInline'));
         setTimeout(() => {
-          if (product === 'READINESS_TEST') {
-            router.push('/readiness');
-          } else if (product === 'COURSE') {
-            router.push('/courses');
-          } else {
-            router.push('/roadmap');
-          }
+          router.push(product === 'COURSE' ? '/courses' : '/roadmap');
         }, 1500);
       } else {
         setError(t('checkout.incomplete'));
@@ -135,8 +123,7 @@ function CheckoutContent() {
     }
   };
 
-  const backHref =
-    product === 'ROADMAP_BUNDLE' ? '/roadmap' : product === 'COURSE' ? '/roadmap' : '/readiness';
+  const backHref = product === 'COURSE' ? '/roadmap' : '/roadmap';
 
   return (
     <div className="page-content">
@@ -185,37 +172,8 @@ function CheckoutContent() {
           <div className="checkout-grid">
             <button
               type="button"
-              className={`checkout-card${product === 'READINESS_TEST' ? ' selected' : ''}`}
-              onClick={() => setProduct('READINESS_TEST')}
-            >
-              <div className="checkout-card-head">
-                <span className="ci">📝</span>
-                <div>
-                  <b>{t('checkout.readiness.title')}</b>
-                  <span>{t('checkout.readiness.meta')}</span>
-                </div>
-                <span className="checkout-price">{format.currency(readinessPrice)}</span>
-              </div>
-              <ul className="checkout-features">
-                <li>
-                  <Check size={14} /> {t('checkout.readiness.feature1')}
-                </li>
-                <li>
-                  <Check size={14} /> {t('checkout.readiness.feature2')}
-                </li>
-                <li>
-                  <Check size={14} /> {t('checkout.readiness.feature3')}
-                </li>
-              </ul>
-              {learnerState?.readinessPaid && (
-                <span className="checkout-owned">{t('checkout.readiness.owned')}</span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              className={`checkout-card highlight${product === 'ROADMAP_BUNDLE' ? ' selected' : ''}`}
-              onClick={() => setProduct('ROADMAP_BUNDLE')}
+              className={`checkout-card highlight selected`}
+              style={{ cursor: 'default' }}
             >
               <span className="badge-rec">{t('checkout.bundle.badge')}</span>
               <div className="checkout-card-head">

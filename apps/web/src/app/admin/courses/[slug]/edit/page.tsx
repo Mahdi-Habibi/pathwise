@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Loader2, Trash2, Upload } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageProvider';
-import { api, ApiError, type AdminCourse, type AdminLesson } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { AdminCourse, AdminLesson } from '@pathwise/shared';
 import { mediaUrl } from '@/lib/mediaUrl';
 
 export default function AdminEditCoursePage() {

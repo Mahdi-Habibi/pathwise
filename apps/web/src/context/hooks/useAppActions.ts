@@ -68,7 +68,6 @@ export function useAppActions({
     try {
       const remote = await api.saveRoadmap(state.answers);
       patch({ roadmap: remote, stageIndex: 0, hasRoadmap: true });
-      await api.saveAssessment(state.answers);
       await refreshSession();
     } catch {
       // Offline / unauthenticated: keep a local roadmap so the UX continues.
@@ -143,13 +142,6 @@ export function useAppActions({
     ],
   );
 
-  const openPurchaseModal = useCallback(
-    (_kind: string) => {
-      router.push('/checkout');
-    },
-    [router],
-  );
-
   const completeReadinessTest = useCallback(async () => {
     const scores = state.readinessScores;
     let result = computeReadinessResult(scores);
@@ -221,7 +213,6 @@ export function useAppActions({
     updateReadinessScore,
     completeWizard,
     enrollBundle,
-    openPurchaseModal,
     completeReadinessTest,
     submitChallenge,
     resetReadinessTest,

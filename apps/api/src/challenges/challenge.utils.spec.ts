@@ -1,6 +1,6 @@
-import { buildChallengeResult, scoreFizzBuzz } from './challenge.utils';
+import { buildChallengeResult, scoreFizzBuzz } from '@pathwise/shared';
 
-describe('challenge.utils', () => {
+describe('challenge scoring', () => {
   it('re-exports scoreFizzBuzz from @pathwise/shared', () => {
     const code = `
       for (let i = 1; i <= 100; i++) {

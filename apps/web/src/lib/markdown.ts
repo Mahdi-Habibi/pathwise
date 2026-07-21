@@ -1,10 +1,4 @@
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+import { escapeHtml } from '@pathwise/shared';
 
 export function markdownToHtml(markdown: string): string {
   const blocks: string[] = [];

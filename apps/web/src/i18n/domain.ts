@@ -1,4 +1,5 @@
-import type { Goal, Interest, LearningStyle, SkillLevel, TrackKey } from '@pathwise/shared';
+import type { Goal, LearningStyle, SkillLevel, TrackKey } from '@pathwise/shared';
+import { normalizeReadinessModuleKey, READINESS_MODULE_LEGACY_TO_KEY } from '@pathwise/shared';
 import type { MessageKey } from './translate';
 
 /** Stable readiness module keys used as score map keys and for lookup. */
@@ -12,19 +13,7 @@ export const READINESS_MODULE_KEYS = [
 
 export type ReadinessModuleKey = (typeof READINESS_MODULE_KEYS)[number];
 
-/** Legacy English labels -> stable keys (for persisted localStorage / API payloads). */
-export const READINESS_MODULE_LEGACY_TO_KEY: Record<string, ReadinessModuleKey> = {
-  'Computer Literacy': 'computerLiteracy',
-  'English Readiness': 'englishReadiness',
-  'Algorithmic Thinking': 'algorithmicThinking',
-  Flowcharts: 'flowcharts',
-  'Programming Fundamentals': 'programmingFundamentals',
-  computerLiteracy: 'computerLiteracy',
-  englishReadiness: 'englishReadiness',
-  algorithmicThinking: 'algorithmicThinking',
-  flowcharts: 'flowcharts',
-  programmingFundamentals: 'programmingFundamentals',
-};
+export { READINESS_MODULE_LEGACY_TO_KEY };
 
 export const WIZARD_STAGE_KEYS = [
   'goal',
@@ -110,17 +99,13 @@ export function styleMessageKey(style: LearningStyle | string): MessageKey {
   return `domain.styles.${STYLE_LEGACY_TO_KEY[style] ?? style}`;
 }
 
-export function interestMessageKey(interest: Interest | string): MessageKey {
-  return `domain.interests.${interest}`;
-}
-
 export function skillLevelMessageKey(level: SkillLevel | string): MessageKey {
   const key = SKILL_LEVEL_TO_KEY[level as SkillLevel] ?? (level as SkillLevelKey);
   return `domain.skillLevels.${key}`;
 }
 
 export function readinessModuleMessageKey(module: string): MessageKey {
-  const key = READINESS_MODULE_LEGACY_TO_KEY[module] ?? module;
+  const key = normalizeReadinessModuleKey(module);
   return `domain.readinessModules.${key}`;
 }
 
@@ -132,15 +117,4 @@ export function moduleMessageKey(moduleName: string): MessageKey {
 export function levelMessageKey(level: string): MessageKey {
   const key = LEVEL_LEGACY_TO_KEY[level] ?? level;
   return `domain.levels.${key}`;
-}
-
-export function normalizeReadinessScores(
-  scores: Record<string, { correct: number; total: number }>,
-): Record<string, { correct: number; total: number }> {
-  const next: Record<string, { correct: number; total: number }> = {};
-  for (const [key, value] of Object.entries(scores)) {
-    const normalized = READINESS_MODULE_LEGACY_TO_KEY[key] ?? key;
-    next[normalized] = value;
-  }
-  return next;
 }

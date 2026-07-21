@@ -6,13 +6,13 @@ import { LogIn } from 'lucide-react';
 import { FormEvent, Suspense, useState } from 'react';
 import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useAuth } from '@/context/AuthProvider';
-import { useT } from '@/context/LanguageProvider';
+import { useLanguage } from '@/context/LanguageProvider';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
-  const t = useT();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -88,7 +88,7 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  const t = useT();
+  const { t } = useLanguage();
 
   return (
     <Suspense fallback={<div className="page-content auth-loading">{t('common.loading')}</div>}>

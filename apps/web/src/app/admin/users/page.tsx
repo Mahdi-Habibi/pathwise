@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import type { UserRole } from '@pathwise/shared';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
-import { api, ApiError, type AdminUser } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { AdminUser } from '@pathwise/shared';
 
 function roleLabel(role: UserRole, t: (key: string) => string): string {
   if (role === 'SUPER_ADMIN') return t('domain.roles.superAdmin');

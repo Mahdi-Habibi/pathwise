@@ -1,3 +1,5 @@
+import { escapeHtml } from '@pathwise/shared';
+
 export function toFiniteNumber(value: unknown, fallback: number): number {
   const num = Number(value);
   return Number.isFinite(num) ? num : fallback;
@@ -13,21 +15,12 @@ export function clampNumber(
 }
 
 export function sanitizeText(value: unknown, maxLength: number): string {
-  if (typeof value !== "string") return "";
+  if (typeof value !== 'string') return '';
   return value.slice(0, maxLength);
 }
 
-export function escapeHtml(value: unknown): string {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
 export function escapeAttr(value: unknown): string {
-  return escapeHtml(value).replaceAll("`", "&#96;");
+  return escapeHtml(String(value)).replaceAll('`', '&#96;');
 }
 
 export function sanitizeEnum<T extends string>(
@@ -39,7 +32,7 @@ export function sanitizeEnum<T extends string>(
 }
 
 export function asObject(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
+  return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
 }
@@ -51,3 +44,5 @@ export function uniqueFiltered<T>(
   if (!Array.isArray(values)) return [];
   return [...new Set(values.filter((v): v is T => predicate(v as T)))];
 }
+
+export { escapeHtml };

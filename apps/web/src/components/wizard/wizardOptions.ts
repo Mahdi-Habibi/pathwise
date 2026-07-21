@@ -1,6 +1,5 @@
 import type { Goal, Interest, LearningStyle, SkillLevel } from '@pathwise/shared';
 
-export const SKILL_TOPICS = ['HTML/CSS', 'JavaScript', 'Python'] as const;
 export const SKILL_TOPIC_KEYS = [
   ['HTML/CSS', 'htmlCss'],
   ['JavaScript', 'javascript'],

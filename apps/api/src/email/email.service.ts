@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { ReadinessResult } from '@pathwise/shared';
+import { escapeHtml } from '@pathwise/shared';
 import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { PrismaService } from '../prisma/prisma.service';
@@ -50,7 +51,7 @@ export class EmailService {
     const subject = 'Welcome to Pathwise';
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
-        <h1 style="color: #2563eb;">Welcome to Pathwise, ${this.escapeHtml(user.name)}!</h1>
+        <h1 style="color: #2563eb;">Welcome to Pathwise, ${escapeHtml(user.name)}!</h1>
         <p>Your account is ready. Explore courses, take the readiness assessment, and start building your career path.</p>
         <p style="margin-top: 24px;">— The Pathwise Team</p>
       </div>
@@ -65,12 +66,12 @@ export class EmailService {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
         <h1 style="color: #2563eb;">Payment confirmed</h1>
-        <p>Hi ${this.escapeHtml(user.name)},</p>
+        <p>Hi ${escapeHtml(user.name)},</p>
         <p>Thank you for your purchase. Here are your receipt details:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-          <tr><td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Product</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${this.escapeHtml(this.formatProductType(payment.productType))}</td></tr>
+          <tr><td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Product</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${escapeHtml(this.formatProductType(payment.productType))}</td></tr>
           <tr><td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Amount</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${amount.toUpperCase()} ${payment.currency.toUpperCase()}</td></tr>
-          <tr><td style="padding: 8px 0;"><strong>Payment ID</strong></td><td style="padding: 8px 0;">${this.escapeHtml(payment.id)}</td></tr>
+          <tr><td style="padding: 8px 0;"><strong>Payment ID</strong></td><td style="padding: 8px 0;">${escapeHtml(payment.id)}</td></tr>
         </table>
         <p style="margin-top: 24px;">— The Pathwise Team</p>
       </div>
@@ -87,9 +88,9 @@ export class EmailService {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
         <h2>New contact form submission</h2>
-        <p><strong>From:</strong> ${this.escapeHtml(dto.name)} &lt;${this.escapeHtml(dto.email)}&gt;</p>
-        <p><strong>Subject:</strong> ${this.escapeHtml(dto.subject)}</p>
-        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-wrap;">${this.escapeHtml(dto.message)}</div>
+        <p><strong>From:</strong> ${escapeHtml(dto.name)} &lt;${escapeHtml(dto.email)}&gt;</p>
+        <p><strong>Subject:</strong> ${escapeHtml(dto.subject)}</p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-wrap;">${escapeHtml(dto.message)}</div>
       </div>
     `;
 
@@ -137,12 +138,12 @@ export class EmailService {
 
   async sendReadinessResults(user: EmailUser, result: ReadinessResult): Promise<void> {
     const subject = 'Your Pathwise readiness results';
-    const verdictTitle = this.escapeHtml(result.verdict.title);
-    const verdictMessage = this.escapeHtml(result.verdict.message);
+    const verdictTitle = escapeHtml(result.verdict.title);
+    const verdictMessage = escapeHtml(result.verdict.message);
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
         <h1 style="color: #2563eb;">Readiness assessment complete</h1>
-        <p>Hi ${this.escapeHtml(user.name)},</p>
+        <p>Hi ${escapeHtml(user.name)},</p>
         <p>Your average score: <strong>${result.average}%</strong> — ${result.passed ? 'Passed' : 'Needs improvement'}</p>
         <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0;">
           <h2 style="margin: 0 0 8px; font-size: 18px;">${verdictTitle}</h2>
@@ -217,13 +218,5 @@ export class EmailService {
       default:
         return productType;
     }
-  }
-
-  private escapeHtml(value: string): string {
-    return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
   }
 }

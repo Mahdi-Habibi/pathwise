@@ -2,15 +2,22 @@ import { READINESS_MODULES } from '../constants/tracks';
 import type { ReadinessResult, ReadinessScores } from '../types/readiness';
 import type { SiteReadinessSettings } from '../types/site-settings';
 
-function normalizeModuleKey(key: string): string {
-  const legacy: Record<string, string> = {
-    'Computer Literacy': 'computerLiteracy',
-    'English Readiness': 'englishReadiness',
-    'Algorithmic Thinking': 'algorithmicThinking',
-    Flowcharts: 'flowcharts',
-    'Programming Fundamentals': 'programmingFundamentals',
-  };
-  return legacy[key] ?? key;
+/** Legacy English labels and stable keys → canonical readiness module keys. */
+export const READINESS_MODULE_LEGACY_TO_KEY: Record<string, string> = {
+  'Computer Literacy': 'computerLiteracy',
+  'English Readiness': 'englishReadiness',
+  'Algorithmic Thinking': 'algorithmicThinking',
+  Flowcharts: 'flowcharts',
+  'Programming Fundamentals': 'programmingFundamentals',
+  computerLiteracy: 'computerLiteracy',
+  englishReadiness: 'englishReadiness',
+  algorithmicThinking: 'algorithmicThinking',
+  flowcharts: 'flowcharts',
+  programmingFundamentals: 'programmingFundamentals',
+};
+
+export function normalizeReadinessModuleKey(key: string): string {
+  return READINESS_MODULE_LEGACY_TO_KEY[key] ?? key;
 }
 
 export function computeReadinessResult(
@@ -20,7 +27,9 @@ export function computeReadinessResult(
   const percentages: Record<string, number> = {};
   READINESS_MODULES.forEach((m) => {
     const direct = scores[m];
-    const legacyHit = Object.entries(scores).find(([k]) => normalizeModuleKey(k) === m)?.[1];
+    const legacyHit = Object.entries(scores).find(
+      ([k]) => normalizeReadinessModuleKey(k) === m,
+    )?.[1];
     const s = direct || legacyHit || { correct: 0, total: 1 };
     percentages[m] = Math.round((s.correct / s.total) * 100);
   });

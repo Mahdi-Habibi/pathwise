@@ -7,7 +7,7 @@ import {
   parseLocale,
   SUPPORTED_LOCALES,
 } from '@/i18n/locales';
-import { de, en, es, fa, messages } from '@/i18n/messages';
+import { en, fa, messages } from '@/i18n/messages';
 import { createTranslator } from '@/i18n/translate';
 
 function collectKeys(tree: unknown, prefix = ''): string[] {
@@ -20,9 +20,9 @@ function collectKeys(tree: unknown, prefix = ''): string[] {
 }
 
 describe('i18n locales', () => {
-  it('parses supported locales and falls back to English', () => {
+  it('parses supported locales and falls back to default', () => {
     expect(isLocale('fa')).toBe(true);
-    expect(parseLocale('de')).toBe('de');
+    expect(parseLocale('en')).toBe('en');
     expect(parseLocale('nope')).toBe(DEFAULT_LOCALE);
   });
 
@@ -39,8 +39,6 @@ describe('i18n dictionaries', () => {
   const enKeys = collectKeys(en);
 
   it('has matching key trees for every locale', () => {
-    expect(collectKeys(de).sort()).toEqual(enKeys.sort());
-    expect(collectKeys(es).sort()).toEqual(enKeys.sort());
     expect(collectKeys(fa).sort()).toEqual(enKeys.sort());
   });
 
