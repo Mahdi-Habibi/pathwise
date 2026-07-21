@@ -4,6 +4,8 @@ export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
 export interface CheckoutDto {
   productType: ProductType;
   productRef?: string;
+  /** When purchasing multiple courses independently from the roadmap bundle. */
+  courseSlugs?: string[];
 }
 
 export interface PaymentResponse {

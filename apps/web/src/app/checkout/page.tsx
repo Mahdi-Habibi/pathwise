@@ -2,7 +2,7 @@
 
 import { Check, CreditCard, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { PageBackButton } from '@/components/layout/PageBackButton';
 import { api, ApiError } from '@/lib/api';
@@ -11,7 +11,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
-type ProductChoice = 'READINESS_TEST' | 'ROADMAP_BUNDLE';
+type ProductChoice = 'READINESS_TEST' | 'ROADMAP_BUNDLE' | 'COURSE';
 
 const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
@@ -22,18 +22,40 @@ function CheckoutContent() {
   const { refreshSession, learnerState } = useAuth();
   const { roadmap } = useApp();
   const { settings } = useSiteSettings();
-  const initialProduct = (searchParams.get('product') as ProductChoice) ?? 'READINESS_TEST';
-  const roadmapId = searchParams.get('roadmapId') ?? roadmap?.id ?? null;
-  const [product, setProduct] = useState<ProductChoice>(
-    initialProduct === 'ROADMAP_BUNDLE' ? 'ROADMAP_BUNDLE' : 'READINESS_TEST',
+
+  const queryProduct = searchParams.get('product');
+  const courseSlugs = useMemo(
+    () =>
+      (searchParams.get('slugs') ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [searchParams],
   );
+  const isCourseCheckout = queryProduct === 'COURSE' && courseSlugs.length > 0;
+
+  const initialProduct: ProductChoice =
+    queryProduct === 'ROADMAP_BUNDLE'
+      ? 'ROADMAP_BUNDLE'
+      : queryProduct === 'COURSE'
+        ? 'COURSE'
+        : 'READINESS_TEST';
+
+  const roadmapId = searchParams.get('roadmapId') ?? roadmap?.id ?? null;
+  const [product, setProduct] = useState<ProductChoice>(initialProduct);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [returnProcessing, setReturnProcessing] = useState(false);
 
   const readinessPrice = settings.pricing.readinessTestCents / 100;
+  const courseUnitPrice = settings.pricing.courseCents / 100;
+  const courseTotal = courseSlugs.length * courseUnitPrice;
   const sessionId = searchParams.get('session_id');
+
+  useEffect(() => {
+    if (isCourseCheckout) setProduct('COURSE');
+  }, [isCourseCheckout]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -76,10 +98,15 @@ function CheckoutContent() {
         setError(t('checkout.missingRoadmap'));
         return;
       }
+      if (product === 'COURSE' && courseSlugs.length === 0) {
+        setError(t('checkout.missingCourses'));
+        return;
+      }
 
       const payment = await api.checkout({
         productType: product,
         productRef: product === 'ROADMAP_BUNDLE' ? (roadmapId ?? undefined) : undefined,
+        courseSlugs: product === 'COURSE' ? courseSlugs : undefined,
       });
       if (payment.checkoutUrl) {
         window.location.href = payment.checkoutUrl;
@@ -92,6 +119,8 @@ function CheckoutContent() {
         setTimeout(() => {
           if (product === 'READINESS_TEST') {
             router.push('/readiness');
+          } else if (product === 'COURSE') {
+            router.push('/courses');
           } else {
             router.push('/roadmap');
           }
@@ -106,16 +135,21 @@ function CheckoutContent() {
     }
   };
 
+  const backHref =
+    product === 'ROADMAP_BUNDLE' ? '/roadmap' : product === 'COURSE' ? '/roadmap' : '/readiness';
+
   return (
     <div className="page-content">
       <div className="app checkout-shell">
-        <PageBackButton href={product === 'ROADMAP_BUNDLE' ? '/roadmap' : '/readiness'} />
+        <PageBackButton href={backHref} />
         <span className="eyebrow amber">
           <CreditCard size={14} className="inline-leading-icon" />
           {t('checkout.eyebrow')}
         </span>
-        <h1>{t('checkout.title')}</h1>
-        <p className="auth-sub">{t('checkout.sub')}</p>
+        <h1>{isCourseCheckout ? t('checkout.courses.title') : t('checkout.title')}</h1>
+        <p className="auth-sub">
+          {isCourseCheckout ? t('checkout.courses.sub') : t('checkout.sub')}
+        </p>
 
         <div className={`checkout-mode-note${stripeEnabled ? ' stripe' : ' dev'}`}>
           {stripeEnabled ? t('checkout.stripeMode') : t('checkout.devMode')}
@@ -128,66 +162,87 @@ function CheckoutContent() {
           </p>
         )}
 
-        <div className="checkout-grid">
-          <button
-            type="button"
-            className={`checkout-card${product === 'READINESS_TEST' ? ' selected' : ''}`}
-            onClick={() => setProduct('READINESS_TEST')}
-          >
+        {isCourseCheckout ? (
+          <div className="checkout-card selected highlight" style={{ cursor: 'default' }}>
             <div className="checkout-card-head">
-              <span className="ci">📝</span>
+              <span className="ci">📘</span>
               <div>
-                <b>{t('checkout.readiness.title')}</b>
-                <span>{t('checkout.readiness.meta')}</span>
+                <b>{t('checkout.courses.selected', { count: courseSlugs.length })}</b>
+                <span>{courseSlugs.join(' · ')}</span>
               </div>
-              <span className="checkout-price">{format.currency(readinessPrice)}</span>
+              <span className="checkout-price">{format.currency(courseTotal)}</span>
             </div>
             <ul className="checkout-features">
               <li>
-                <Check size={14} /> {t('checkout.readiness.feature1')}
+                <Check size={14} /> {t('checkout.courses.feature1')}
               </li>
               <li>
-                <Check size={14} /> {t('checkout.readiness.feature2')}
-              </li>
-              <li>
-                <Check size={14} /> {t('checkout.readiness.feature3')}
+                <Check size={14} /> {t('checkout.courses.feature2')}
               </li>
             </ul>
-            {learnerState?.readinessPaid && (
-              <span className="checkout-owned">{t('checkout.readiness.owned')}</span>
-            )}
-          </button>
+          </div>
+        ) : (
+          <div className="checkout-grid">
+            <button
+              type="button"
+              className={`checkout-card${product === 'READINESS_TEST' ? ' selected' : ''}`}
+              onClick={() => setProduct('READINESS_TEST')}
+            >
+              <div className="checkout-card-head">
+                <span className="ci">📝</span>
+                <div>
+                  <b>{t('checkout.readiness.title')}</b>
+                  <span>{t('checkout.readiness.meta')}</span>
+                </div>
+                <span className="checkout-price">{format.currency(readinessPrice)}</span>
+              </div>
+              <ul className="checkout-features">
+                <li>
+                  <Check size={14} /> {t('checkout.readiness.feature1')}
+                </li>
+                <li>
+                  <Check size={14} /> {t('checkout.readiness.feature2')}
+                </li>
+                <li>
+                  <Check size={14} /> {t('checkout.readiness.feature3')}
+                </li>
+              </ul>
+              {learnerState?.readinessPaid && (
+                <span className="checkout-owned">{t('checkout.readiness.owned')}</span>
+              )}
+            </button>
 
-          <button
-            type="button"
-            className={`checkout-card highlight${product === 'ROADMAP_BUNDLE' ? ' selected' : ''}`}
-            onClick={() => setProduct('ROADMAP_BUNDLE')}
-          >
-            <span className="badge-rec">{t('checkout.bundle.badge')}</span>
-            <div className="checkout-card-head">
-              <span className="ci">🗺️</span>
-              <div>
-                <b>{t('checkout.bundle.title')}</b>
-                <span>{t('checkout.bundle.meta')}</span>
+            <button
+              type="button"
+              className={`checkout-card highlight${product === 'ROADMAP_BUNDLE' ? ' selected' : ''}`}
+              onClick={() => setProduct('ROADMAP_BUNDLE')}
+            >
+              <span className="badge-rec">{t('checkout.bundle.badge')}</span>
+              <div className="checkout-card-head">
+                <span className="ci">🗺️</span>
+                <div>
+                  <b>{t('checkout.bundle.title')}</b>
+                  <span>{t('checkout.bundle.meta')}</span>
+                </div>
+                <span className="checkout-price">{t('checkout.bundle.price')}</span>
               </div>
-              <span className="checkout-price">{t('checkout.bundle.price')}</span>
-            </div>
-            <ul className="checkout-features">
-              <li>
-                <Check size={14} /> {t('checkout.bundle.feature1')}
-              </li>
-              <li>
-                <Check size={14} /> {t('checkout.bundle.feature2')}
-              </li>
-              <li>
-                <Check size={14} /> {t('checkout.bundle.feature3')}
-              </li>
-            </ul>
-            {learnerState?.roadmapEnrolled && (
-              <span className="checkout-owned">{t('checkout.bundle.owned')}</span>
-            )}
-          </button>
-        </div>
+              <ul className="checkout-features">
+                <li>
+                  <Check size={14} /> {t('checkout.bundle.feature1')}
+                </li>
+                <li>
+                  <Check size={14} /> {t('checkout.bundle.feature2')}
+                </li>
+                <li>
+                  <Check size={14} /> {t('checkout.bundle.feature3')}
+                </li>
+              </ul>
+              {learnerState?.roadmapEnrolled && (
+                <span className="checkout-owned">{t('checkout.bundle.owned')}</span>
+              )}
+            </button>
+          </div>
+        )}
 
         {error && <p className="form-error">{error}</p>}
         {success && <p className="form-success">{success}</p>}

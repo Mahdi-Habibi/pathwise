@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import {
   createDefaultSiteSettings,
+  normalizeAdminAccess,
   type SiteAdminAccessSettings,
   type SiteSettings,
   type SiteTrackSettings,
@@ -54,7 +55,7 @@ export default function AdminSettingsPage() {
       api.adminGetSettings(),
       api.adminListCourses(),
     ]);
-    setSettings(nextSettings);
+    setSettings({ ...nextSettings, adminAccess: normalizeAdminAccess(nextSettings.adminAccess) });
     setCourses(nextCourses);
   }, []);
 
@@ -729,22 +730,58 @@ function AdminAccessFields({
     'challenges',
     'users',
   ];
+  const levels = ['view', 'manage', 'edit'] as const;
+
+  const toggle = (
+    section: keyof SiteAdminAccessSettings,
+    level: (typeof levels)[number],
+    checked: boolean,
+  ) => {
+    onChange({
+      ...access,
+      [section]: { ...access[section], [level]: checked },
+    });
+  };
 
   return (
     <div className="admin-access-fields">
       <h2>{t('admin.settings.adminAccess.title')}</h2>
       <p className="admin-sub">{t('admin.settings.adminAccess.sub')}</p>
       <p className="admin-sub">{t('admin.settings.adminAccess.superOnly')}</p>
-      {keys.map((key) => (
-        <label key={key} className="admin-access-toggle">
-          <input
-            type="checkbox"
-            checked={access[key]}
-            onChange={(e) => onChange({ ...access, [key]: e.target.checked })}
-          />
-          <span>{t(`admin.settings.adminAccess.${key}`)}</span>
-        </label>
-      ))}
+      <div className="admin-table-wrap">
+        <table className="admin-perm-table">
+          <thead>
+            <tr>
+              <th>{t('admin.settings.adminAccess.sectionCol')}</th>
+              {levels.map((level) => (
+                <th key={level}>{t(`admin.settings.adminAccess.level.${level}`)}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {keys.map((key) => (
+              <tr key={key}>
+                <td>{t(`admin.settings.adminAccess.${key}`)}</td>
+                {levels.map((level) => (
+                  <td key={level}>
+                    <label className="admin-access-toggle">
+                      <input
+                        type="checkbox"
+                        checked={access[key][level]}
+                        onChange={(e) => toggle(key, level, e.target.checked)}
+                      />
+                      <span className="sr-only">
+                        {t(`admin.settings.adminAccess.${key}`)} —{' '}
+                        {t(`admin.settings.adminAccess.level.${level}`)}
+                      </span>
+                    </label>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

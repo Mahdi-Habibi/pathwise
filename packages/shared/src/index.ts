@@ -7,6 +7,7 @@ export * from './types/payment';
 export * from './types/course';
 export * from './types/admin';
 export * from './types/site-settings';
+export * from './types/contact';
 export * from './constants/tracks';
 export * from './constants/labels';
 export * from './constants/default-site-settings';

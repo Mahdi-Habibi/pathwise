@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import type { AuthUser } from '@pathwise/shared';
+import type { AuthUser, ReadinessTestSummary } from '@pathwise/shared';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ReadinessService } from './readiness.service';
@@ -13,6 +13,11 @@ export class ReadinessController {
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateReadinessTestDto) {
     return this.readinessService.create(dto, user.id);
+  }
+
+  @Get()
+  listMine(@CurrentUser() user: AuthUser): Promise<ReadinessTestSummary[]> {
+    return this.readinessService.listForUser(user.id);
   }
 
   @Get(':id')

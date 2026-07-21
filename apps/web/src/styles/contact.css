@@ -1,0 +1,275 @@
+/* Contact page */
+.contact-shell {
+  max-width: 960px;
+  padding-bottom: 48px;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 1.4fr);
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.contact-info {
+  padding: 22px;
+  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.contact-info h2 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+}
+
+.contact-info p {
+  margin: 0 0 16px;
+  color: var(--text-dim);
+  line-height: 1.65;
+}
+
+.contact-info-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.contact-info-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text);
+}
+
+.contact-info-list a {
+  color: var(--kia-accent, var(--indigo-bright));
+  text-decoration: none;
+}
+
+.contact-info-list a:hover {
+  text-decoration: underline;
+}
+
+.contact-note {
+  margin-top: 18px !important;
+  font-size: 0.88rem;
+  color: var(--text-faint) !important;
+}
+
+.contact-form {
+  padding: 22px;
+  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 14px;
+}
+
+.contact-alt {
+  margin-top: 24px;
+  font-size: 0.92rem;
+  color: var(--text-dim);
+}
+
+.contact-alt a {
+  color: var(--kia-accent, var(--indigo-bright));
+}
+
+@media (max-width: 760px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Unified test flow */
+.unified-test-flow {
+  margin-top: 8px;
+}
+
+.unified-test-flow--transition .unified-test-panel {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.unified-test-panel {
+  animation: fadeUp 0.35s ease both;
+}
+
+/* Landing — three CTAs */
+.landing-actions--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(100%, 720px);
+}
+
+.landing-path-badge {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--kia-deep, var(--indigo));
+  background: color-mix(in srgb, var(--kia-gold, var(--amber)) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--kia-gold, var(--amber)) 40%, transparent);
+}
+
+.landing-path-card--contact {
+  align-items: center;
+  text-align: center;
+}
+
+.landing-guest-footer {
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  width: min(100%, 720px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  justify-content: center;
+  font-size: 0.88rem;
+}
+
+.landing-guest-footer a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.landing-guest-footer a:hover {
+  color: var(--kia-accent, var(--indigo-bright));
+}
+
+/* Roadmap course picker */
+.course-picker-list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.course-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.course-picker-item:hover {
+  border-color: var(--kia-accent, var(--indigo));
+}
+
+.course-picker-item.selected {
+  border-color: var(--kia-accent, var(--indigo));
+  background: color-mix(in srgb, var(--kia-accent, var(--indigo)) 8%, var(--bg-card));
+}
+
+.course-picker-item input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--kia-accent, var(--indigo));
+}
+
+.course-picker-meta {
+  margin-inline-start: auto;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.course-picker-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+/* Dashboard test history */
+.test-history {
+  margin-top: 28px;
+  padding: 20px;
+  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.test-history h3 {
+  margin: 0 0 12px;
+}
+
+.test-history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.test-history-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.test-history-score {
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--kia-deep, var(--indigo-bright));
+}
+
+.test-history-pass {
+  font-size: 0.82rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--emerald-dim);
+  color: var(--emerald);
+}
+
+.test-history-fail {
+  background: var(--amber-dim);
+  color: var(--amber);
+}
+
+/* Admin permissions matrix */
+.admin-perm-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.admin-perm-table th,
+.admin-perm-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+}
+
+.admin-perm-table th {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.admin-role-save-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 680px) {
+  .landing-actions--three {
+    grid-template-columns: 1fr;
+  }
+}

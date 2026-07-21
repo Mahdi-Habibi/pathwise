@@ -6,6 +6,8 @@ import type {
   AuthUser,
   ChallengeScoreResult,
   CheckoutDto,
+  ContactFormDto,
+  ContactFormResponse,
   CourseSummary,
   CreateChallengeDto,
   CreateCourseDto,
@@ -17,6 +19,7 @@ import type {
   PaymentResponse,
   ReadinessResult,
   ReadinessScores,
+  ReadinessTestSummary,
   RegisterDto,
   RoadmapResponse,
   SiteSettings,
@@ -598,6 +601,24 @@ export const demoApi = {
     state.testCompleted = true;
     writeState(state);
     return delay(result);
+  },
+
+  async listReadinessTests(): Promise<ReadinessTestSummary[]> {
+    requireUser();
+    const state = readState();
+    if (!state.testCompleted) return delay([]);
+    return delay([
+      {
+        id: 'demo-readiness',
+        createdAt: new Date().toISOString(),
+        average: 72,
+        passed: true,
+      },
+    ]);
+  },
+
+  async submitContactForm(_dto: ContactFormDto): Promise<ContactFormResponse> {
+    return delay({ ok: true, message: 'Message received' });
   },
 
   async submitChallenge(code: string): Promise<ChallengeScoreResult> {

@@ -49,6 +49,7 @@ export function Footer() {
 
           <nav className="footer-nav-group" aria-label={t('nav.footer.legal')}>
             <h2>{t('nav.footer.legal')}</h2>
+            <Link href="/contact">{t('nav.footer.contact')}</Link>
             <Link href="/privacy">{t('nav.footer.privacy')}</Link>
             <Link href="/terms">{t('nav.footer.terms')}</Link>
           </nav>

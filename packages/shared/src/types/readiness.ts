@@ -25,3 +25,10 @@ export interface ReadinessResult {
     variant: 'success' | 'warning';
   };
 }
+
+export interface ReadinessTestSummary {
+  id: string;
+  createdAt: string;
+  average: number;
+  passed: boolean;
+}

@@ -2,7 +2,7 @@
 .landing-minimal {
   position: relative;
   min-height: calc(100vh - 2rem);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .landing-orbs {

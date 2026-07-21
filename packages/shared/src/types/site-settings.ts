@@ -41,13 +41,59 @@ export interface SiteBootcampSettings {
   defaultPoints: number;
 }
 
+/** Granular permission flags for a single admin panel section. */
+export interface AdminSectionPermission {
+  view: boolean;
+  manage: boolean;
+  edit: boolean;
+}
+
+export type AdminAccessSection = 'stats' | 'settings' | 'courses' | 'challenges' | 'users';
+
 /** What regular ADMIN users may access. SUPER_ADMIN always has full access. */
-export interface SiteAdminAccessSettings {
-  stats: boolean;
-  settings: boolean;
-  courses: boolean;
-  challenges: boolean;
-  users: boolean;
+export type SiteAdminAccessSettings = Record<AdminAccessSection, AdminSectionPermission>;
+
+export function createSectionPermission(
+  view = false,
+  manage = false,
+  edit = false,
+): AdminSectionPermission {
+  return { view, manage, edit };
+}
+
+/** Normalize legacy boolean flags or partial objects from persisted settings. */
+export function normalizeAdminSectionPermission(value: unknown): AdminSectionPermission {
+  if (typeof value === 'boolean') {
+    return createSectionPermission(value, value, value);
+  }
+  if (value && typeof value === 'object') {
+    const v = value as Partial<AdminSectionPermission>;
+    return {
+      view: Boolean(v.view),
+      manage: Boolean(v.manage),
+      edit: Boolean(v.edit),
+    };
+  }
+  return createSectionPermission(false, false, false);
+}
+
+export function normalizeAdminAccess(raw: unknown): SiteAdminAccessSettings {
+  const source = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  return {
+    stats: normalizeAdminSectionPermission(source.stats),
+    settings: normalizeAdminSectionPermission(source.settings),
+    courses: normalizeAdminSectionPermission(source.courses),
+    challenges: normalizeAdminSectionPermission(source.challenges),
+    users: normalizeAdminSectionPermission(source.users),
+  };
+}
+
+export function adminSectionAllowed(
+  access: SiteAdminAccessSettings,
+  section: AdminAccessSection,
+  level: keyof AdminSectionPermission = 'view',
+): boolean {
+  return Boolean(access[section]?.[level]);
 }
 
 export interface SiteSettings {

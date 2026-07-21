@@ -2,10 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { WizardStage } from '@/components/wizard/WizardStage';
-import { RequireAuth } from '@/components/auth/RequireAuth';
 import { PageBackButton } from '@/components/layout/PageBackButton';
-import { useApp } from '@/context/AppProvider';
+import { UnifiedTestFlow } from '@/components/test/UnifiedTestFlow';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 
@@ -20,7 +19,6 @@ export default function AssessmentPage() {
 function AssessmentContent() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { completeWizard, resetReadinessTest, hydrated } = useApp();
   const { user, learnerState, loading } = useAuth();
 
   useEffect(() => {
@@ -30,14 +28,7 @@ function AssessmentContent() {
     }
   }, [loading, user, learnerState, router]);
 
-  const handleComplete = async () => {
-    await completeWizard();
-    resetReadinessTest();
-    // First assessment → free preparations (readiness) test → then roadmap.
-    router.push('/readiness/test');
-  };
-
-  if (!hydrated || loading) {
+  if (loading) {
     return (
       <div className="page-content">
         <div className="app">
@@ -53,9 +44,9 @@ function AssessmentContent() {
 
   return (
     <div className="page-content">
-      <div className="app">
+      <div className="app test-shell">
         <PageBackButton href="/education" />
-        <WizardStage onComplete={handleComplete} onBack={() => router.push('/education')} />
+        <UnifiedTestFlow backHref="/education" />
       </div>
     </div>
   );
