@@ -172,9 +172,61 @@
   color: var(--text-faint);
 }
 
+.landing-guest-footer {
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  width: min(100%, 720px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--text-faint);
+  -webkit-font-smoothing: antialiased;
+}
+
+[dir='rtl'] .landing-guest-footer {
+  font-family: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  font-feature-settings: 'ss01' 1;
+  line-height: 1.8;
+}
+
+.landing-guest-footer a {
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.landing-guest-footer a:hover {
+  color: var(--kia-accent, var(--indigo-bright));
+}
+
+.landing-guest-footer a:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid var(--indigo-dim);
+  outline-offset: 4px;
+}
+
 @media (max-width: 560px) {
   .landing-actions {
     grid-template-columns: 1fr;
+  }
+
+  .landing-guest-footer {
+    font-size: 12.5px;
+    line-height: 1.7;
+  }
+
+  [dir='rtl'] .landing-guest-footer {
+    line-height: 1.85;
   }
 }
 
