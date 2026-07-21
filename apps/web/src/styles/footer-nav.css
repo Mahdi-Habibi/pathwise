@@ -5,6 +5,15 @@
   border-top: 1px solid var(--border);
   background: var(--bg-elevated);
   background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+[dir='rtl'] .site-footer {
+  font-family: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
+  line-height: 1.8;
 }
 
 .footer-inner {
