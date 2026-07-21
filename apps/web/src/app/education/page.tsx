@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FormEvent, Suspense, useEffect, useState } from 'react';
 import {
   containsUnsafeText,
   isValidEmail,
@@ -21,13 +21,17 @@ export default function EducationPage() {
   return (
     <div className="page-content education-page">
       <PageBackButton href="/" />
-      <EducationFlow />
+      <Suspense fallback={<div className="app auth-shell auth-loading" />}>
+        <EducationFlow />
+      </Suspense>
     </div>
   );
 }
 
 function EducationFlow() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get('next');
   const { t } = useLanguage();
   const { user, learnerState, refreshSession, loading: authLoading } = useAuth();
   const [step, setStep] = useState<Step>('phone');
@@ -51,8 +55,6 @@ function EducationFlow() {
       if (user?.phone) setPhone(user.phone);
       return;
     }
-    // Always start at phone for incomplete guests — do not auto-jump to profile
-    // from a stale incomplete session. Profile only after OTP in this visit.
     if (!otpVerified) {
       setStep('phone');
     }
@@ -163,6 +165,14 @@ function EducationFlow() {
     );
   }
 
+  const continueAfterProfile = () => {
+    if (nextPath && nextPath.startsWith('/')) {
+      router.push(nextPath);
+      return;
+    }
+    router.push('/assessment');
+  };
+
   if (step === 'start') {
     return (
       <RequireAuth nextPath="/education">
@@ -171,12 +181,8 @@ function EducationFlow() {
             <span className="auth-step-badge">{t('education.start.title')}</span>
             <h1>{t('education.start.title')}</h1>
             <p className="auth-sub">{t('education.start.body')}</p>
-            <button
-              type="button"
-              className="cta-primary auth-submit"
-              onClick={() => router.push('/assessment')}
-            >
-              {t('education.start.cta')}
+            <button type="button" className="cta-primary auth-submit" onClick={continueAfterProfile}>
+              {nextPath ? t('education.start.continue') : t('education.start.cta')}
             </button>
             <Link href="/" className="back-link">
               {t('common.back')}
@@ -192,7 +198,7 @@ function EducationFlow() {
       <RequireAuth nextPath="/education">
         <div className="app auth-shell">
           <div className="auth-card education-card">
-            <span className="auth-step-badge">۳ / ۳</span>
+            <span className="auth-step-badge">{t('education.stepBadge', { current: 3, total: 3 })}</span>
             <h1>{t('education.profile.title')}</h1>
             <p className="auth-sub">{t('education.profile.sub')}</p>
             <form className="auth-form" onSubmit={onCompleteProfile} noValidate>
@@ -260,7 +266,7 @@ function EducationFlow() {
     return (
       <div className="app auth-shell">
         <div className="auth-card education-card">
-          <span className="auth-step-badge">۲ / ۳</span>
+          <span className="auth-step-badge">{t('education.stepBadge', { current: 2, total: 3 })}</span>
           <h1>{t('education.otp.title')}</h1>
           <p className="auth-sub">{t('education.otp.sub', { phone })}</p>
           {devCode && (
@@ -329,7 +335,7 @@ function EducationFlow() {
         <Link href="/" className="education-brand">
           {t('common.brand')}
         </Link>
-        <span className="auth-step-badge">۱ / ۳</span>
+        <span className="auth-step-badge">{t('education.stepBadge', { current: 1, total: 3 })}</span>
         <h1>{t('education.phone.title')}</h1>
         <p className="auth-sub">{t('education.phone.sub')}</p>
         <form className="auth-form" onSubmit={onRequestOtp} noValidate>

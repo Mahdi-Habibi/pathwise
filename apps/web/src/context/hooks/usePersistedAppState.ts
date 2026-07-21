@@ -26,8 +26,8 @@ export function usePersistedAppState(learnerState: LearnerState | null) {
     if (!learnerState) return;
     setState((prev) => ({
       ...prev,
-      hasRoadmap: learnerState.hasRoadmap || prev.hasRoadmap,
-      testCompleted: learnerState.testCompleted || prev.testCompleted,
+      hasRoadmap: learnerState.hasRoadmap,
+      testCompleted: learnerState.testCompleted,
     }));
   }, [learnerState]);
 

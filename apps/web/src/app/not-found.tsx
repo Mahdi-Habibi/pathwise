@@ -5,7 +5,7 @@ export default function NotFound() {
     <div className="page-content">
       <div className="app">
         <h1>Page not found</h1>
-        <p className="auth-sub">That route is not part of this Pathwise build.</p>
+        <p className="auth-sub">That route is not part of this Kia Academy build.</p>
         <Link href="/" className="cta-primary">
           Back home
         </Link>

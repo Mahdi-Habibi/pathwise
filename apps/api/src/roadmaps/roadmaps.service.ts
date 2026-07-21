@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import type { RoadmapResponse } from '@pathwise/shared';
 import { buildRoadmapFromAnswers } from '@pathwise/shared';
 import { AssessmentsService } from '../assessments/assessments.service';
@@ -15,7 +15,18 @@ export class RoadmapsService {
   ) {}
 
   async create(dto: CreateRoadmapDto, userId: string): Promise<RoadmapResponse> {
-    const assessment = await this.assessmentsService.create({ answers: dto.answers }, userId);
+    let assessmentId = dto.assessmentId;
+    if (assessmentId) {
+      const existing = await this.prisma.assessment.findFirst({
+        where: { id: assessmentId, userId },
+      });
+      if (!existing) {
+        throw new NotFoundException(`Assessment ${assessmentId} not found`);
+      }
+    } else {
+      const assessment = await this.assessmentsService.create({ answers: dto.answers }, userId);
+      assessmentId = assessment.id;
+    }
     const settings = await this.siteSettings.get();
     const built = buildRoadmapFromAnswers(dto.answers, false, 'local', {
       tracks: settings.tracks,
@@ -28,7 +39,7 @@ export class RoadmapsService {
     const record = await this.prisma.roadmap.create({
       data: {
         userId,
-        assessmentId: dto.assessmentId ?? assessment.id,
+        assessmentId,
         trackKey: built.trackKey,
         trackName: built.trackName,
         modules: JSON.stringify(built.modules),
@@ -59,6 +70,17 @@ export class RoadmapsService {
     }
     if (existing.userId !== userId) {
       throw new NotFoundException(`Roadmap ${id} not found`);
+    }
+
+    const entitlement = await this.prisma.entitlement.findFirst({
+      where: {
+        userId,
+        resourceType: 'roadmap',
+        resourceId: id,
+      },
+    });
+    if (!entitlement) {
+      throw new ForbiddenException('Purchase the roadmap bundle to enroll');
     }
 
     const record = await this.prisma.roadmap.update({

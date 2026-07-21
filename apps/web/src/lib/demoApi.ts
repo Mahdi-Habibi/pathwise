@@ -31,6 +31,7 @@ import type {
   AdminCourse,
   AdminLesson,
   AdminChallenge,
+  AdminContactMessage,
   AdminUser,
 } from '@pathwise/shared';
 import {
@@ -445,13 +446,13 @@ export const demoApi = {
         tracks: settings.tracks,
         pricing: settings.pricing,
       });
-      amountCents = roadmap.pricing.discounted * 100;
+      amountCents = roadmap.pricing.discounted;
     }
     const payment: PaymentResponse = {
       id: `pay-${Date.now()}`,
       productType: dto.productType,
       amountCents,
-      currency: 'usd',
+      currency: 'irr',
       status: 'COMPLETED',
     };
     state.payments = [payment, ...state.payments];
@@ -556,6 +557,19 @@ export const demoApi = {
     );
   },
 
+  async getRoadmap(id: string): Promise<RoadmapResponse> {
+    requireUser();
+    const state = readState();
+    const answers = state.lastAnswers ?? defaultState().lastAnswers!;
+    const settings = readDemoSettings();
+    return delay(
+      buildRoadmapFromAnswers(answers, state.roadmapEnrolled, id, {
+        tracks: settings.tracks,
+        pricing: settings.pricing,
+      }),
+    );
+  },
+
   async enrollRoadmap(roadmapId: string): Promise<RoadmapResponse> {
     requireUser();
     const state = readState();
@@ -596,6 +610,19 @@ export const demoApi = {
         passed: true,
       },
     ]);
+  },
+
+  async getReadinessTest(id: string): Promise<ReadinessResult & { id: string; createdAt: string }> {
+    requireUser();
+    const state = readState();
+    if (!state.testCompleted) throw new ApiError('Test not found', 404);
+    const settings = readDemoSettings();
+    const result = computeReadinessResult({}, settings.readiness);
+    return delay({
+      id,
+      createdAt: new Date().toISOString(),
+      ...result,
+    });
   },
 
   async submitContactForm(_dto: ContactFormDto): Promise<ContactFormResponse> {
@@ -853,6 +880,24 @@ export const demoApi = {
     const user = users.find((u) => u.id === userId);
     if (!user) throw new ApiError('User not found', 404);
     return delay({ ...user, role });
+  },
+
+  async adminListContactMessages(): Promise<AdminContactMessage[]> {
+    requireUser();
+    return delay([]);
+  },
+
+  async adminMarkContactRead(id: string): Promise<AdminContactMessage> {
+    requireUser();
+    return delay({
+      id,
+      name: 'Demo',
+      email: 'demo@kia.academy',
+      subject: 'Demo message',
+      message: 'Demo',
+      readAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    });
   },
 
   async getSettings(): Promise<SiteSettings> {

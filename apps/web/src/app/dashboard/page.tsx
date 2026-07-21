@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const { format } = useLanguage();
   const [testHistory, setTestHistory] = useState<ReadinessTestSummary[]>([]);
   const [historyError, setHistoryError] = useState('');
+  const [nextLessonHref, setNextLessonHref] = useState<string | null>(null);
 
   const ownsRoadmap = hasRoadmap || Boolean(learnerState?.hasRoadmap);
   const ready = hydrated && !authLoading;
@@ -27,7 +28,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!ready) return;
     if (!isAuthenticated) {
-      router.replace('/login?next=/dashboard');
+      router.replace(`/education?next=${encodeURIComponent('/dashboard')}`);
     }
   }, [ready, isAuthenticated, router]);
 
@@ -40,6 +41,39 @@ export default function DashboardPage() {
         setHistoryError(err instanceof ApiError ? err.message : t('dashboard.testHistory.loadError'));
       });
   }, [isAuthenticated, t]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const courses = await api.listCourses();
+        const enrolled = courses.filter((c) => c.enrolled);
+        const target =
+          enrolled.find((c) => c.progressPct < 100) ??
+          enrolled[0] ??
+          courses.find((c) => c.slug === 'javascript-core');
+
+        if (!target || cancelled) return;
+
+        const detail = await api.getCourse(target.slug);
+        const nextLesson =
+          detail.lessons.find((lesson) => !lesson.completed) ?? detail.lessons[0];
+        if (nextLesson && !cancelled) {
+          setNextLessonHref(`/learn/${target.slug}/${nextLesson.slug}`);
+        }
+      } catch {
+        if (!cancelled) {
+          setNextLessonHref('/learn/javascript-core/variables-and-types');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   if (!ready || !isAuthenticated) {
     return <div className="page-content auth-loading">{t('dashboard.loading')}</div>;
@@ -80,7 +114,7 @@ export default function DashboardPage() {
     ? t(moduleMessageKey(data.modules[1]))
     : t('dashboard.fallbackNextCourse');
   const firstName = user?.name?.split(' ')[0] ?? t('dashboard.fallbackName');
-  const courseSlug = 'javascript-core';
+  const lessonHref = nextLessonHref ?? '/learn/javascript-core/variables-and-types';
 
   return (
     <div className="page-content">
@@ -120,7 +154,7 @@ export default function DashboardPage() {
           <button
             type="button"
             className="tile"
-            onClick={() => router.push(`/learn/${courseSlug}/variables-and-types`)}
+            onClick={() => router.push(lessonHref)}
           >
             <span className="t-icon">▶️</span>
             <b>{t('dashboard.tile.next.title')}</b>

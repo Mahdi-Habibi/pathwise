@@ -26,3 +26,6 @@ export const PRODUCT_PRICES: Record<ProductType, number> = {
 };
 
 export const DEFAULT_CURRENCY = 'irr';
+
+/** Stripe Checkout does not support IRR; use dev confirm flow for IRR catalog. */
+export const STRIPE_SUPPORTED_CURRENCIES = new Set(['usd', 'eur', 'gbp']);

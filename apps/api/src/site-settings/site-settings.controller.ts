@@ -1,7 +1,9 @@
 import { Body, Controller, ForbiddenException, Get, Put, UseGuards } from '@nestjs/common';
 import type { AuthUser, SiteSettings, UpdateSiteSettingsDto } from '@pathwise/shared';
+import { AdminAccess } from '../common/decorators/admin-access.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { AdminAccessGuard } from '../common/guards/admin-access.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UpdateSiteSettingsBodyDto } from './dto/update-site-settings.dto';
@@ -18,15 +20,17 @@ export class SiteSettingsController {
   }
 
   @Get('admin/settings')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, AdminAccessGuard)
   @Roles('ADMIN')
+  @AdminAccess('settings', 'view')
   getAdmin(): Promise<SiteSettings> {
     return this.siteSettings.get();
   }
 
   @Put('admin/settings')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, AdminAccessGuard)
   @Roles('ADMIN')
+  @AdminAccess('settings', 'manage')
   updateAdmin(
     @CurrentUser() user: AuthUser,
     @Body() dto: UpdateSiteSettingsBodyDto,

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, BookOpen, Settings, Shield, Trophy, Users } from 'lucide-react';
+import { BarChart3, BookOpen, Mail, Settings, Shield, Trophy, Users } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   adminSectionAllowed,
@@ -60,6 +60,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }> = [
       { href: '/admin', label: t('admin.nav.stats'), icon: BarChart3, exact: true, key: 'stats' },
       { href: '/admin/settings', label: t('admin.nav.settings'), icon: Settings, key: 'settings' },
+      { href: '/admin/contact', label: t('admin.nav.contact'), icon: Mail, key: 'settings' },
       { href: '/admin/courses', label: t('admin.nav.courses'), icon: BookOpen, key: 'courses' },
       {
         href: '/admin/challenges',

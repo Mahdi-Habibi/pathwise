@@ -42,10 +42,36 @@ function CheckoutContent() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [returnProcessing, setReturnProcessing] = useState(false);
+  const [bundlePrice, setBundlePrice] = useState<number | null>(
+    roadmap?.id === roadmapId ? (roadmap?.pricing?.discounted ?? null) : null,
+  );
 
-  const courseUnitPrice = settings.pricing.courseCents / 100;
+  const courseUnitPrice = settings.pricing.courseCents;
   const courseTotal = courseSlugs.length * courseUnitPrice;
   const sessionId = searchParams.get('session_id');
+
+  useEffect(() => {
+    if (!roadmapId) {
+      setBundlePrice(null);
+      return;
+    }
+    if (roadmap?.id === roadmapId && roadmap.pricing) {
+      setBundlePrice(roadmap.pricing.discounted);
+      return;
+    }
+    let cancelled = false;
+    api
+      .getRoadmap(roadmapId)
+      .then((remote) => {
+        if (!cancelled) setBundlePrice(remote.pricing.discounted);
+      })
+      .catch(() => {
+        if (!cancelled) setBundlePrice(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [roadmapId, roadmap]);
 
   useEffect(() => {
     if (isCourseCheckout) setProduct('COURSE');
@@ -123,7 +149,12 @@ function CheckoutContent() {
     }
   };
 
-  const backHref = product === 'COURSE' ? '/roadmap' : '/roadmap';
+  const backHref =
+    product === 'COURSE'
+      ? '/courses'
+      : roadmapId
+        ? `/roadmap?roadmapId=${encodeURIComponent(roadmapId)}`
+        : '/roadmap';
 
   return (
     <div className="page-content">
@@ -182,7 +213,9 @@ function CheckoutContent() {
                   <b>{t('checkout.bundle.title')}</b>
                   <span>{t('checkout.bundle.meta')}</span>
                 </div>
-                <span className="checkout-price">{t('checkout.bundle.price')}</span>
+                <span className="checkout-price">
+                  {bundlePrice != null ? format.currency(bundlePrice) : t('checkout.bundle.price')}
+                </span>
               </div>
               <ul className="checkout-features">
                 <li>
@@ -226,7 +259,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <RequireAuth nextPath="/checkout">
+    <RequireAuth nextPath="/checkout" learnerFlow>
       <Suspense fallback={<CheckoutFallback />}>
         <CheckoutContent />
       </Suspense>

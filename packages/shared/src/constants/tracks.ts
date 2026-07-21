@@ -63,7 +63,8 @@ export const TRACKS: Record<TrackKey, { name: string; modules: string[] }> = {
   },
 };
 
-export const MODULE_PRICES = [49, 69, 79, 89, 59];
+/** Per-module prices in Iranian Rials (IRR), aligned with catalog pricing. */
+export const MODULE_PRICES = [290_000, 320_000, 350_000, 380_000, 310_000];
 
 /** Stable wizard stage keys — translate on the client. */
 export const WIZARD_STAGES = [

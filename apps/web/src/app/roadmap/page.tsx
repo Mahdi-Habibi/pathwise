@@ -31,7 +31,7 @@ export default function RoadmapPage() {
 
   const handleEnroll = () => {
     if (!isAuthenticated) {
-      router.push('/login?next=/roadmap');
+      router.push('/education?next=/roadmap');
       return;
     }
     if (!learnerState?.roadmapEnrolled) {

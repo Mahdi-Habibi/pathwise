@@ -44,12 +44,13 @@ export const en = {
     admin: 'Admin',
     dashboard: 'Dashboard',
     mode: 'Mode',
+    menu: 'Menu',
     toggleColorMode: 'Toggle color mode',
     signIn: 'Sign in',
     signOut: 'Sign out',
     myCourses: 'My courses',
     rewards: 'Rewards',
-    homeAria: 'Pathwise home',
+    homeAria: 'Kia Academy home',
     footer: {
       tagline: 'Learn with direction.',
       blurb: 'Adaptive learning paths built around your goals, skills, and available time.',
@@ -64,7 +65,7 @@ export const en = {
       privacy: 'Privacy policy',
       terms: 'Terms of service',
       contact: 'Contact us',
-      copyright: '© {year} Pathwise. All rights reserved.',
+      copyright: '© {year} Kia Academy. All rights reserved.',
       status: 'Adaptive learning platform',
     },
   },
@@ -159,12 +160,14 @@ export const en = {
       title: 'You are ready',
       body: 'Your profile is complete. Start the assessment to build your learning path.',
       cta: 'Start assessment',
+      continue: 'Continue',
     },
+    stepBadge: '{current} / {total}',
   },
   auth: {
     login: {
       eyebrow: 'Welcome back',
-      title: 'Sign in to Pathwise',
+      title: 'Sign in to Kia Academy',
       sub: 'Continue your roadmap, courses, and bootcamp progress.',
       email: 'Email',
       password: 'Password',
@@ -777,7 +780,8 @@ export const en = {
     processing: 'Processing…',
     successInline: 'Payment successful! Your access has been unlocked.',
     confirmedInline: 'Payment confirmed! Your access has been unlocked.',
-    missingRoadmap: 'Missing roadmap reference. Complete the assessment first, then enroll.',
+    missingRoadmap:
+      'Roadmap ID is missing from checkout. Return to your roadmap or complete the assessment again.',
     missingCourses: 'Select at least one course to purchase.',
     incomplete: 'Payment could not be completed. Please try again.',
     failed: 'Checkout failed.',
@@ -803,6 +807,7 @@ export const en = {
     nav: {
       stats: 'Stats',
       settings: 'Settings',
+      contact: 'Contact inbox',
       courses: 'Courses',
       challenges: 'Challenges',
       users: 'Users',
@@ -821,6 +826,24 @@ export const en = {
       revenue: 'Revenue',
       challenges: 'Challenges',
       activeChallenges: 'Active challenges',
+    },
+    contact: {
+      title: 'Contact inbox',
+      sub: 'Messages submitted from the public contact form.',
+      loading: 'Loading messages…',
+      error: 'Failed to load contact messages.',
+      markReadError: 'Could not mark message as read.',
+      empty: 'No contact messages yet.',
+      read: 'Read',
+      markRead: 'Mark read',
+      marking: 'Marking…',
+      col: {
+        date: 'Date',
+        from: 'From',
+        subject: 'Subject',
+        message: 'Message',
+        status: 'Status',
+      },
     },
     users: {
       title: 'Users',
@@ -1033,11 +1056,11 @@ export const en = {
       updated: 'Last updated: July 14, 2026',
       agreement: {
         h: 'Agreement',
-        p: 'By accessing Pathwise, you agree to these Terms of Service. If you do not agree, please do not use the platform.',
+        p: 'By accessing Kia Academy, you agree to these Terms of Service. If you do not agree, please do not use the platform.',
       },
       services: {
         h: 'Services',
-        p: 'Pathwise provides goal discovery, personalized roadmaps, readiness assessments, course content, and bootcamp challenges. Features may change as we improve the product.',
+        p: 'Kia Academy provides goal discovery, personalized roadmaps, readiness assessments, course content, and bootcamp challenges. Features may change as we improve the product.',
       },
       accounts: {
         h: 'Accounts',
@@ -1060,11 +1083,11 @@ export const en = {
       },
       ip: {
         h: 'Intellectual property',
-        p: 'Pathwise content, branding, and software are owned by Pathwise or its licensors. Your submissions (e.g., challenge code) remain yours, but you grant us a license to use them for scoring and platform operation.',
+        p: 'Kia Academy content, branding, and software are owned by Kia Academy or its licensors. Your submissions (e.g., challenge code) remain yours, but you grant us a license to use them for scoring and platform operation.',
       },
       disclaimer: {
         h: 'Disclaimer',
-        p: 'Pathwise is an educational tool. We do not guarantee employment outcomes. Content is provided "as is" without warranties of any kind.',
+        p: 'Kia Academy is an educational tool. We do not guarantee employment outcomes. Content is provided "as is" without warranties of any kind.',
       },
       contact: {
         h: 'Contact',
@@ -1076,7 +1099,7 @@ export const en = {
       updated: 'Last updated: July 14, 2026',
       overview: {
         h: 'Overview',
-        p: 'Pathwise ("we", "us") respects your privacy. This policy explains what information we collect, how we use it, and your choices when using our adaptive learning platform.',
+        p: 'Kia Academy ("we", "us") respects your privacy. This policy explains what information we collect, how we use it, and your choices when using our adaptive learning platform.',
       },
       collect: {
         h: 'Information we collect',

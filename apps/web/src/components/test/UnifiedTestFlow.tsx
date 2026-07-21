@@ -122,7 +122,7 @@ export function UnifiedTestFlow({
     } catch {
       /* local scores remain available */
     }
-    router.replace('/roadmap');
+    router.replace('/readiness/results');
   };
 
   const stageKey = WIZARD_STAGES[stageIndex]!;

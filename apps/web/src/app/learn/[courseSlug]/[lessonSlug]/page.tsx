@@ -22,7 +22,7 @@ export default function LessonPlayerPage() {
     courseSlug && lessonSlug ? `/learn/${courseSlug}/${lessonSlug}` : '/courses';
 
   return (
-    <RequireAuth nextPath={nextPath}>
+    <RequireAuth nextPath={nextPath} learnerFlow>
       <LessonPlayerContent courseSlug={courseSlug} lessonSlug={lessonSlug} />
     </RequireAuth>
   );

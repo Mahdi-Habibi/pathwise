@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, ChevronDown, LogOut, Shield } from 'lucide-react';
+import { BookOpen, ChevronDown, LogOut, Menu, Shield, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { LanguageSelector } from '@/components/layout/LanguageSelector';
 import { useApp } from '@/context/AppProvider';
@@ -19,6 +19,7 @@ export function TopBar() {
   const { user, logout, loading } = useAuth();
   const { settings } = useSiteSettings();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
@@ -55,31 +56,41 @@ export function TopBar() {
         <span className="logo-text">{settings.general.siteName || t('common.brand')}</span>
       </button>
 
-      <nav className="top-nav">
+      <button
+        type="button"
+        className="mobile-nav-toggle"
+        aria-label={t('nav.menu')}
+        aria-expanded={navOpen}
+        onClick={() => setNavOpen((o) => !o)}
+      >
+        {navOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      <nav className={`top-nav${navOpen ? ' top-nav--open' : ''}`}>
         {isSuperAdmin ? (
           <Link href="/admin" className="top-nav-link">
             <Shield size={14} /> {t('nav.admin')}
           </Link>
         ) : (
           <>
-            <Link href="/material" className="top-nav-link">
+            <Link href="/material" className="top-nav-link" onClick={() => setNavOpen(false)}>
               {t('landing.ctaMaterial')}
             </Link>
-            <Link href="/education" className="top-nav-link">
+            <Link href="/education" className="top-nav-link" onClick={() => setNavOpen(false)}>
               {t('landing.ctaEducation')}
             </Link>
-            <Link href="/contact" className="top-nav-link">
+            <Link href="/contact" className="top-nav-link" onClick={() => setNavOpen(false)}>
               {t('landing.ctaContact')}
             </Link>
-            <Link href="/courses" className="top-nav-link">
+            <Link href="/courses" className="top-nav-link" onClick={() => setNavOpen(false)}>
               <BookOpen size={14} /> {t('nav.courses')}
             </Link>
             {isAdmin && (
-              <Link href="/admin" className="top-nav-link">
+              <Link href="/admin" className="top-nav-link" onClick={() => setNavOpen(false)}>
                 <Shield size={14} /> {t('nav.admin')}
               </Link>
             )}
-            <Link href="/dashboard" className="top-nav-link">
+            <Link href="/dashboard" className="top-nav-link" onClick={() => setNavOpen(false)}>
               {t('nav.dashboard')}
             </Link>
           </>

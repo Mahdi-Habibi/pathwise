@@ -111,12 +111,15 @@ export class AuthService {
       data: { phone, codeHash, expiresAt },
     });
 
-    // SMS provider hook — log for operators; expose code only in dev when configured.
-    console.info(`[otp] phone=${phone} code=${code}`);
-
     const expose =
       this.configService.get<string>('OTP_DEV_EXPOSE') === 'true' ||
       this.configService.get<string>('NODE_ENV') !== 'production';
+
+    if (expose) {
+      console.info(`[otp] phone=${phone} code=${code}`);
+    } else {
+      console.info(`[otp] code sent to ${phone}`);
+    }
 
     return {
       phone,
@@ -294,38 +297,26 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const [roadmaps, readinessTests, entitlements, enrollments, readinessPayment] =
-      await Promise.all([
-        this.prisma.roadmap.findMany({
-          where: { userId },
-          select: { enrolled: true },
-        }),
-        this.prisma.readinessTest.findMany({
-          where: { userId },
-          select: { id: true },
-        }),
-        this.prisma.entitlement.findMany({ where: { userId } }),
-        this.prisma.enrollment.findMany({
-          where: { userId },
-          include: { course: { select: { slug: true } } },
-        }),
-        this.prisma.payment.findFirst({
-          where: {
-            userId,
-            productType: 'READINESS_TEST',
-            status: 'COMPLETED',
-          },
-        }),
-      ]);
+    const [roadmaps, readinessTests, entitlements, enrollments] = await Promise.all([
+      this.prisma.roadmap.findMany({
+        where: { userId },
+        select: { enrolled: true },
+      }),
+      this.prisma.readinessTest.findMany({
+        where: { userId },
+        select: { id: true },
+      }),
+      this.prisma.entitlement.findMany({ where: { userId } }),
+      this.prisma.enrollment.findMany({
+        where: { userId },
+        include: { course: { select: { slug: true } } },
+      }),
+    ]);
 
     const hasRoadmap = roadmaps.length > 0;
     const roadmapEnrolled = roadmaps.some((roadmap) => roadmap.enrolled);
-    const readinessPaid =
-      readinessPayment !== null ||
-      entitlements.some(
-        (entitlement) =>
-          entitlement.resourceType === 'readiness' && entitlement.resourceId === 'test',
-      );
+    // Readiness test is free — legacy readinessPaid kept for client compatibility.
+    const readinessPaid = true;
 
     const authUser = this.toAuthUser(user);
 

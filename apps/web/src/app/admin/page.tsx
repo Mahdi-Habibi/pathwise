@@ -38,7 +38,7 @@ export default function AdminStatsPage() {
     );
   }
 
-  const revenue = stats.revenueCents / 100;
+  const revenue = stats.revenueCents;
 
   return (
     <div className="admin-content">

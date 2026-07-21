@@ -24,7 +24,7 @@ export function PurchaseSection({ roadmap, onEnrollBundle }: PurchaseSectionProp
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [error, setError] = useState('');
 
-  const courseUnitPrice = settings.pricing.courseCents / 100;
+  const courseUnitPrice = settings.pricing.courseCents;
 
   useEffect(() => {
     api

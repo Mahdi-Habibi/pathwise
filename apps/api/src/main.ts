@@ -5,6 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import { existsSync, mkdirSync } from 'fs';
 import helmet from 'helmet';
 import { join } from 'path';
+import type { Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -21,6 +22,9 @@ async function bootstrap() {
   if (!existsSync(uploadsRoot)) {
     mkdirSync(uploadsRoot, { recursive: true });
   }
+  app.use('/api/uploads/lessons', (_req: Request, res: Response) => {
+    res.status(401).json({ message: 'Use authenticated media URLs for lesson videos' });
+  });
   app.useStaticAssets(uploadsRoot, { prefix: '/api/uploads/' });
 
   app.use(

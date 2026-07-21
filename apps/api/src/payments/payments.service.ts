@@ -1,6 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { CheckoutDto, PaymentResponse, RoadmapResponse } from '@pathwise/shared';
+import {
+  DEFAULT_CURRENCY,
+  STRIPE_SUPPORTED_CURRENCIES,
+  type CheckoutDto,
+  type PaymentResponse,
+  type RoadmapResponse,
+} from '@pathwise/shared';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
 import type Stripe from 'stripe';
 import { EmailService } from '../email/email.service';
@@ -18,7 +24,7 @@ export class PaymentsService {
   ) {}
 
   async createCheckout(userId: string, dto: CheckoutDto): Promise<PaymentResponse> {
-    const amountCents = await this.resolveAmountCents(dto);
+    const amountCents = await this.resolveAmountCents(userId, dto);
     const productName = await this.resolveProductName(dto);
     const productRef = this.resolveProductRef(dto);
 
@@ -28,14 +34,14 @@ export class PaymentsService {
         productType: dto.productType,
         productRef,
         amountCents,
-        currency: 'irr',
+        currency: DEFAULT_CURRENCY,
         status: 'PENDING',
       },
     });
 
     let checkoutUrl: string | undefined;
 
-    if (this.stripeService.isConfigured()) {
+    if (this.stripeService.isConfigured() && STRIPE_SUPPORTED_CURRENCIES.has(DEFAULT_CURRENCY)) {
       const user = await this.prisma.user.findUniqueOrThrow({
         where: { id: userId },
       });
@@ -179,11 +185,11 @@ export class PaymentsService {
     return [productRef];
   }
 
-  private async resolveAmountCents(dto: CheckoutDto): Promise<number> {
+  private async resolveAmountCents(userId: string, dto: CheckoutDto): Promise<number> {
     const settings = await this.siteSettings.get();
 
     if (dto.productType === 'READINESS_TEST') {
-      return settings.pricing.readinessTestCents;
+      throw new BadRequestException('Readiness test is free and no longer sold separately');
     }
 
     if (dto.productType === 'COURSE') {
@@ -211,9 +217,12 @@ export class PaymentsService {
       if (!roadmap) {
         throw new NotFoundException(`Roadmap ${dto.productRef} not found`);
       }
+      if (roadmap.userId !== userId) {
+        throw new NotFoundException(`Roadmap ${dto.productRef} not found`);
+      }
 
       const pricing = JSON.parse(roadmap.pricing) as RoadmapResponse['pricing'];
-      return pricing.discounted * 100;
+      return pricing.discounted;
     }
 
     throw new BadRequestException(`Unsupported product type: ${dto.productType}`);
@@ -305,22 +314,33 @@ export class PaymentsService {
 
       case 'COURSE':
         for (const slug of this.parseCourseRefs(payment.productRef)) {
+          const course = await this.prisma.course.findFirst({
+            where: { OR: [{ slug }, { id: slug }] },
+          });
+          const courseSlug = course?.slug ?? slug;
           await this.prisma.entitlement.upsert({
             where: {
               userId_resourceType_resourceId: {
                 userId: payment.userId,
                 resourceType: 'course',
-                resourceId: slug,
+                resourceId: courseSlug,
               },
             },
             create: {
               userId: payment.userId,
               resourceType: 'course',
-              resourceId: slug,
+              resourceId: courseSlug,
               source: 'PURCHASE',
             },
             update: { source: 'PURCHASE' },
           });
+          if (course) {
+            await this.prisma.enrollment.upsert({
+              where: { userId_courseId: { userId: payment.userId, courseId: course.id } },
+              create: { userId: payment.userId, courseId: course.id },
+              update: {},
+            });
+          }
         }
         break;
     }
