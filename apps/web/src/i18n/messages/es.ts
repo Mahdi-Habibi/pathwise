@@ -489,6 +489,7 @@ export const es = {
       desc: 'Empareja cada término con su significado — el vocabulario de tutoriales, docs y entrevistas.',
       progress: 'Pregunta {current} de {total}',
       next: 'Siguiente pregunta',
+      nextStage: 'Siguiente etapa',
       previous: 'Anterior',
       q1: {
         prompt: 'En programación, una "variable" se describe mejor como…',

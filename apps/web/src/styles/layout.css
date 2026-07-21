@@ -53,7 +53,7 @@
 
 .page-back-wrap {
   display: flex;
-  margin-bottom: 1rem;
+  margin: 0 0 1.25rem;
   position: relative;
   z-index: 2;
 }

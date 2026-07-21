@@ -22,7 +22,7 @@ export default function HomePage() {
         <h1 className="landing-title">{t('landing.heroTitle')}</h1>
         <p className="landing-body">{t('landing.heroBody')}</p>
 
-        <div className="landing-actions landing-actions--three">
+        <div className="landing-actions">
           <Link href="/material" className="landing-path-card">
             <span className="landing-path-title">{t('landing.ctaMaterial')}</span>
             <span className="landing-path-badge">{t('landing.materialBadge')}</span>
@@ -30,12 +30,7 @@ export default function HomePage() {
           <Link href="/education" className="landing-path-card landing-path-card--accent">
             <span className="landing-path-title">{t('landing.ctaEducation')}</span>
           </Link>
-          <Link href="/contact" className="landing-path-card landing-path-card--contact">
-            <span className="landing-path-title">{t('landing.ctaContact')}</span>
-          </Link>
         </div>
-
-        <p className="landing-note">{t('landing.heroNote')}</p>
 
         <footer className="landing-guest-footer" aria-label={t('nav.footer.legal')}>
           <Link href="/contact">{t('landing.ctaContact')}</Link>

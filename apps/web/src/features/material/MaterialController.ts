@@ -440,10 +440,10 @@ export class MaterialController {
     this.panels.icons.innerHTML = `
     <section class="glass-panel" style="padding:1rem;">
       <h3>SVG Icon Library</h3>
-      <div class="control-row">
+      <div className="control-row">
         <input id="icon-search" class="input" type="search" placeholder="Search icon" value="${escapeAttr(s.iconQuery)}" style="max-width:240px;" />
-        <label>Size: <span id="icon-size-label">${s.iconSize}px</span></label>
-        <input id="icon-size" type="range" min="18" max="48" step="1" value="${s.iconSize}" />
+        <label class="slider-wrap">Size: <span id="icon-size-label">${s.iconSize}px</span>
+        <input id="icon-size" type="range" min="18" max="48" step="1" value="${s.iconSize}" /></label>
         <button id="copy-icon-sprite" class="pill-btn" type="button">Copy Favorites Sprite</button>
       </div>
       <div id="icon-grid" class="icon-grid" style="margin-top:.75rem;"></div>
@@ -594,8 +594,8 @@ export class MaterialController {
       <h3>Typography Library</h3>
       <div class="control-row">
         <input id="font-search" class="input" type="search" placeholder="Search font" value="${escapeAttr(s.fontQuery)}" style="max-width:240px;" />
-        <label>Preview Size: <span id="font-size-label">${s.fontPreviewSize}px</span></label>
-        <input id="font-size" type="range" min="14" max="52" step="1" value="${s.fontPreviewSize}" />
+        <label class="slider-wrap">Preview Size: <span id="font-size-label">${s.fontPreviewSize}px</span>
+        <input id="font-size" type="range" min="14" max="52" step="1" value="${s.fontPreviewSize}" /></label>
       </div>
       <div id="font-grid" class="font-grid" style="margin-top:.75rem;"></div>
     </section>

@@ -489,6 +489,7 @@ export const de = {
       desc: 'Ordnen Sie jeden Begriff seiner Bedeutung zu — das Vokabular aus Tutorials, Dokumentation und Interviews.',
       progress: 'Frage {current} von {total}',
       next: 'Nächste Frage',
+      nextStage: 'Nächste Phase',
       previous: 'Zurück',
       q1: {
         prompt: 'In der Programmierung wird eine „Variable“ am besten beschrieben als…',

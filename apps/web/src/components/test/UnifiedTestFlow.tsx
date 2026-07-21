@@ -190,7 +190,15 @@ export function UnifiedTestFlow({
           </div>
 
           {modIndex === 0 && <FileExplorerTask onComplete={(c, tot) => { updateReadinessScore(moduleName, c, tot); setCanContinue(true); }} />}
-          {modIndex === 1 && <EnglishReadinessTask onComplete={(c, tot) => { updateReadinessScore(moduleName, c, tot); setCanContinue(true); }} />}
+          {modIndex === 1 && (
+            <EnglishReadinessTask
+              onComplete={(c, tot) => {
+                updateReadinessScore(moduleName, c, tot);
+                setCanContinue(true);
+              }}
+              onAdvanceToNextModule={() => void goNextReadiness()}
+            />
+          )}
           {modIndex === 2 && <ReorderTask onComplete={(c, tot) => { updateReadinessScore(moduleName, c, tot); setCanContinue(true); }} />}
           {modIndex === 3 && <FlowchartTask onComplete={(c, tot) => { updateReadinessScore(moduleName, c, tot); setCanContinue(true); }} />}
           {modIndex === 4 && <CodeFillTask onComplete={(c, tot) => { updateReadinessScore(moduleName, c, tot); setCanContinue(true); }} />}
@@ -199,18 +207,20 @@ export function UnifiedTestFlow({
             <button type="button" className="btn-ghost" onClick={skipModule} disabled={finishing}>
               {t('readiness.test.skip')}
             </button>
-            <button
-              type="button"
-              className="btn-next"
-              onClick={() => void goNextReadiness()}
-              disabled={finishing || (!canContinue && !readinessScores[moduleName])}
-            >
-              {finishing
-                ? t('readiness.test.finishing')
-                : isLastReadinessModule
-                  ? t('readiness.test.finish')
-                  : t('readiness.test.continue')}
-            </button>
+            {modIndex !== 1 && (
+              <button
+                type="button"
+                className="btn-next"
+                onClick={() => void goNextReadiness()}
+                disabled={finishing || (!canContinue && !readinessScores[moduleName])}
+              >
+                {finishing
+                  ? t('readiness.test.finishing')
+                  : isLastReadinessModule
+                    ? t('readiness.test.finish')
+                    : t('readiness.test.continue')}
+              </button>
+            )}
           </div>
         </div>
       )}

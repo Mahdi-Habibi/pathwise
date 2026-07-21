@@ -989,56 +989,57 @@
 }
 
 .slider-wrap {
+  display: grid;
+  gap: 0.35rem;
   background: rgba(255, 255, 255, 0.62);
   border-radius: 1rem;
   padding: 0.55rem 0.7rem;
   position: relative;
+  min-width: 0;
 }
 
-.slider-wrap input[type='range'] {
+.material-studio-root input[type='range'] {
   width: 100%;
   height: 20px;
   margin: 0;
+  padding: 0;
   background: transparent;
   -webkit-appearance: none;
   appearance: none;
+  cursor: pointer;
   position: relative;
   z-index: 1;
 }
 
-/* Visible track for Material Studio ranges (wizard CSS makes tracks transparent globally) */
-.material-studio-root .slider-wrap::before {
-  content: '';
-  position: absolute;
-  left: 0.7rem;
-  right: 0.7rem;
-  top: 50%;
+.material-studio-root input[type='range']::-webkit-slider-runnable-track {
   height: 8px;
-  transform: translateY(-50%);
   border-radius: 999px;
   background: linear-gradient(
     90deg,
     rgba(31, 110, 140, 0.35),
     rgba(46, 138, 153, 0.55)
   );
-  pointer-events: none;
-  z-index: 0;
 }
 
-.material-studio-root .slider-wrap input[type='range']::-webkit-slider-runnable-track {
+.material-studio-root input[type='range']::-moz-range-track {
   height: 8px;
   border-radius: 999px;
-  background: transparent;
-}
-
-.material-studio-root .slider-wrap input[type='range']::-moz-range-track {
-  height: 8px;
-  border-radius: 999px;
-  background: transparent;
+  background: linear-gradient(
+    90deg,
+    rgba(31, 110, 140, 0.35),
+    rgba(46, 138, 153, 0.55)
+  );
   border: none;
 }
 
-.material-studio-root .slider-wrap input[type='range']::-webkit-slider-thumb {
+.material-studio-root input[type='range']::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(46, 138, 153, 0.55);
+  border: none;
+}
+
+.material-studio-root input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 18px;
@@ -1051,9 +1052,9 @@
   cursor: pointer;
 }
 
-.material-studio-root .slider-wrap input[type='range']::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+.material-studio-root input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--primary-deep, #0a2f44);
   border: 2px solid #fff;
@@ -1061,6 +1062,16 @@
   cursor: pointer;
 }
 
+.material-studio-root input[type='range']:focus-visible::-webkit-slider-thumb,
+.material-studio-root input[type='range']:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 2px 8px rgba(10, 47, 68, 0.35),
+    0 0 0 3px rgba(31, 110, 140, 0.25);
+}
+
+.slider-wrap input[type='range'] {
+  width: 100%;
+}
 
 .bezier-preview,
 .animation-preview {
@@ -1519,13 +1530,5 @@
 .material-studio-root .control-row .slider-wrap {
   flex: 1 1 180px;
   min-width: 160px;
-  position: relative;
-  display: grid;
-  gap: 0.25rem;
-  align-content: center;
-  padding: 0.35rem 0.7rem;
-  border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(31, 110, 140, 0.14);
 }
 
