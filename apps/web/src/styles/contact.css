@@ -144,6 +144,7 @@
 }
 
 .landing-guest-footer a {
+  font-family: inherit;
   color: var(--text-dim);
   text-decoration: none;
 }
