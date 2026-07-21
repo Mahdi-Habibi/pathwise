@@ -123,27 +123,6 @@
   text-align: center;
 }
 
-.landing-guest-footer {
-  margin-top: 36px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-  width: min(100%, 720px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  justify-content: center;
-  font-size: 0.88rem;
-}
-
-.landing-guest-footer a {
-  color: var(--text-dim);
-  text-decoration: none;
-}
-
-.landing-guest-footer a:hover {
-  color: var(--kia-accent, var(--indigo-bright));
-}
-
 /* Roadmap course picker */
 .course-picker-list {
   display: grid;
