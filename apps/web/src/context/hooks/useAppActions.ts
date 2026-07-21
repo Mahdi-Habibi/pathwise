@@ -78,7 +78,7 @@ export function useAppActions({
   const enrollBundle = useCallback(
     async (onEnrolled?: () => void) => {
       if (!isAuthenticated) {
-        router.push('/login?next=/roadmap');
+        router.push('/education?next=/roadmap');
         return;
       }
 

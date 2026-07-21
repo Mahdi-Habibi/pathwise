@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { AuthResponse, AuthUser, LearnerState, RequestOtpResponse } from '@pathwise/shared';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -48,11 +49,13 @@ export class AuthController {
   }
 
   @Post('otp/request')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   requestOtp(@Body() dto: RequestOtpDto): Promise<RequestOtpResponse> {
     return this.authService.requestOtp(dto.phone);
   }
 
   @Post('otp/verify')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async verifyOtp(
     @Body() dto: VerifyOtpDto,
     @Res({ passthrough: true }) res: Response,

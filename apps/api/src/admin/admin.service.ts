@@ -1,6 +1,7 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import type {
   AdminChallenge,
+  AdminContactMessage,
   AdminCourse,
   AdminLesson,
   AdminStats,
@@ -365,6 +366,13 @@ export class AdminService {
       }
     }
 
+    if (user.role === 'SUPER_ADMIN' && dto.role !== 'SUPER_ADMIN') {
+      const superCount = await this.prisma.user.count({ where: { role: 'SUPER_ADMIN' } });
+      if (superCount <= 1) {
+        throw new ForbiddenException('Cannot demote the last super admin');
+      }
+    }
+
     const updated = await this.prisma.user.update({
       where: { id },
       data: { role: dto.role },
@@ -382,6 +390,41 @@ export class AdminService {
       name: updated.name,
       email: updated.email,
       role: updated.role,
+      createdAt: updated.createdAt.toISOString(),
+    };
+  }
+
+  async listContactMessages(): Promise<AdminContactMessage[]> {
+    const messages = await this.prisma.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    return messages.map((msg) => ({
+      id: msg.id,
+      name: msg.name,
+      email: msg.email,
+      subject: msg.subject,
+      message: msg.message,
+      readAt: msg.readAt?.toISOString() ?? null,
+      createdAt: msg.createdAt.toISOString(),
+    }));
+  }
+
+  async markContactMessageRead(id: string): Promise<AdminContactMessage> {
+    const existing = await this.prisma.contactMessage.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException(`Contact message ${id} not found`);
+    }
+    const updated = await this.prisma.contactMessage.update({
+      where: { id },
+      data: { readAt: existing.readAt ?? new Date() },
+    });
+    return {
+      id: updated.id,
+      name: updated.name,
+      email: updated.email,
+      subject: updated.subject,
+      message: updated.message,
+      readAt: updated.readAt?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     };
   }

@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import type { ReadinessResult, ReadinessTestSummary } from '@pathwise/shared';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import type { ReadinessResult, ReadinessTestSummary, ReadinessScores } from '@pathwise/shared';
+import { READINESS_MODULES } from '@pathwise/shared';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
@@ -20,6 +21,7 @@ export class ReadinessService {
   ) {}
 
   async create(dto: CreateReadinessTestDto, userId: string): Promise<ReadinessTestResponse> {
+    this.assertValidScores(dto.scores);
     const settings = await this.siteSettings.get();
     const result = computeReadinessResult(dto.scores, settings.readiness);
 
@@ -85,5 +87,17 @@ export class ReadinessService {
       average: record.average,
       passed: record.passed,
     }));
+  }
+
+  private assertValidScores(scores: ReadinessScores): void {
+    for (const module of READINESS_MODULES) {
+      const score = scores[module];
+      if (!score || typeof score.correct !== 'number' || typeof score.total !== 'number') {
+        throw new BadRequestException(`Missing or invalid score for module: ${module}`);
+      }
+      if (score.total < 1 || score.correct < 0 || score.correct > score.total) {
+        throw new BadRequestException(`Score out of bounds for module: ${module}`);
+      }
+    }
   }
 }

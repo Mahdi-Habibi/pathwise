@@ -110,11 +110,15 @@ describe('ownership and lesson completion', () => {
         upsert: jest.fn().mockResolvedValue({ completed: true }),
       },
       entitlement: {
-        findFirst: jest.fn(),
+        findFirst: jest.fn().mockResolvedValue({ id: 'ent-1' }),
       },
     };
 
-    const service = new CoursesService(prisma as never);
+    const mediaService = {
+      createSignedVideoUrl: jest.fn(),
+    };
+
+    const service = new CoursesService(prisma as never, mediaService as never);
     const result = await service.markComplete('user-1', 'js-core', 'intro');
     expect(result).toEqual({
       id: 'l1',

@@ -5,11 +5,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { CourseSummary, LessonDetail, LessonSummary } from '@pathwise/shared';
+import { MediaService } from '../media/media.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CoursesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaService: MediaService,
+  ) {}
 
   async listCourses(userId: string): Promise<CourseSummary[]> {
     const courses = await this.prisma.course.findMany({
@@ -106,7 +110,7 @@ export class CoursesService {
       throw new NotFoundException(`Course ${courseSlug} not found`);
     }
 
-    await this.assertCourseAccess(userId, course.slug, course.enrollments.length > 0);
+    await this.assertCourseEntitlement(userId, course.slug);
 
     const lessonIndex = course.lessons.findIndex((lesson) => lesson.slug === lessonSlug);
     if (lessonIndex === -1) {
@@ -129,7 +133,7 @@ export class CoursesService {
       completed: progress?.completed ?? false,
       hasVideo: Boolean(lesson.videoUrl),
       content: lesson.content,
-      videoUrl: lesson.videoUrl ?? null,
+      videoUrl: this.resolveVideoUrl(lesson.videoUrl, lesson.id, userId),
       courseSlug: course.slug,
       courseTitle: course.title,
       prevSlug: prevLesson?.slug ?? null,
@@ -146,6 +150,8 @@ export class CoursesService {
     if (!course || !course.published) {
       throw new NotFoundException(`Course ${courseSlug} not found`);
     }
+
+    await this.assertCourseEntitlement(userId, courseSlug);
 
     const existing = await this.prisma.enrollment.findUnique({
       where: { userId_courseId: { userId, courseId: course.id } },
@@ -193,7 +199,7 @@ export class CoursesService {
       throw new NotFoundException(`Lesson ${lessonSlug} not found in course ${courseSlug}`);
     }
 
-    await this.assertCourseAccess(userId, course.slug, course.enrollments.length > 0);
+    await this.assertCourseEntitlement(userId, course.slug);
 
     const progress = await this.prisma.lessonProgress.upsert({
       where: { userId_lessonId: { userId, lessonId: lesson.id } },
@@ -218,15 +224,7 @@ export class CoursesService {
     };
   }
 
-  private async assertCourseAccess(
-    userId: string,
-    courseSlug: string,
-    enrolled: boolean,
-  ): Promise<void> {
-    if (enrolled) {
-      return;
-    }
-
+  private async assertCourseEntitlement(userId: string, courseSlug: string): Promise<void> {
     const entitlement = await this.prisma.entitlement.findFirst({
       where: {
         userId,
@@ -236,7 +234,7 @@ export class CoursesService {
     });
 
     if (!entitlement) {
-      throw new ForbiddenException('Enroll in this course to access lessons');
+      throw new ForbiddenException('Purchase this course to access lessons');
     }
   }
 
@@ -285,5 +283,18 @@ export class CoursesService {
     }
 
     return result;
+  }
+
+  private resolveVideoUrl(
+    videoUrl: string | null,
+    lessonId: string,
+    userId: string,
+  ): string | null {
+    if (!videoUrl) return null;
+    const prefix = `/api/uploads/lessons/${lessonId}/`;
+    if (!videoUrl.startsWith(prefix)) return videoUrl;
+    const filename = videoUrl.slice(prefix.length);
+    if (!filename) return videoUrl;
+    return this.mediaService.createSignedVideoUrl(lessonId, filename, userId);
   }
 }

@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
+import { cookies } from 'next/headers';
 import { Inter, JetBrains_Mono, Vazirmatn } from 'next/font/google';
 import { ClientProviders } from '@/components/layout/ClientProviders';
 import { SiteChrome } from '@/components/layout/SiteChrome';
+import { readLocaleCookie } from '@/i18n/cookie';
 import { DEFAULT_LOCALE, dirForLocale } from '@/i18n/locales';
 import { messages } from '@/i18n/messages';
 import '@/styles/globals.css';
@@ -42,8 +44,9 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = DEFAULT_LOCALE;
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const locale = readLocaleCookie(cookieStore.toString());
   const dir = dirForLocale(locale);
 
   return (

@@ -12,7 +12,7 @@ export interface SiteGeneralSettings {
 export interface SitePricingSettings {
   readinessTestCents: number;
   courseCents: number;
-  /** Per-module prices in dollars (used for roadmap pricing). */
+  /** Per-module prices in Iranian Rials (IRR). */
   modulePrices: number[];
   /** Bundle discount as percent, e.g. 20 = 20% off. */
   bundleDiscountPercent: number;

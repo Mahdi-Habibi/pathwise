@@ -89,3 +89,13 @@ export interface CreateChallengeDto {
 export type UpdateChallengeDto = Partial<CreateChallengeDto>;
 
 export type UpdateLessonDto = Partial<CreateLessonDto>;
+
+export interface AdminContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  readAt: string | null;
+  createdAt: string;
+}

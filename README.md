@@ -1,6 +1,6 @@
-# Pathwise — Adaptive Learning Platform
+# Kia Academy (آکادمی کیا) — Adaptive Learning Platform
 
-> **Business model** (from `education tech Prompt.docx`): Pathwise sells educational courses through personalized roadmaps. A **free goal-discovery assessment** shapes each learner's path. A **paid programming readiness test** (5 modules including English) unlocks advanced content. Learners buy courses individually or purchase a discounted roadmap bundle with mentor support. **Bootcamp challenges** award scores and unlock bonus content.
+> **Business model:** Persian-first learning academy for Iran. Guests start at a minimal landing with **Material Studio** and **Education** CTAs. Learners sign up via **Iranian phone OTP** → profile → **free goal assessment** → **free readiness test** → results → personalized roadmap → paid course/roadmap bundle checkout → lesson player. Staff use email/password login. Default currency is **IRR**.
 
 Full-stack monorepo: **Next.js 15** (frontend) + **NestJS 11** (backend) + **Prisma** (PostgreSQL).
 

@@ -15,7 +15,7 @@ export default function ReadinessGatePage() {
 
   const startTest = () => {
     if (!isAuthenticated) {
-      router.push('/login?next=/readiness');
+      router.push('/education?next=/readiness/test');
       return;
     }
     // Preparations test is free after assessment — no purchase gate.

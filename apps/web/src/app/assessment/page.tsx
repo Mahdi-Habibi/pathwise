@@ -10,7 +10,7 @@ import { useLanguage } from '@/context/LanguageProvider';
 
 export default function AssessmentPage() {
   return (
-    <RequireAuth nextPath="/assessment">
+    <RequireAuth nextPath="/assessment" learnerFlow>
       <AssessmentContent />
     </RequireAuth>
   );

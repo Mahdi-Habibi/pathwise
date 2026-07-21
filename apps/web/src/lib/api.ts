@@ -36,6 +36,7 @@ import type {
   AdminCourse,
   AdminLesson,
   AdminChallenge,
+  AdminContactMessage,
   AdminUser,
 } from '@pathwise/shared';
 import { clearTokens, getAccessToken, setAccessToken } from '@/lib/auth';
@@ -252,6 +253,10 @@ const liveApi = {
     });
   },
 
+  getRoadmap(id: string): Promise<RoadmapResponse> {
+    return request<RoadmapResponse>(`/roadmaps/${id}`);
+  },
+
   enrollRoadmap(roadmapId: string): Promise<RoadmapResponse> {
     return request<RoadmapResponse>(`/roadmaps/${roadmapId}/enroll`, {
       method: 'POST',
@@ -268,6 +273,10 @@ const liveApi = {
 
   listReadinessTests(): Promise<ReadinessTestSummary[]> {
     return request<ReadinessTestSummary[]>('/readiness');
+  },
+
+  getReadinessTest(id: string): Promise<ReadinessResult & { id: string; createdAt: string }> {
+    return request<ReadinessResult & { id: string; createdAt: string }>(`/readiness/${id}`);
   },
 
   submitContactForm(dto: ContactFormDto): Promise<ContactFormResponse> {
@@ -386,6 +395,14 @@ const liveApi = {
       method: 'PATCH',
       body: JSON.stringify({ role }),
     });
+  },
+
+  adminListContactMessages(): Promise<AdminContactMessage[]> {
+    return request<AdminContactMessage[]>('/admin/contact');
+  },
+
+  adminMarkContactRead(id: string): Promise<AdminContactMessage> {
+    return request<AdminContactMessage>(`/admin/contact/${id}/read`, { method: 'PATCH' });
   },
 
   getSettings(): Promise<SiteSettings> {
