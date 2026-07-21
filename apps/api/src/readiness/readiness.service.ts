@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { ReadinessResult } from '@pathwise/shared';
+import type { ReadinessResult, ReadinessTestSummary } from '@pathwise/shared';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
@@ -65,5 +65,25 @@ export class ReadinessService {
       passed: record.passed,
       verdict: JSON.parse(record.verdict),
     };
+  }
+
+  async listForUser(userId: string): Promise<ReadinessTestSummary[]> {
+    const records = await this.prisma.readinessTest.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        createdAt: true,
+        average: true,
+        passed: true,
+      },
+    });
+
+    return records.map((record) => ({
+      id: record.id,
+      createdAt: record.createdAt.toISOString(),
+      average: record.average,
+      passed: record.passed,
+    }));
   }
 }

@@ -20,12 +20,13 @@ export class PaymentsService {
   async createCheckout(userId: string, dto: CheckoutDto): Promise<PaymentResponse> {
     const amountCents = await this.resolveAmountCents(dto);
     const productName = await this.resolveProductName(dto);
+    const productRef = this.resolveProductRef(dto);
 
     const payment = await this.prisma.payment.create({
       data: {
         userId,
         productType: dto.productType,
-        productRef: dto.productRef ?? null,
+        productRef,
         amountCents,
         currency: 'irr',
         status: 'PENDING',
@@ -158,6 +159,26 @@ export class PaymentsService {
     );
   }
 
+  private resolveProductRef(dto: CheckoutDto): string | null {
+    if (dto.courseSlugs?.length) {
+      return JSON.stringify([...new Set(dto.courseSlugs.map((s) => s.trim()).filter(Boolean))]);
+    }
+    return dto.productRef ?? null;
+  }
+
+  private parseCourseRefs(productRef: string | null): string[] {
+    if (!productRef) return [];
+    try {
+      const parsed = JSON.parse(productRef) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === 'string' && item.length > 0);
+      }
+    } catch {
+      /* fall through to single slug */
+    }
+    return [productRef];
+  }
+
   private async resolveAmountCents(dto: CheckoutDto): Promise<number> {
     const settings = await this.siteSettings.get();
 
@@ -166,10 +187,15 @@ export class PaymentsService {
     }
 
     if (dto.productType === 'COURSE') {
-      if (!dto.productRef) {
-        throw new BadRequestException('productRef is required for COURSE checkout');
+      const slugs = dto.courseSlugs?.length
+        ? dto.courseSlugs
+        : dto.productRef
+          ? [dto.productRef]
+          : [];
+      if (!slugs.length) {
+        throw new BadRequestException('productRef or courseSlugs is required for COURSE checkout');
       }
-      return settings.pricing.courseCents;
+      return settings.pricing.courseCents * slugs.length;
     }
 
     if (dto.productType === 'ROADMAP_BUNDLE') {
@@ -200,15 +226,23 @@ export class PaymentsService {
       case 'ROADMAP_BUNDLE':
         return 'Roadmap Bundle';
       case 'COURSE': {
-        if (!dto.productRef) {
-          return 'Course';
+        const slugs = dto.courseSlugs?.length
+          ? dto.courseSlugs
+          : dto.productRef
+            ? this.parseCourseRefs(dto.productRef)
+            : [];
+        if (!slugs.length) {
+          return 'Course selection';
         }
-        const course = await this.prisma.course.findFirst({
-          where: {
-            OR: [{ id: dto.productRef }, { slug: dto.productRef }],
-          },
-        });
-        return course?.title ?? 'Course';
+        if (slugs.length === 1) {
+          const course = await this.prisma.course.findFirst({
+            where: {
+              OR: [{ id: slugs[0] }, { slug: slugs[0] }],
+            },
+          });
+          return course?.title ?? 'Course';
+        }
+        return `${slugs.length} courses`;
       }
       default:
         return dto.productType;
@@ -270,26 +304,24 @@ export class PaymentsService {
         break;
 
       case 'COURSE':
-        if (!payment.productRef) {
-          throw new BadRequestException('Course reference missing on payment');
-        }
-
-        await this.prisma.entitlement.upsert({
-          where: {
-            userId_resourceType_resourceId: {
+        for (const slug of this.parseCourseRefs(payment.productRef)) {
+          await this.prisma.entitlement.upsert({
+            where: {
+              userId_resourceType_resourceId: {
+                userId: payment.userId,
+                resourceType: 'course',
+                resourceId: slug,
+              },
+            },
+            create: {
               userId: payment.userId,
               resourceType: 'course',
-              resourceId: payment.productRef,
+              resourceId: slug,
+              source: 'PURCHASE',
             },
-          },
-          create: {
-            userId: payment.userId,
-            resourceType: 'course',
-            resourceId: payment.productRef,
-            source: 'PURCHASE',
-          },
-          update: { source: 'PURCHASE' },
-        });
+            update: { source: 'PURCHASE' },
+          });
+        }
         break;
     }
   }

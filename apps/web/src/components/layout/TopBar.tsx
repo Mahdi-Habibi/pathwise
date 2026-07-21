@@ -21,7 +21,14 @@ export function TopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+  const isAdmin = user?.role === 'ADMIN';
+
   const handleLogoClick = () => {
+    if (isSuperAdmin) {
+      router.push('/admin');
+      return;
+    }
     router.push(hasRoadmap ? '/dashboard' : '/education');
   };
 
@@ -49,23 +56,34 @@ export function TopBar() {
       </button>
 
       <nav className="top-nav">
-        <Link href="/material" className="top-nav-link">
-          {t('landing.ctaMaterial')}
-        </Link>
-        <Link href="/education" className="top-nav-link">
-          {t('landing.ctaEducation')}
-        </Link>
-        <Link href="/courses" className="top-nav-link">
-          <BookOpen size={14} /> {t('nav.courses')}
-        </Link>
-        {user?.role === 'ADMIN' && (
+        {isSuperAdmin ? (
           <Link href="/admin" className="top-nav-link">
             <Shield size={14} /> {t('nav.admin')}
           </Link>
+        ) : (
+          <>
+            <Link href="/material" className="top-nav-link">
+              {t('landing.ctaMaterial')}
+            </Link>
+            <Link href="/education" className="top-nav-link">
+              {t('landing.ctaEducation')}
+            </Link>
+            <Link href="/contact" className="top-nav-link">
+              {t('landing.ctaContact')}
+            </Link>
+            <Link href="/courses" className="top-nav-link">
+              <BookOpen size={14} /> {t('nav.courses')}
+            </Link>
+            {isAdmin && (
+              <Link href="/admin" className="top-nav-link">
+                <Shield size={14} /> {t('nav.admin')}
+              </Link>
+            )}
+            <Link href="/dashboard" className="top-nav-link">
+              {t('nav.dashboard')}
+            </Link>
+          </>
         )}
-        <Link href="/dashboard" className="top-nav-link">
-          {t('nav.dashboard')}
-        </Link>
       </nav>
 
       <div className="top-right">
@@ -99,28 +117,32 @@ export function TopBar() {
                   <b>{user.name}</b>
                   <span className="ltr-isolate">{user.email || user.phone}</span>
                 </div>
-                <Link
-                  href="/dashboard"
-                  className="user-dropdown-item"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {t('nav.dashboard')}
-                </Link>
-                <Link
-                  href="/courses"
-                  className="user-dropdown-item"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {t('nav.myCourses')}
-                </Link>
-                <Link
-                  href="/rewards"
-                  className="user-dropdown-item"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {t('nav.rewards')}
-                </Link>
-                {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && (
+                {!isSuperAdmin && (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      className="user-dropdown-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t('nav.dashboard')}
+                    </Link>
+                    <Link
+                      href="/courses"
+                      className="user-dropdown-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t('nav.myCourses')}
+                    </Link>
+                    <Link
+                      href="/rewards"
+                      className="user-dropdown-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t('nav.rewards')}
+                    </Link>
+                  </>
+                )}
+                {(isAdmin || isSuperAdmin) && (
                   <Link
                     href="/admin"
                     className="user-dropdown-item"

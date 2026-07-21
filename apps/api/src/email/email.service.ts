@@ -79,6 +79,62 @@ export class EmailService {
     await this.send(user, subject, 'payment-receipt', html);
   }
 
+  async sendContactForm(
+    supportEmail: string,
+    dto: { name: string; email: string; subject: string; message: string },
+  ): Promise<void> {
+    const subject = `[Contact] ${dto.subject}`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">
+        <h2>New contact form submission</h2>
+        <p><strong>From:</strong> ${this.escapeHtml(dto.name)} &lt;${this.escapeHtml(dto.email)}&gt;</p>
+        <p><strong>Subject:</strong> ${this.escapeHtml(dto.subject)}</p>
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 16px 0; white-space: pre-wrap;">${this.escapeHtml(dto.message)}</div>
+      </div>
+    `;
+
+    if (!this.transporter) {
+      await this.prisma.emailLog.create({
+        data: {
+          to: supportEmail,
+          subject,
+          template: 'contact-form',
+          status: 'skipped',
+        },
+      });
+      this.logger.log(`Contact form skipped (no SMTP): ${dto.email} -> ${supportEmail}`);
+      return;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: this.fromAddress,
+        to: supportEmail,
+        replyTo: dto.email,
+        subject,
+        html,
+      });
+      await this.prisma.emailLog.create({
+        data: {
+          to: supportEmail,
+          subject,
+          template: 'contact-form',
+          status: 'sent',
+        },
+      });
+    } catch (error) {
+      await this.prisma.emailLog.create({
+        data: {
+          to: supportEmail,
+          subject,
+          template: 'contact-form',
+          status: 'failed',
+        },
+      });
+      this.logger.error(`Failed to forward contact form from ${dto.email}`, error);
+    }
+  }
+
   async sendReadinessResults(user: EmailUser, result: ReadinessResult): Promise<void> {
     const subject = 'Your Pathwise readiness results';
     const verdictTitle = this.escapeHtml(result.verdict.title);

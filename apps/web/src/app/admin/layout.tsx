@@ -4,12 +4,17 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { BarChart3, BookOpen, Settings, Shield, Trophy, Users } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { SiteAdminAccessSettings } from '@pathwise/shared';
+import {
+  adminSectionAllowed,
+  normalizeAdminAccess,
+  type AdminAccessSection,
+  type SiteAdminAccessSettings,
+} from '@pathwise/shared';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api } from '@/lib/api';
 
-type AdminSection = keyof SiteAdminAccessSettings;
+type AdminSection = AdminAccessSection;
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -31,15 +36,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     if (!isStaff) return;
     api
       .getSettings()
-      .then((settings) => setAccess(settings.adminAccess))
+      .then((settings) => setAccess(normalizeAdminAccess(settings.adminAccess)))
       .catch(() =>
-        setAccess({
-          stats: true,
-          settings: isSuper,
-          courses: true,
-          challenges: true,
-          users: isSuper,
-        }),
+        setAccess(
+          normalizeAdminAccess({
+            stats: { view: true, manage: true, edit: false },
+            settings: { view: isSuper, manage: isSuper, edit: isSuper },
+            courses: { view: true, manage: true, edit: false },
+            challenges: { view: true, manage: true, edit: false },
+            users: { view: isSuper, manage: isSuper, edit: isSuper },
+          }),
+        ),
       );
   }, [isStaff, isSuper]);
 
@@ -49,7 +56,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       label: string;
       icon: typeof BarChart3;
       exact?: boolean;
-      key: AdminSection | 'all';
+      key: AdminSection;
     }> = [
       { href: '/admin', label: t('admin.nav.stats'), icon: BarChart3, exact: true, key: 'stats' },
       { href: '/admin/settings', label: t('admin.nav.settings'), icon: Settings, key: 'settings' },
@@ -65,8 +72,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     return items.filter((item) => {
       if (isSuper) return true;
-      if (!access) return item.key === 'stats' || item.key === 'courses' || item.key === 'challenges';
-      return access[item.key as AdminSection];
+      if (!access) {
+        return item.key === 'stats' || item.key === 'courses' || item.key === 'challenges';
+      }
+      return adminSectionAllowed(access, item.key, 'view');
     });
   }, [t, isSuper, access]);
 

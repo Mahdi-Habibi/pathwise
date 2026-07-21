@@ -17,6 +17,7 @@ import { StripeModule } from './stripe/stripe.module';
 import { EmailModule } from './email/email.module';
 import { AdminModule } from './admin/admin.module';
 import { SiteSettingsModule } from './site-settings/site-settings.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { SiteSettingsModule } from './site-settings/site-settings.module';
     EmailModule,
     AdminModule,
     SiteSettingsModule,
+    ContactModule,
   ],
   providers: [
     {

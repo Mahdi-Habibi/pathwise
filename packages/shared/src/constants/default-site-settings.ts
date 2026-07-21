@@ -1,4 +1,5 @@
 import type { SiteSettings } from '../types/site-settings';
+import { createSectionPermission, normalizeAdminAccess } from '../types/site-settings';
 import { MODULE_PRICES, TRACKS } from './tracks';
 import { PRODUCT_PRICES } from '../types/payment';
 
@@ -59,11 +60,11 @@ export function createDefaultSiteSettings(): SiteSettings {
       defaultPoints: 340,
     },
     adminAccess: {
-      stats: true,
-      settings: false,
-      courses: true,
-      challenges: true,
-      users: false,
+      stats: createSectionPermission(true, true, false),
+      settings: createSectionPermission(false, false, false),
+      courses: createSectionPermission(true, true, false),
+      challenges: createSectionPermission(true, true, false),
+      users: createSectionPermission(false, false, false),
     },
   };
 }
@@ -79,7 +80,7 @@ export function mergeSiteSettings(
     adminAccess: Partial<SiteSettings['adminAccess']>;
   }>,
 ): SiteSettings {
-  return {
+  const merged = {
     general: { ...base.general, ...patch.general },
     pricing: {
       ...base.pricing,
@@ -91,6 +92,18 @@ export function mergeSiteSettings(
     tracks: patch.tracks ? patch.tracks.map((t) => ({ ...t, modules: [...t.modules] })) : base.tracks.map((t) => ({ ...t, modules: [...t.modules] })),
     readiness: { ...base.readiness, ...patch.readiness },
     bootcamp: { ...base.bootcamp, ...patch.bootcamp },
-    adminAccess: { ...base.adminAccess, ...patch.adminAccess },
+    adminAccess: patch.adminAccess
+      ? {
+          stats: { ...base.adminAccess.stats, ...patch.adminAccess.stats },
+          settings: { ...base.adminAccess.settings, ...patch.adminAccess.settings },
+          courses: { ...base.adminAccess.courses, ...patch.adminAccess.courses },
+          challenges: { ...base.adminAccess.challenges, ...patch.adminAccess.challenges },
+          users: { ...base.adminAccess.users, ...patch.adminAccess.users },
+        }
+      : base.adminAccess,
+  };
+  return {
+    ...merged,
+    adminAccess: normalizeAdminAccess(merged.adminAccess),
   };
 }

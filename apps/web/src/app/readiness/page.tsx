@@ -79,9 +79,14 @@ export default function ReadinessGatePage() {
               </button>
             </div>
           ) : (
-            <button type="button" className="cta-primary" onClick={startTest}>
-              {t('readiness.gate.start')}
-            </button>
+            <div className="gate-actions">
+              <button type="button" className="cta-primary" onClick={startTest}>
+                {t('readiness.gate.start')}
+              </button>
+              <button type="button" className="cta-secondary" onClick={() => router.push('/courses')}>
+                {t('readiness.gate.viewCourses')}
+              </button>
+            </div>
           )}
         </div>
       </div>

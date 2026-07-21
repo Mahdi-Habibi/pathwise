@@ -14,7 +14,7 @@ import { goalMessageKey, levelMessageKey, styleMessageKey, trackMessageKey } fro
 
 export default function RoadmapPage() {
   const router = useRouter();
-  const { answers, roadmap, enrollBundle, openPurchaseModal, hydrated, testCompleted } = useApp();
+  const { answers, roadmap, enrollBundle, hydrated, testCompleted } = useApp();
   const { isAuthenticated, learnerState, loading: authLoading } = useAuth();
   const { t, format } = useLanguage();
 
@@ -49,14 +49,6 @@ export default function RoadmapPage() {
     void enrollBundle(() => router.push('/dashboard'));
   };
 
-  const handleBrowseCourses = () => {
-    if (!isAuthenticated) {
-      router.push('/login?next=/courses');
-      return;
-    }
-    openPurchaseModal('a la carte course');
-  };
-
   return (
     <div className="page-content">
       <div className="app result-shell">
@@ -84,11 +76,7 @@ export default function RoadmapPage() {
 
         <RoadmapTree modules={data.modules} />
 
-        <PurchaseSection
-          roadmap={data}
-          onBrowseCourses={handleBrowseCourses}
-          onEnrollBundle={handleEnroll}
-        />
+        <PurchaseSection roadmap={data} onEnrollBundle={handleEnroll} />
       </div>
     </div>
   );

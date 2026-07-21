@@ -409,7 +409,7 @@ export class MaterialController {
           <input id="gradient-start-text" class="color-text-input" value="${escapeAttr(s.gradientStart)}" />
           <label class="gradient-item">End <input id="gradient-end" type="color" value="${s.gradientEnd}" /></label>
           <input id="gradient-end-text" class="color-text-input" value="${escapeAttr(s.gradientEnd)}" />
-          <label class="gradient-item">Angle <input id="gradient-angle" type="range" min="0" max="360" step="1" value="${s.gradientAngle}" /></label>
+          <label class="gradient-item slider-wrap">Angle <input id="gradient-angle" type="range" min="0" max="360" step="1" value="${s.gradientAngle}" /></label>
           <span id="gradient-angle-label" class="gradient-angle-chip">${s.gradientAngle}deg</span>
           <button id="copy-gradient" class="pill-btn" type="button">Copy Gradient CSS</button>
         </div>
@@ -513,11 +513,11 @@ export class MaterialController {
       <h3>Animation Studio</h3>
       <div class="control-row">
         <input id="animation-search" class="input" type="search" placeholder="Search animation" value="${escapeAttr(s.animationQuery)}" style="max-width:240px;" />
-        <label>Duration <input id="anim-duration" type="range" min="0.2" max="4" step="0.1" value="${s.animationDuration}" /></label>
+        <label class="slider-wrap">Duration <input id="anim-duration" type="range" min="0.2" max="4" step="0.1" value="${s.animationDuration}" /></label>
         <span id="anim-duration-label">${s.animationDuration}s</span>
-        <label>Delay <input id="anim-delay" type="range" min="0" max="2" step="0.1" value="${s.animationDelay}" /></label>
+        <label class="slider-wrap">Delay <input id="anim-delay" type="range" min="0" max="2" step="0.1" value="${s.animationDelay}" /></label>
         <span id="anim-delay-label">${s.animationDelay}s</span>
-        <label>Loops <input id="anim-loops" type="range" min="1" max="6" step="1" value="${s.animationIterations}" /></label>
+        <label class="slider-wrap">Loops <input id="anim-loops" type="range" min="1" max="6" step="1" value="${s.animationIterations}" /></label>
         <span id="anim-loops-label">${s.animationIterations}</span>
       </div>
       <div class="control-row" style="margin-top:.55rem;">

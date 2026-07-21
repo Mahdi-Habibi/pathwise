@@ -7,6 +7,8 @@ import type {
   ChallengeScoreResult,
   ChallengeSubmissionDto,
   CheckoutDto,
+  ContactFormDto,
+  ContactFormResponse,
   CompleteProfileDto,
   CourseSummary,
   CreateChallengeDto,
@@ -19,6 +21,7 @@ import type {
   PaymentResponse,
   ReadinessResult,
   ReadinessScores,
+  ReadinessTestSummary,
   ReadinessTestDto,
   RegisterDto,
   RequestOtpDto,
@@ -286,6 +289,22 @@ const liveApi = {
     return request<ReadinessResult>('/readiness', {
       method: 'POST',
       body: JSON.stringify(dto),
+    });
+  },
+
+  listReadinessTests(): Promise<ReadinessTestSummary[]> {
+    return request<ReadinessTestSummary[]>('/readiness');
+  },
+
+  getReadinessTest(id: string): Promise<ReadinessResult & { id: string; createdAt: string }> {
+    return request(`/readiness/${id}`);
+  },
+
+  submitContactForm(dto: ContactFormDto): Promise<ContactFormResponse> {
+    return request<ContactFormResponse>('/contact', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+      skipAuth: true,
     });
   },
 
