@@ -1,6 +1,6 @@
-import { computeReadinessResult } from './readiness.utils';
+import { computeReadinessResult } from '@pathwise/shared';
 
-describe('readiness.utils', () => {
+describe('computeReadinessResult', () => {
   it('re-exports computeReadinessResult from @pathwise/shared', () => {
     const result = computeReadinessResult({
       'Computer Literacy': { correct: 4, total: 5 },

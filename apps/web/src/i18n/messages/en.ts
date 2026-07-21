@@ -484,6 +484,7 @@ export const en = {
       desc: "Match each term to its meaning — the vocabulary you'll see in tutorials, docs, and interviews.",
       progress: 'Question {current} of {total}',
       next: 'Next question',
+      nextStage: 'Next stage',
       previous: 'Previous',
       q1: {
         prompt: 'In programming, a "variable" is best described as…',

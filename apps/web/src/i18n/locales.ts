@@ -1,4 +1,4 @@
-export const SUPPORTED_LOCALES = ['en', 'de', 'es', 'fa'] as const;
+export const SUPPORTED_LOCALES = ['en', 'fa'] as const;
 
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
@@ -16,8 +16,6 @@ export interface LocaleOption {
 
 export const LOCALE_OPTIONS: LocaleOption[] = [
   { code: 'en', label: 'English', nativeLabel: 'English' },
-  { code: 'de', label: 'German', nativeLabel: 'Deutsch' },
-  { code: 'es', label: 'Spanish', nativeLabel: 'Español' },
   { code: 'fa', label: 'Persian', nativeLabel: 'فارسی' },
 ];
 
@@ -33,9 +31,8 @@ export function parseLocale(value: string | null | undefined): Locale {
 export function detectBrowserLocale(): Locale {
   if (typeof navigator === 'undefined') return DEFAULT_LOCALE;
   const lang = navigator.language.toLowerCase();
-  if (lang.startsWith('de')) return 'de';
-  if (lang.startsWith('es')) return 'es';
   if (lang.startsWith('fa') || lang.startsWith('pe')) return 'fa';
+  if (lang.startsWith('en')) return 'en';
   return DEFAULT_LOCALE;
 }
 

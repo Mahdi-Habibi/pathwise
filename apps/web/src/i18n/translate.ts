@@ -39,15 +39,6 @@ export function createTranslator(messages: Messages, fallback: Messages) {
   };
 }
 
-export function plural(
-  count: number,
-  forms: { one: string; other: string },
-  params?: MessageParams,
-): string {
-  const template = count === 1 ? forms.one : forms.other;
-  return interpolate(template, { ...params, count });
-}
-
 export function getMessagesForLocale(locale: Locale, catalog: Record<Locale, Messages>): Messages {
   return catalog[locale] ?? catalog[DEFAULT_LOCALE];
 }

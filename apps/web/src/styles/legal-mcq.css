@@ -47,9 +47,16 @@
 .mcq-nav {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border-soft);
+}
+
+.mcq-nav-advance {
+  margin-inline-start: auto;
+  min-width: min(100%, 220px);
 }
 
 .reward-link {

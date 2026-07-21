@@ -3,7 +3,8 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/context/LanguageProvider';
-import { api, ApiError, type AdminStats } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { AdminStats } from '@pathwise/shared';
 
 export default function AdminStatsPage() {
   const { t, format } = useLanguage();

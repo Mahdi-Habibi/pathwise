@@ -6,12 +6,12 @@ import { UserPlus } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useAuth } from '@/context/AuthProvider';
-import { useT } from '@/context/LanguageProvider';
+import { useLanguage } from '@/context/LanguageProvider';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register } = useAuth();
-  const t = useT();
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

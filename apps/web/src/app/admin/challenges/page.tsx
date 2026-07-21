@@ -3,7 +3,8 @@
 import { Loader2, Plus } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { useLanguage } from '@/context/LanguageProvider';
-import { api, ApiError, type AdminChallenge } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { AdminChallenge } from '@pathwise/shared';
 
 const emptyForm = {
   slug: '',

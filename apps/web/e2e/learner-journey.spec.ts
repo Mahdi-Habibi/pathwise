@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-async function useLocale(page: import('@playwright/test').Page, locale: 'en' | 'de' | 'es' | 'fa') {
+async function useLocale(page: import('@playwright/test').Page, locale: 'en' | 'fa') {
   await page.context().addCookies([
     {
       name: 'pathwise-locale',
@@ -76,19 +76,6 @@ test.describe('Learner journey', () => {
 });
 
 test.describe('Multilingual UI', () => {
-  test('switches to German and persists across reload', async ({ page }) => {
-    await useLocale(page, 'en');
-    await page.goto('/');
-    await page.locator('.lang-toggle').click();
-    await page.locator('.lang-menu button', { hasText: 'Deutsch' }).click();
-    await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-    await expect(page.getByRole('link', { name: /Kostenlose Bewertung starten/i })).toBeVisible();
-    await page.reload();
-    await expect(page.locator('html')).toHaveAttribute('lang', 'de');
-    await expect(page.getByRole('link', { name: /Kostenlose Bewertung starten/i })).toBeVisible();
-  });
-
   test('Persian enables RTL and keeps email inputs LTR', async ({ page }) => {
     await useLocale(page, 'fa');
     await page.goto('/');
@@ -102,13 +89,17 @@ test.describe('Multilingual UI', () => {
     await expect(email).toHaveAttribute('dir', 'ltr');
   });
 
-  test('Spanish landing copy appears after selection', async ({ page }) => {
-    await useLocale(page, 'en');
+  test('switches to English and persists across reload', async ({ page }) => {
+    await useLocale(page, 'fa');
     await page.goto('/');
     await page.locator('.lang-toggle').click();
-    await page.locator('.lang-menu button', { hasText: 'Español' }).click();
-    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
-    await expect(page.getByRole('link', { name: /Empieza tu evaluación gratuita/i })).toBeVisible();
+    await page.locator('.lang-menu button', { hasText: 'English' }).click();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+    await expect(page.getByRole('link', { name: /Start Your Free Assessment/i })).toBeVisible();
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.getByRole('link', { name: /Start Your Free Assessment/i })).toBeVisible();
   });
 
   test('language selector remains usable at compact widths', async ({ page }) => {

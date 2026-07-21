@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { Loader2, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/context/LanguageProvider';
-import { api, ApiError, type AdminCourse } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { AdminCourse } from '@pathwise/shared';
 
 export default function AdminCoursesPage() {
   const { t } = useLanguage();

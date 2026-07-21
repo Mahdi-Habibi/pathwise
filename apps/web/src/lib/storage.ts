@@ -87,8 +87,3 @@ export function saveAppState(state: PersistedAppState): void {
     /* ignore quota errors */
   }
 }
-
-export function clearAppState(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(STORAGE_KEY);
-}

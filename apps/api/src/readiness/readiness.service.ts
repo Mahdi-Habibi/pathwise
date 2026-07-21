@@ -3,7 +3,7 @@ import type { ReadinessResult, ReadinessTestSummary } from '@pathwise/shared';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
-import { computeReadinessResult } from './readiness.utils';
+import { computeReadinessResult } from '@pathwise/shared';
 import { CreateReadinessTestDto } from './dto/create-readiness-test.dto';
 
 export interface ReadinessTestResponse extends ReadinessResult {

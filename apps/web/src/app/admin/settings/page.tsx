@@ -12,7 +12,8 @@ import {
 } from '@pathwise/shared';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
-import { api, ApiError, type AdminCourse } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import type { AdminCourse } from '@pathwise/shared';
 
 type Section =
   | 'general'
@@ -294,23 +295,6 @@ export default function AdminSettingsPage() {
           {section === 'pricing' && (
             <>
               <div className="admin-form-row">
-                <label className="form-field">
-                  <span>{t('admin.settings.pricing.readiness')}</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={settings.pricing.readinessTestCents}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        pricing: {
-                          ...settings.pricing,
-                          readinessTestCents: Number(e.target.value),
-                        },
-                      })
-                    }
-                  />
-                </label>
                 <label className="form-field">
                   <span>{t('admin.settings.pricing.course')}</span>
                   <input

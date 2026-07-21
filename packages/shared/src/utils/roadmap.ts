@@ -1,4 +1,3 @@
-import { GOAL_LABEL, STYLE_LABEL } from '../constants/labels';
 import { MODULE_PRICES, TRACKS } from '../constants/tracks';
 import type { AssessmentAnswers } from '../types/assessment';
 import type { RoadmapResponse, TrackKey } from '../types/roadmap';
@@ -54,9 +53,9 @@ export function buildRoadmapFromAnswers(
     modules: track.modules,
     level,
     profile: {
-      goal: answers.goal ? GOAL_LABEL[answers.goal] : '',
+      goal: answers.goal ?? '',
       level,
-      style: answers.style ? STYLE_LABEL[answers.style] : '',
+      style: answers.style ?? '',
       hours: answers.hours,
     },
     pricing: {

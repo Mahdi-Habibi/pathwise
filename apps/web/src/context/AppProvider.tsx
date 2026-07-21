@@ -22,7 +22,6 @@ interface AppContextValue extends PersistedAppState {
   updateReadinessScore: (module: string, correct: number, total: number) => void;
   completeWizard: () => Promise<void>;
   enrollBundle: (onEnrolled?: () => void) => Promise<void>;
-  openPurchaseModal: (kind: string) => void;
   completeReadinessTest: () => Promise<ReadinessResult>;
   submitChallenge: (code: string) => Promise<void>;
   openModal: (modal: ModalState) => void;

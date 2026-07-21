@@ -8,7 +8,7 @@ import { buildRoadmapFromAnswers } from '@pathwise/shared';
 import { PageBackButton } from '@/components/layout/PageBackButton';
 import { useApp } from '@/context/AppProvider';
 import { useAuth } from '@/context/AuthProvider';
-import { useT, useLanguage } from '@/context/LanguageProvider';
+import { useLanguage } from '@/context/LanguageProvider';
 import { moduleMessageKey } from '@/i18n/domain';
 import { api, ApiError } from '@/lib/api';
 
@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { hasRoadmap, roadmap, answers, testCompleted, hydrated } = useApp();
   const { user, learnerState, loading: authLoading, isAuthenticated } = useAuth();
-  const t = useT();
+  const { t } = useLanguage();
   const { format } = useLanguage();
   const [testHistory, setTestHistory] = useState<ReadinessTestSummary[]>([]);
   const [historyError, setHistoryError] = useState('');

@@ -105,7 +105,3 @@ export function useLanguage() {
   if (!ctx) throw new Error('useLanguage must be used within LanguageProvider');
   return ctx;
 }
-
-export function useT() {
-  return useLanguage().t;
-}

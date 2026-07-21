@@ -5,19 +5,26 @@ import { useLanguage } from '@/context/LanguageProvider';
 
 interface EnglishReadinessTaskProps {
   onComplete: (correct: number, total: number) => void;
+  /** Called on the final question to advance to the next readiness module. */
+  onAdvanceToNextModule?: () => void;
 }
 
 const QUESTION_KEYS = ['q1', 'q2', 'q3', 'q4', 'q5'] as const;
 const OPTION_KEYS = ['a', 'b', 'c', 'd'] as const;
 const CORRECT_INDEX = [0, 1, 0, 1, 1] as const;
 
-export function EnglishReadinessTask({ onComplete }: EnglishReadinessTaskProps) {
+export function EnglishReadinessTask({
+  onComplete,
+  onAdvanceToNextModule,
+}: EnglishReadinessTaskProps) {
   const { t } = useLanguage();
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>(() =>
     Array(QUESTION_KEYS.length).fill(null),
   );
+
+  const isLastQuestion = current === QUESTION_KEYS.length - 1;
 
   const questions = useMemo(
     () =>
@@ -65,6 +72,11 @@ export function EnglishReadinessTask({ onComplete }: EnglishReadinessTaskProps) 
     }
   };
 
+  const advanceModule = () => {
+    if (selected === null) return;
+    onAdvanceToNextModule?.();
+  };
+
   const q = questions[current]!;
 
   return (
@@ -93,17 +105,30 @@ export function EnglishReadinessTask({ onComplete }: EnglishReadinessTaskProps) 
           ))}
         </div>
         <div className="mcq-nav">
-          <button type="button" className="btn-ghost" onClick={goPrev} disabled={current === 0}>
-            {t('readiness.english.previous')}
-          </button>
-          <button
-            type="button"
-            className="btn-next"
-            onClick={goNext}
-            disabled={current === QUESTION_KEYS.length - 1 || selected === null}
-          >
-            {t('readiness.english.next')}
-          </button>
+          {isLastQuestion ? (
+            <button
+              type="button"
+              className="btn-next mcq-nav-advance"
+              onClick={advanceModule}
+              disabled={selected === null}
+            >
+              {t('readiness.english.nextStage')}
+            </button>
+          ) : (
+            <>
+              <button type="button" className="btn-ghost" onClick={goPrev} disabled={current === 0}>
+                {t('readiness.english.previous')}
+              </button>
+              <button
+                type="button"
+                className="btn-next"
+                onClick={goNext}
+                disabled={selected === null}
+              >
+                {t('readiness.english.next')}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </>

@@ -1,9 +1,7 @@
 import type {
   AssessmentAnswers,
-  AssessmentResponse,
   AuthResponse,
   AuthTokens,
-  AuthUser,
   ChallengeScoreResult,
   ChallengeSubmissionDto,
   CheckoutDto,
@@ -44,23 +42,6 @@ import { clearTokens, getAccessToken, setAccessToken } from '@/lib/auth';
 import { ApiError } from '@/lib/apiError';
 import { demoApi } from '@/lib/demoApi';
 import { isDemoMode } from '@/lib/demoMode';
-
-export type {
-  AdminStats,
-  AdminCourse,
-  AdminLesson,
-  AdminChallenge,
-  AdminUser,
-  CreateCourseDto,
-  UpdateCourseDto,
-  CreateLessonDto,
-  UpdateLessonDto,
-  CreateChallengeDto,
-  UpdateChallengeDto,
-  SiteSettings,
-  UpdateSiteSettingsDto,
-  AuthUser,
-};
 
 export { ApiError };
 
@@ -264,13 +245,6 @@ const liveApi = {
     });
   },
 
-  saveAssessment(answers: AssessmentAnswers): Promise<AssessmentResponse> {
-    return request<AssessmentResponse>('/assessments', {
-      method: 'POST',
-      body: JSON.stringify({ answers }),
-    });
-  },
-
   saveRoadmap(answers: AssessmentAnswers): Promise<RoadmapResponse> {
     return request<RoadmapResponse>('/roadmaps', {
       method: 'POST',
@@ -294,10 +268,6 @@ const liveApi = {
 
   listReadinessTests(): Promise<ReadinessTestSummary[]> {
     return request<ReadinessTestSummary[]>('/readiness');
-  },
-
-  getReadinessTest(id: string): Promise<ReadinessResult & { id: string; createdAt: string }> {
-    return request(`/readiness/${id}`);
   },
 
   submitContactForm(dto: ContactFormDto): Promise<ContactFormResponse> {
