@@ -46,6 +46,12 @@ describe('PaymentsService', () => {
         modulePrices: [49, 69, 79, 89, 59],
         bundleDiscountPercent: 20,
       },
+      payment: {
+        provider: 'dev',
+        merchantId: '',
+        apiKey: '',
+        sandbox: true,
+      },
     }),
   };
 

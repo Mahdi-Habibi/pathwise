@@ -2,10 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import {
   DEFAULT_CURRENCY,
+  normalizePaymentSettings,
   STRIPE_SUPPORTED_CURRENCIES,
   type CheckoutDto,
   type PaymentResponse,
   type RoadmapResponse,
+  type SitePaymentSettings,
 } from '@pathwise/shared';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
 import type Stripe from 'stripe';
@@ -27,8 +29,7 @@ export class PaymentsService {
     const amountCents = await this.resolveAmountCents(userId, dto);
     const productName = await this.resolveProductName(dto);
     const productRef = this.resolveProductRef(dto);
-    const settings = await this.siteSettings.get();
-    const paymentCfg = settings.payment;
+    const paymentCfg = await this.resolvePaymentConfig();
     const appUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
 
     const payment = await this.prisma.payment.create({
@@ -84,11 +85,11 @@ export class PaymentsService {
   }
 
   async confirmPayment(userId: string, paymentId: string): Promise<PaymentResponse> {
-    const settings = await this.siteSettings.get();
+    const paymentCfg = await this.resolvePaymentConfig();
     // Live Stripe webhooks own confirmation; allow confirm for all other providers / sandbox.
-    if (settings.payment.provider === 'stripe' && this.stripeService.isConfigured()) {
+    if (paymentCfg.provider === 'stripe' && this.stripeService.isConfigured()) {
       const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
-      if (payment?.stripeId && !settings.payment.sandbox) {
+      if (payment?.stripeId && !paymentCfg.sandbox) {
         throw new BadRequestException(
           'Payment confirmation via API is only available in development without Stripe',
         );
@@ -192,6 +193,11 @@ export class PaymentsService {
       },
       completed,
     );
+  }
+
+  private async resolvePaymentConfig(): Promise<SitePaymentSettings> {
+    const settings = await this.siteSettings.get();
+    return normalizePaymentSettings(settings.payment);
   }
 
   private resolveProductRef(dto: CheckoutDto): string | null {
