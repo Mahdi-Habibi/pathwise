@@ -721,9 +721,19 @@ function AdminAccessFields({
     level: (typeof levels)[number],
     checked: boolean,
   ) => {
+    const current = access[section];
+    const next = { ...current, [level]: checked };
+    // Visibility is gated on `view` — keep the matrix coherent when toggling.
+    if (checked && (level === 'manage' || level === 'edit')) {
+      next.view = true;
+    }
+    if (!checked && level === 'view') {
+      next.manage = false;
+      next.edit = false;
+    }
     onChange({
       ...access,
-      [section]: { ...access[section], [level]: checked },
+      [section]: next,
     });
   };
 
