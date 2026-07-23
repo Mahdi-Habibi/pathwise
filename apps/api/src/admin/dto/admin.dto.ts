@@ -9,6 +9,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import {
+  SiteAdminAccessDto,
+} from '../../site-settings/dto/update-site-settings.dto';
 
 export class AdminCreateLessonDto {
   @IsString()
@@ -161,6 +164,12 @@ export class AdminUpdateChallengeDto {
 export class AdminUpdateUserRoleDto {
   @IsString()
   role!: 'LEARNER' | 'ADMIN' | 'SUPER_ADMIN';
+}
+
+export class AdminUpdateUserAccessDto {
+  @ValidateNested()
+  @Type(() => SiteAdminAccessDto)
+  adminPanelAccess!: SiteAdminAccessDto;
 }
 
 export class AdminUpdateLessonDto {

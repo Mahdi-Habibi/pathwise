@@ -19,11 +19,15 @@ describe('AdminService.getStats', () => {
       enrollment: { count: jest.fn().mockResolvedValue(12) },
     };
 
-    const service = new AdminService(prisma as never, {
-      deleteByPublicUrl: jest.fn(),
-      clearLessonDir: jest.fn(),
-      saveLessonVideo: jest.fn(),
-    } as never);
+    const service = new AdminService(
+      prisma as never,
+      {
+        deleteByPublicUrl: jest.fn(),
+        clearLessonDir: jest.fn(),
+        saveLessonVideo: jest.fn(),
+      } as never,
+      { get: jest.fn() } as never,
+    );
     await expect(service.getStats()).resolves.toEqual({
       users: 10,
       courses: 4,
@@ -58,11 +62,15 @@ describe('AdminService.createLesson', () => {
       },
     };
 
-    const service = new AdminService(prisma as never, {
-      deleteByPublicUrl: jest.fn(),
-      clearLessonDir: jest.fn(),
-      saveLessonVideo: jest.fn(),
-    } as never);
+    const service = new AdminService(
+      prisma as never,
+      {
+        deleteByPublicUrl: jest.fn(),
+        clearLessonDir: jest.fn(),
+        saveLessonVideo: jest.fn(),
+      } as never,
+      { get: jest.fn() } as never,
+    );
     const lesson = await service.createLesson('js-core', {
       slug: 'intro',
       title: 'Intro',

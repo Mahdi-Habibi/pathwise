@@ -3,16 +3,16 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { BarChart3, BookOpen, Mail, Settings, Shield, Trophy, Users } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import {
   adminSectionAllowed,
+  createDefaultSiteSettings,
   normalizeAdminAccess,
   type AdminAccessSection,
   type SiteAdminAccessSettings,
 } from '@pathwise/shared';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
-import { api } from '@/lib/api';
 
 type AdminSection = AdminAccessSection;
 
@@ -21,34 +21,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { user, loading } = useAuth();
-  const [access, setAccess] = useState<SiteAdminAccessSettings | null>(null);
 
   const isSuper = user?.role === 'SUPER_ADMIN';
   const isStaff = user?.role === 'ADMIN' || isSuper;
+
+  const access = useMemo((): SiteAdminAccessSettings | null => {
+    if (!isStaff || isSuper) {
+      return null;
+    }
+    if (user?.role === 'ADMIN' && user.adminPanelAccess) {
+      return normalizeAdminAccess(user.adminPanelAccess);
+    }
+    return normalizeAdminAccess(createDefaultSiteSettings().adminAccess);
+  }, [isStaff, isSuper, user]);
 
   useEffect(() => {
     if (!loading && (!user || !isStaff)) {
       router.replace('/login?next=/admin');
     }
   }, [user, loading, router, isStaff]);
-
-  useEffect(() => {
-    if (!isStaff) return;
-    api
-      .getSettings()
-      .then((settings) => setAccess(normalizeAdminAccess(settings.adminAccess)))
-      .catch(() =>
-        setAccess(
-          normalizeAdminAccess({
-            stats: { view: true, manage: true, edit: false },
-            settings: { view: isSuper, manage: isSuper, edit: isSuper },
-            courses: { view: true, manage: true, edit: false },
-            challenges: { view: true, manage: true, edit: false },
-            users: { view: isSuper, manage: isSuper, edit: isSuper },
-          }),
-        ),
-      );
-  }, [isStaff, isSuper]);
 
   const nav = useMemo(() => {
     const items: Array<{
@@ -73,15 +64,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     return items.filter((item) => {
       if (isSuper) return true;
-      if (!access) {
-        return item.key === 'stats' || item.key === 'courses' || item.key === 'challenges';
-      }
+      if (!access) return false;
       return adminSectionAllowed(access, item.key, 'view');
     });
   }, [t, isSuper, access]);
 
   useEffect(() => {
-    if (!access || isSuper || loading || !user) return;
+    if (isSuper || loading || !user || !access) return;
     const path = pathname || '/admin';
     const allowed = nav.some((item) =>
       item.exact ? path === item.href : path === item.href || path.startsWith(`${item.href}/`),
@@ -102,7 +91,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Shield size={18} />
           <span>
             {t('admin.sidebar')}
-            {isSuper ? ` · ${t('domain.roles.superAdmin')}` : ''}
+            {isSuper ? ` · ${t('domain.roles.superAdmin')}` : ` · ${t('domain.roles.moderator')}`}
           </span>
         </div>
         <nav className="admin-nav">

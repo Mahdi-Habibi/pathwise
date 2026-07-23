@@ -33,6 +33,7 @@ import type {
   AdminChallenge,
   AdminContactMessage,
   AdminUser,
+  SiteAdminAccessSettings,
 } from '@pathwise/shared';
 import {
   buildRoadmapFromAnswers,
@@ -40,6 +41,7 @@ import {
   buildChallengeResult,
   createDefaultSiteSettings,
   mergeSiteSettings,
+  normalizeAdminAccess,
 } from '@pathwise/shared';
 import { ApiError } from '@/lib/apiError';
 import { clearTokens, setAccessToken } from '@/lib/auth';
@@ -880,6 +882,21 @@ export const demoApi = {
     const user = users.find((u) => u.id === userId);
     if (!user) throw new ApiError('User not found', 404);
     return delay({ ...user, role });
+  },
+
+  async adminUpdateUserAccess(
+    userId: string,
+    adminPanelAccess: SiteAdminAccessSettings,
+  ): Promise<AdminUser> {
+    requireUser();
+    const users = await this.adminListUsers();
+    const user = users.find((u) => u.id === userId);
+    if (!user) throw new ApiError('User not found', 404);
+    return delay({
+      ...user,
+      role: 'ADMIN',
+      adminPanelAccess: normalizeAdminAccess(adminPanelAccess),
+    });
   },
 
   async adminListContactMessages(): Promise<AdminContactMessage[]> {

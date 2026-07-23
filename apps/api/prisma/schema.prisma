@@ -46,6 +46,8 @@ model User {
   role            UserRole  @default(LEARNER)
   emailVerified   Boolean   @default(false)
   profileComplete Boolean   @default(false)
+  /** Per-moderator admin panel permissions (ADMIN role). Null → site default template. */
+  adminPanelAccess Json?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

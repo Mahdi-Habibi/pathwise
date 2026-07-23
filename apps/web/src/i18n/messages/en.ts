@@ -847,10 +847,19 @@ export const en = {
     },
     users: {
       title: 'Users',
-      sub: 'Manage learner and admin roles.',
+      sub: 'Manage learners, moderators, and super admins.',
+      moderatorAccessHint:
+        'Each moderator has their own panel permissions. Use “Edit access” on moderator rows.',
       loading: 'Loading users…',
       loadError: 'Failed to load users.',
       roleError: 'Role update failed.',
+      accessError: 'Could not save moderator access.',
+      accessSaved: 'Moderator access saved.',
+      saveAccess: 'Save access',
+      savingAccess: 'Saving…',
+      editAccess: 'Edit access',
+      hideAccess: 'Hide access',
+      accessFor: 'Panel access for {name}',
       col: {
         name: 'Name',
         email: 'Email',
@@ -992,8 +1001,10 @@ export const en = {
         adminAccess: 'Admin access',
       },
       adminAccess: {
-        title: 'Admin panel access',
-        sub: 'Choose which admin-panel sections regular admins can open. Super admins always have full access.',
+        title: 'Default moderator template',
+        sub: 'Permissions applied when promoting a user to moderator (unless you set custom access on the Users page). Super admins always have full access.',
+        defaultTemplate:
+          'This template is copied to new moderators. Existing moderators keep their individual access until you change it under Users.',
         stats: 'Stats dashboard',
         settings: 'Site settings',
         courses: 'Courses',
@@ -1245,9 +1256,10 @@ export const en = {
       published: 'Published',
     },
     roles: {
-      learner: 'LEARNER',
-      admin: 'ADMIN',
-      superAdmin: 'SUPER ADMIN',
+      learner: 'User',
+      moderator: 'Moderator',
+      admin: 'Moderator',
+      superAdmin: 'Super admin',
     },
     payments: {
       pending: 'PENDING',

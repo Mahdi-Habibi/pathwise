@@ -1,10 +1,28 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { createDefaultSiteSettings } from '@pathwise/shared';
+import { createDefaultSiteSettings, createSectionPermission } from '@pathwise/shared';
 
 const prisma = new PrismaClient();
 
 const SEED_PASSWORD = 'Pathwise123!';
+
+function moderatorAccess(
+  stats: [boolean, boolean, boolean],
+  settings: [boolean, boolean, boolean],
+  courses: [boolean, boolean, boolean],
+  challenges: [boolean, boolean, boolean],
+  users: [boolean, boolean, boolean],
+): Prisma.InputJsonValue {
+  return JSON.parse(
+    JSON.stringify({
+      stats: createSectionPermission(...stats),
+      settings: createSectionPermission(...settings),
+      courses: createSectionPermission(...courses),
+      challenges: createSectionPermission(...challenges),
+      users: createSectionPermission(...users),
+    }),
+  ) as Prisma.InputJsonValue;
+}
 
 async function main() {
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, 12);
@@ -29,17 +47,62 @@ async function main() {
   await prisma.user.upsert({
     where: { email: 'moderator@pathwise.dev' },
     update: {
-      name: 'Pathwise Moderator',
+      name: 'Sample Moderator (Courses)',
       passwordHash,
       role: 'ADMIN',
       profileComplete: true,
+      adminPanelAccess: moderatorAccess(
+        [true, true, false],
+        [false, false, false],
+        [true, true, false],
+        [false, false, false],
+        [false, false, false],
+      ),
     },
     create: {
-      name: 'Pathwise Moderator',
+      name: 'Sample Moderator (Courses)',
       email: 'moderator@pathwise.dev',
       passwordHash,
       role: 'ADMIN',
       profileComplete: true,
+      adminPanelAccess: moderatorAccess(
+        [true, true, false],
+        [false, false, false],
+        [true, true, false],
+        [false, false, false],
+        [false, false, false],
+      ),
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'moderator2@pathwise.dev' },
+    update: {
+      name: 'Sample Moderator (Challenges)',
+      passwordHash,
+      role: 'ADMIN',
+      profileComplete: true,
+      adminPanelAccess: moderatorAccess(
+        [false, false, false],
+        [false, false, false],
+        [false, false, false],
+        [true, true, false],
+        [false, false, false],
+      ),
+    },
+    create: {
+      name: 'Sample Moderator (Challenges)',
+      email: 'moderator2@pathwise.dev',
+      passwordHash,
+      role: 'ADMIN',
+      profileComplete: true,
+      adminPanelAccess: moderatorAccess(
+        [false, false, false],
+        [false, false, false],
+        [false, false, false],
+        [true, true, false],
+        [false, false, false],
+      ),
     },
   });
 
@@ -315,7 +378,8 @@ Use STAR (Situation, Task, Action, Result) to answer behavioral questions.
 
   console.log(`Seeded admin user: ${admin.name} (${admin.email})`);
   console.log(`  Password: ${SEED_PASSWORD}`);
-  console.log(`Seeded default user: ${user.name} (${user.id})`);
+  console.log('Seeded moderators: moderator@pathwise.dev (courses), moderator2@pathwise.dev (challenges)');
+  console.log(`Seeded learner: ${user.name} (${user.email ?? 'alex@pathwise.dev'})`);
   console.log(`  Password: ${SEED_PASSWORD}`);
   console.log(`Seeded courses: javascript-core, interview-branding`);
   console.log(`Seeded challenge: fizzbuzz`);
