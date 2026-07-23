@@ -26,6 +26,7 @@ import type {
   RequestOtpResponse,
   RoadmapResponse,
   SiteSettings,
+  SiteAdminAccessSettings,
   UpdateChallengeDto,
   UpdateCourseDto,
   UpdateLessonDto,
@@ -394,6 +395,16 @@ const liveApi = {
     return request<AdminUser>(`/admin/users/${userId}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ role }),
+    });
+  },
+
+  adminUpdateUserAccess(
+    userId: string,
+    adminPanelAccess: SiteAdminAccessSettings,
+  ): Promise<AdminUser> {
+    return request<AdminUser>(`/admin/users/${userId}/access`, {
+      method: 'PATCH',
+      body: JSON.stringify({ adminPanelAccess }),
     });
   },
 

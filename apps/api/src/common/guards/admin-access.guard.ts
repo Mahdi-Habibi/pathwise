@@ -1,17 +1,17 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { adminSectionAllowed, type AuthUser } from '@pathwise/shared';
+import type { AuthUser } from '@pathwise/shared';
 import {
   ADMIN_ACCESS_KEY,
   type AdminAccessRequirement,
 } from '../decorators/admin-access.decorator';
-import { SiteSettingsService } from '../../site-settings/site-settings.service';
+import { ModeratorAccessService } from '../moderator-access.service';
 
 @Injectable()
 export class AdminAccessGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly siteSettings: SiteSettingsService,
+    private readonly moderatorAccess: ModeratorAccessService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -31,8 +31,12 @@ export class AdminAccessGuard implements CanActivate {
       return true;
     }
 
-    const settings = await this.siteSettings.get();
-    if (!adminSectionAllowed(settings.adminAccess, requirement.section, requirement.level)) {
+    const allowed = await this.moderatorAccess.assertAllowed(
+      user,
+      requirement.section,
+      requirement.level,
+    );
+    if (!allowed) {
       throw new ForbiddenException('Admin access denied for this section');
     }
 

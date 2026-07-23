@@ -14,6 +14,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError } from '@/lib/api';
 import type { AdminCourse } from '@pathwise/shared';
+import { AdminAccessMatrix } from '@/components/admin/AdminAccessMatrix';
 
 type Section =
   | 'general'
@@ -548,10 +549,16 @@ export default function AdminSettingsPage() {
           )}
 
           {section === 'adminAccess' && isSuper && (
-            <AdminAccessFields
-              access={settings.adminAccess}
-              onChange={(adminAccess) => setSettings({ ...settings, adminAccess })}
-            />
+            <>
+              <h2>{t('admin.settings.adminAccess.title')}</h2>
+              <p className="admin-sub">{t('admin.settings.adminAccess.sub')}</p>
+              <p className="admin-sub">{t('admin.settings.adminAccess.superOnly')}</p>
+              <p className="admin-sub">{t('admin.settings.adminAccess.defaultTemplate')}</p>
+              <AdminAccessMatrix
+                access={settings.adminAccess}
+                onChange={(adminAccess) => setSettings({ ...settings, adminAccess })}
+              />
+            </>
           )}
 
           <button type="submit" className="cta-primary" disabled={saving}>
@@ -695,77 +702,6 @@ function TracksEditor({
           </button>
         </div>
       ))}
-    </div>
-  );
-}
-
-function AdminAccessFields({
-  access,
-  onChange,
-}: {
-  access: SiteAdminAccessSettings;
-  onChange: (access: SiteAdminAccessSettings) => void;
-}) {
-  const { t } = useLanguage();
-  const keys: Array<keyof SiteAdminAccessSettings> = [
-    'stats',
-    'settings',
-    'courses',
-    'challenges',
-    'users',
-  ];
-  const levels = ['view', 'manage', 'edit'] as const;
-
-  const toggle = (
-    section: keyof SiteAdminAccessSettings,
-    level: (typeof levels)[number],
-    checked: boolean,
-  ) => {
-    onChange({
-      ...access,
-      [section]: { ...access[section], [level]: checked },
-    });
-  };
-
-  return (
-    <div className="admin-access-fields">
-      <h2>{t('admin.settings.adminAccess.title')}</h2>
-      <p className="admin-sub">{t('admin.settings.adminAccess.sub')}</p>
-      <p className="admin-sub">{t('admin.settings.adminAccess.superOnly')}</p>
-      <div className="admin-table-wrap">
-        <table className="admin-perm-table">
-          <thead>
-            <tr>
-              <th>{t('admin.settings.adminAccess.sectionCol')}</th>
-              {levels.map((level) => (
-                <th key={level}>{t(`admin.settings.adminAccess.level.${level}`)}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {keys.map((key) => (
-              <tr key={key}>
-                <td>{t(`admin.settings.adminAccess.${key}`)}</td>
-                {levels.map((level) => (
-                  <td key={level}>
-                    <label className="admin-access-toggle">
-                      <input
-                        type="checkbox"
-                        checked={access[key][level]}
-                        onChange={(e) => toggle(key, level, e.target.checked)}
-                      />
-                      <span className="sr-only">
-                        {t(`admin.settings.adminAccess.${key}`)} —{' '}
-                        {t(`admin.settings.adminAccess.level.${level}`)}
-                      </span>
-                    </label>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

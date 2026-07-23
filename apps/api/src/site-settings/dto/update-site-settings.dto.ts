@@ -129,26 +129,45 @@ export class SiteBootcampDto {
   defaultPoints?: number;
 }
 
+export class AdminSectionPermissionDto {
+  @IsOptional()
+  @IsBoolean()
+  view?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  manage?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  edit?: boolean;
+}
+
 export class SiteAdminAccessDto {
   @IsOptional()
-  @IsBoolean()
-  stats?: boolean;
+  @ValidateNested()
+  @Type(() => AdminSectionPermissionDto)
+  stats?: AdminSectionPermissionDto;
 
   @IsOptional()
-  @IsBoolean()
-  settings?: boolean;
+  @ValidateNested()
+  @Type(() => AdminSectionPermissionDto)
+  settings?: AdminSectionPermissionDto;
 
   @IsOptional()
-  @IsBoolean()
-  courses?: boolean;
+  @ValidateNested()
+  @Type(() => AdminSectionPermissionDto)
+  courses?: AdminSectionPermissionDto;
 
   @IsOptional()
-  @IsBoolean()
-  challenges?: boolean;
+  @ValidateNested()
+  @Type(() => AdminSectionPermissionDto)
+  challenges?: AdminSectionPermissionDto;
 
   @IsOptional()
-  @IsBoolean()
-  users?: boolean;
+  @ValidateNested()
+  @Type(() => AdminSectionPermissionDto)
+  users?: AdminSectionPermissionDto;
 }
 
 export class UpdateSiteSettingsBodyDto {

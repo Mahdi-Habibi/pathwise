@@ -28,6 +28,7 @@ import {
   AdminUpdateChallengeDto,
   AdminUpdateCourseDto,
   AdminUpdateLessonDto,
+  AdminUpdateUserAccessDto,
   AdminUpdateUserRoleDto,
 } from './dto/admin.dto';
 
@@ -149,6 +150,16 @@ export class AdminController {
     @Body() dto: AdminUpdateUserRoleDto,
   ) {
     return this.adminService.updateUserRole(id, dto, actor);
+  }
+
+  @Patch('users/:id/access')
+  @AdminAccess('users', 'edit')
+  updateUserAccess(
+    @CurrentUser() actor: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: AdminUpdateUserAccessDto,
+  ) {
+    return this.adminService.updateUserAdminAccess(id, dto, actor);
   }
 
   @Get('contact')

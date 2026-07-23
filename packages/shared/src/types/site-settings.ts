@@ -96,6 +96,17 @@ export function adminSectionAllowed(
   return Boolean(access[section]?.[level]);
 }
 
+/** Resolve effective permissions for a moderator (ADMIN) account. */
+export function resolveModeratorAdminAccess(
+  userAccess: unknown,
+  siteTemplate: SiteAdminAccessSettings,
+): SiteAdminAccessSettings {
+  if (userAccess != null && typeof userAccess === 'object') {
+    return normalizeAdminAccess(userAccess);
+  }
+  return normalizeAdminAccess(siteTemplate);
+}
+
 export interface SiteSettings {
   general: SiteGeneralSettings;
   pricing: SitePricingSettings;

@@ -1,4 +1,5 @@
 import type { UserRole } from './auth';
+import type { SiteAdminAccessSettings } from './site-settings';
 
 export interface AdminStats {
   users: number;
@@ -52,6 +53,7 @@ export interface AdminUser {
   email: string | null;
   role: UserRole;
   createdAt: string;
+  adminPanelAccess?: SiteAdminAccessSettings | null;
 }
 
 export interface CreateCourseDto {

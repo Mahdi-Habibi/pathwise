@@ -18,6 +18,7 @@ import {
   containsUnsafeText,
   isValidEmail,
   normalizeIranianPhone,
+  resolveModeratorAdminAccess,
   sanitizeProfileText,
 } from '@pathwise/shared';
 import * as bcrypt from 'bcrypt';
@@ -73,7 +74,7 @@ export class AuthService {
       email: user.email ?? email,
     });
 
-    return this.issueAuthResponse(this.toAuthUser(user));
+    return this.issueAuthResponse(await this.buildAuthUser(user));
   }
 
   async login(dto: LoginDto): Promise<AuthResponse & { refreshToken: string }> {
@@ -89,7 +90,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    return this.issueAuthResponse(this.toAuthUser(user));
+    return this.issueAuthResponse(await this.buildAuthUser(user));
   }
 
   async requestOtp(rawPhone: string): Promise<RequestOtpResponse> {
@@ -189,7 +190,7 @@ export class AuthService {
       });
     }
 
-    return this.issueAuthResponse(this.toAuthUser(user));
+    return this.issueAuthResponse(await this.buildAuthUser(user));
   }
 
   async completeProfile(
@@ -240,7 +241,7 @@ export class AuthService {
       });
     }
 
-    return this.issueAuthResponse(this.toAuthUser(user));
+    return this.issueAuthResponse(await this.buildAuthUser(user));
   }
 
   async refresh(
@@ -271,7 +272,7 @@ export class AuthService {
 
   async validateUser(userId: string): Promise<AuthUser | null> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    return user ? this.toAuthUser(user) : null;
+    return user ? this.buildAuthUser(user) : null;
   }
 
   async validateRefreshToken(
@@ -288,7 +289,7 @@ export class AuthService {
       return null;
     }
 
-    return this.toAuthUser(stored.user);
+    return this.buildAuthUser(stored.user);
   }
 
   async getLearnerState(userId: string): Promise<LearnerState> {
@@ -318,7 +319,7 @@ export class AuthService {
     // Readiness test is free — legacy readinessPaid kept for client compatibility.
     const readinessPaid = true;
 
-    const authUser = this.toAuthUser(user);
+    const authUser = await this.buildAuthUser(user);
 
     return {
       user: authUser,
@@ -392,15 +393,16 @@ export class AuthService {
     };
   }
 
-  private toAuthUser(user: {
+  private async buildAuthUser(user: {
     id: string;
     name: string;
     email: string | null;
     phone?: string | null;
     role: AuthUser['role'];
     profileComplete?: boolean;
-  }): AuthUser {
-    return {
+    adminPanelAccess?: unknown;
+  }): Promise<AuthUser> {
+    const authUser: AuthUser = {
       id: user.id,
       name: user.name,
       email: user.email,
@@ -408,5 +410,15 @@ export class AuthService {
       role: user.role,
       profileComplete: Boolean(user.profileComplete),
     };
+
+    if (user.role === 'ADMIN') {
+      const settings = await this.siteSettings.get();
+      authUser.adminPanelAccess = resolveModeratorAdminAccess(
+        user.adminPanelAccess,
+        settings.adminAccess,
+      );
+    }
+
+    return authUser;
   }
 }

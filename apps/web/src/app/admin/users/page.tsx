@@ -1,8 +1,14 @@
 'use client';
 
 import { Check, Loader2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import type { UserRole } from '@pathwise/shared';
+import { Fragment, useEffect, useState } from 'react';
+import {
+  createDefaultSiteSettings,
+  normalizeAdminAccess,
+  type SiteAdminAccessSettings,
+  type UserRole,
+} from '@pathwise/shared';
+import { AdminAccessMatrix } from '@/components/admin/AdminAccessMatrix';
 import { useAuth } from '@/context/AuthProvider';
 import { useLanguage } from '@/context/LanguageProvider';
 import { api, ApiError } from '@/lib/api';
@@ -10,9 +16,12 @@ import type { AdminUser } from '@pathwise/shared';
 
 function roleLabel(role: UserRole, t: (key: string) => string): string {
   if (role === 'SUPER_ADMIN') return t('domain.roles.superAdmin');
-  if (role === 'ADMIN') return t('domain.roles.admin');
+  if (role === 'ADMIN') return t('domain.roles.moderator');
   return t('domain.roles.learner');
 }
+
+const defaultModeratorAccess = () =>
+  normalizeAdminAccess(createDefaultSiteSettings().adminAccess);
 
 export default function AdminUsersPage() {
   const { t, format } = useLanguage();
@@ -20,9 +29,12 @@ export default function AdminUsersPage() {
   const isSuper = me?.role === 'SUPER_ADMIN';
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [draftRoles, setDraftRoles] = useState<Record<string, UserRole>>({});
+  const [draftAccess, setDraftAccess] = useState<Record<string, SiteAdminAccessSettings>>({});
+  const [expandedAccessId, setExpandedAccessId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [savingAccessId, setSavingAccessId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Record<string, 'success' | 'error'>>({});
 
   useEffect(() => {
@@ -31,6 +43,16 @@ export default function AdminUsersPage() {
       .then((list) => {
         setUsers(list);
         setDraftRoles(Object.fromEntries(list.map((u) => [u.id, u.role])));
+        setDraftAccess(
+          Object.fromEntries(
+            list.map((u) => [
+              u.id,
+              u.role === 'ADMIN'
+                ? normalizeAdminAccess(u.adminPanelAccess ?? defaultModeratorAccess())
+                : defaultModeratorAccess(),
+            ]),
+          ),
+        );
       })
       .catch((err) => {
         setError(err instanceof ApiError ? err.message : t('admin.users.loadError'));
@@ -60,6 +82,12 @@ export default function AdminUsersPage() {
       const updated = await api.adminUpdateUserRole(user.id, nextRole);
       setUsers((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
       setDraftRoles((prev) => ({ ...prev, [user.id]: updated.role }));
+      if (updated.role === 'ADMIN' && updated.adminPanelAccess) {
+        setDraftAccess((prev) => ({
+          ...prev,
+          [user.id]: normalizeAdminAccess(updated.adminPanelAccess),
+        }));
+      }
       setFeedback((prev) => ({ ...prev, [user.id]: 'success' }));
     } catch (err) {
       setDraftRoles((prev) => ({ ...prev, [user.id]: user.role }));
@@ -67,6 +95,28 @@ export default function AdminUsersPage() {
       setError(err instanceof ApiError ? err.message : t('admin.users.roleError'));
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const saveAccess = async (user: AdminUser) => {
+    const access = draftAccess[user.id];
+    if (!access || user.role !== 'ADMIN') return;
+
+    setSavingAccessId(user.id);
+    setError('');
+    try {
+      const updated = await api.adminUpdateUserAccess(user.id, access);
+      setUsers((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
+      setDraftAccess((prev) => ({
+        ...prev,
+        [user.id]: normalizeAdminAccess(updated.adminPanelAccess ?? access),
+      }));
+      setFeedback((prev) => ({ ...prev, [`access-${user.id}`]: 'success' }));
+    } catch (err) {
+      setFeedback((prev) => ({ ...prev, [`access-${user.id}`]: 'error' }));
+      setError(err instanceof ApiError ? err.message : t('admin.users.accessError'));
+    } finally {
+      setSavingAccessId(null);
     }
   };
 
@@ -82,6 +132,7 @@ export default function AdminUsersPage() {
     <div className="admin-content">
       <h1>{t('admin.users.title')}</h1>
       <p className="admin-sub">{t('admin.users.sub')}</p>
+      {isSuper && <p className="admin-sub">{t('admin.users.moderatorAccessHint')}</p>}
 
       {error && <p className="form-error">{error}</p>}
 
@@ -101,71 +152,117 @@ export default function AdminUsersPage() {
               const draft = draftRoles[user.id] ?? user.role;
               const dirty = draft !== user.role;
               const rowFeedback = feedback[user.id];
+              const isModerator = user.role === 'ADMIN';
+              const showAccess = isSuper && isModerator && expandedAccessId === user.id;
 
               return (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span
-                      className={`admin-badge${
-                        user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? ' ok' : ''
-                      }`}
-                    >
-                      {roleLabel(user.role, t)}
-                    </span>
-                  </td>
-                  <td>{format.date(user.createdAt)}</td>
-                  <td>
-                    <div className="admin-role-save-row">
-                      <label className="admin-role-picker">
-                        <span className="sr-only">{t('admin.users.changeRole')}</span>
-                        <select
-                          value={draft}
-                          disabled={
-                            updatingId === user.id || (!isSuper && user.role === 'SUPER_ADMIN')
-                          }
-                          onChange={(e) =>
-                            setDraftRoles((prev) => ({
-                              ...prev,
-                              [user.id]: e.target.value as UserRole,
-                            }))
-                          }
-                        >
-                          <option value="LEARNER">{t('domain.roles.learner')}</option>
-                          <option value="ADMIN">{t('domain.roles.admin')}</option>
-                          {isSuper && (
-                            <option value="SUPER_ADMIN">{t('domain.roles.superAdmin')}</option>
-                          )}
-                        </select>
-                      </label>
-                      <button
-                        type="button"
-                        className="btn-next admin-btn"
-                        disabled={!dirty || updatingId === user.id}
-                        onClick={() => void saveRole(user)}
+                <Fragment key={user.id}>
+                  <tr>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <span
+                        className={`admin-badge${
+                          user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? ' ok' : ''
+                        }`}
                       >
-                        {updatingId === user.id ? (
-                          <>
-                            <Loader2 size={14} className="spin" /> {t('admin.users.updating')}
-                          </>
-                        ) : (
-                          t('admin.users.saveRole')
+                        {roleLabel(user.role, t)}
+                      </span>
+                    </td>
+                    <td>{format.date(user.createdAt)}</td>
+                    <td>
+                      <div className="admin-role-save-row">
+                        <label className="admin-role-picker">
+                          <span className="sr-only">{t('admin.users.changeRole')}</span>
+                          <select
+                            value={draft}
+                            disabled={
+                              updatingId === user.id || (!isSuper && user.role === 'SUPER_ADMIN')
+                            }
+                            onChange={(e) =>
+                              setDraftRoles((prev) => ({
+                                ...prev,
+                                [user.id]: e.target.value as UserRole,
+                              }))
+                            }
+                          >
+                            <option value="LEARNER">{t('domain.roles.learner')}</option>
+                            <option value="ADMIN">{t('domain.roles.moderator')}</option>
+                            {isSuper && (
+                              <option value="SUPER_ADMIN">{t('domain.roles.superAdmin')}</option>
+                            )}
+                          </select>
+                        </label>
+                        <button
+                          type="button"
+                          className="btn-next admin-btn"
+                          disabled={!dirty || updatingId === user.id}
+                          onClick={() => void saveRole(user)}
+                        >
+                          {updatingId === user.id ? (
+                            <>
+                              <Loader2 size={14} className="spin" /> {t('admin.users.updating')}
+                            </>
+                          ) : (
+                            t('admin.users.saveRole')
+                          )}
+                        </button>
+                        {isSuper && isModerator && (
+                          <button
+                            type="button"
+                            className="btn-next admin-btn"
+                            onClick={() =>
+                              setExpandedAccessId((id) => (id === user.id ? null : user.id))
+                            }
+                          >
+                            {expandedAccessId === user.id
+                              ? t('admin.users.hideAccess')
+                              : t('admin.users.editAccess')}
+                          </button>
                         )}
-                      </button>
-                      {rowFeedback === 'success' && (
-                        <span className="form-success admin-inline-status">
-                          <Check size={14} /> {t('admin.users.roleUpdated')}
-                        </span>
-                      )}
-                      {rowFeedback === 'error' && (
-                        <span className="form-error admin-inline-status">
-                          <X size={14} /> {t('admin.users.roleError')}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                        {rowFeedback === 'success' && (
+                          <span className="form-success admin-inline-status">
+                            <Check size={14} /> {t('admin.users.roleUpdated')}
+                          </span>
+                        )}
+                        {rowFeedback === 'error' && (
+                          <span className="form-error admin-inline-status">
+                            <X size={14} /> {t('admin.users.roleError')}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                  {showAccess && (
+                    <tr key={`${user.id}-access`}>
+                      <td colSpan={5}>
+                        <h3 className="admin-sub" style={{ marginTop: 0 }}>
+                          {t('admin.users.accessFor', { name: user.name })}
+                        </h3>
+                        <AdminAccessMatrix
+                          access={draftAccess[user.id] ?? defaultModeratorAccess()}
+                          onChange={(next) =>
+                            setDraftAccess((prev) => ({ ...prev, [user.id]: next }))
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="cta-primary"
+                          style={{ marginTop: '0.75rem' }}
+                          disabled={savingAccessId === user.id}
+                          onClick={() => void saveAccess(user)}
+                        >
+                          {savingAccessId === user.id
+                            ? t('admin.users.savingAccess')
+                            : t('admin.users.saveAccess')}
+                        </button>
+                        {feedback[`access-${user.id}`] === 'success' && (
+                          <p className="form-success">{t('admin.users.accessSaved')}</p>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               );
             })}
           </tbody>

@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import type {
   AdminChallenge,
   AdminContactMessage,
@@ -7,9 +7,12 @@ import type {
   AdminStats,
   AdminUser,
   AuthUser,
+  SiteAdminAccessSettings,
 } from '@pathwise/shared';
+import { normalizeAdminAccess } from '@pathwise/shared';
 import { MediaStorageService } from '../media/media-storage.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
 import {
   AdminCreateChallengeDto,
   AdminCreateCourseDto,
@@ -17,14 +20,21 @@ import {
   AdminUpdateChallengeDto,
   AdminUpdateCourseDto,
   AdminUpdateLessonDto,
+  AdminUpdateUserAccessDto,
   AdminUpdateUserRoleDto,
 } from './dto/admin.dto';
+import { Prisma } from '@prisma/client';
+
+function toJsonAccess(value: SiteAdminAccessSettings): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mediaStorage: MediaStorageService,
+    private readonly siteSettings: SiteSettingsService,
   ) {}
 
   async getStats(): Promise<AdminStats> {
@@ -337,6 +347,7 @@ export class AdminService {
         email: true,
         role: true,
         createdAt: true,
+        adminPanelAccess: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -347,6 +358,10 @@ export class AdminService {
       email: user.email,
       role: user.role,
       createdAt: user.createdAt.toISOString(),
+      adminPanelAccess:
+        user.role === 'ADMIN'
+          ? normalizeAdminAccess(user.adminPanelAccess)
+          : null,
     }));
   }
 
@@ -373,15 +388,27 @@ export class AdminService {
       }
     }
 
+    const settings = await this.siteSettings.get();
+    const roleData: Prisma.UserUpdateInput = { role: dto.role };
+
+    if (dto.role === 'ADMIN') {
+      roleData.adminPanelAccess =
+        (user.adminPanelAccess as Prisma.InputJsonValue | null) ??
+        toJsonAccess(settings.adminAccess);
+    } else {
+      roleData.adminPanelAccess = Prisma.DbNull;
+    }
+
     const updated = await this.prisma.user.update({
       where: { id },
-      data: { role: dto.role },
+      data: roleData,
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
         createdAt: true,
+        adminPanelAccess: true,
       },
     });
 
@@ -391,6 +418,52 @@ export class AdminService {
       email: updated.email,
       role: updated.role,
       createdAt: updated.createdAt.toISOString(),
+      adminPanelAccess:
+        updated.role === 'ADMIN'
+          ? normalizeAdminAccess(updated.adminPanelAccess)
+          : null,
+    };
+  }
+
+  async updateUserAdminAccess(
+    id: string,
+    dto: AdminUpdateUserAccessDto,
+    actor: AuthUser,
+  ): Promise<AdminUser> {
+    if (actor.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only super admins can configure moderator access');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
+    if (user.role !== 'ADMIN') {
+      throw new BadRequestException('Panel access applies to moderator accounts only');
+    }
+
+    const adminPanelAccess = normalizeAdminAccess(dto.adminPanelAccess);
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { adminPanelAccess: toJsonAccess(adminPanelAccess) },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        adminPanelAccess: true,
+      },
+    });
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      email: updated.email,
+      role: updated.role,
+      createdAt: updated.createdAt.toISOString(),
+      adminPanelAccess: normalizeAdminAccess(updated.adminPanelAccess),
     };
   }
 

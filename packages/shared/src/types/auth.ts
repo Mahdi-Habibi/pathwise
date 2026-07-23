@@ -1,3 +1,5 @@
+import type { SiteAdminAccessSettings } from './site-settings';
+
 export type UserRole = 'LEARNER' | 'ADMIN' | 'SUPER_ADMIN';
 
 export interface AuthUser {
@@ -7,6 +9,8 @@ export interface AuthUser {
   phone: string | null;
   role: UserRole;
   profileComplete: boolean;
+  /** Present for ADMIN (moderator) accounts — individual panel permissions. */
+  adminPanelAccess?: SiteAdminAccessSettings;
 }
 
 export interface AuthTokens {

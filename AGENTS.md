@@ -38,8 +38,8 @@ Site `TopBar` / `Footer` render only after `profileComplete` (successful registr
 ### Admin roles
 
 - `SUPER_ADMIN` — full admin panel; configures `settings.adminAccess` (what regular `ADMIN` may open).
-- `ADMIN` — limited by `adminAccess` flags (defaults: stats/courses/challenges on; settings/users off).
-- Seed: `admin@pathwise.dev` is `SUPER_ADMIN`; `moderator@pathwise.dev` is `ADMIN` (password `Pathwise123!`).
+- `ADMIN` — limited by per-user `adminPanelAccess` (defaults from site settings template when promoted); configure under Admin → Users.
+- Seed: `admin@pathwise.dev` is `SUPER_ADMIN`; `moderator@pathwise.dev` and `moderator2@pathwise.dev` are `ADMIN` (moderators) with different per-user panel access; `alex@pathwise.dev` is `LEARNER` (password `Pathwise123!`).
 
 ### Readiness test caveats
 
