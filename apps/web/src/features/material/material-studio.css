@@ -782,6 +782,8 @@
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
+  /* Pair with hidden — overflow-y:visible + overflow-x:auto computes to auto (nested Y scroll). */
+  overflow-y: hidden;
   padding-bottom: 0.25rem;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
@@ -869,7 +871,10 @@
 }
 
 .matrix-wrap {
-  overflow: auto;
+  /* Horizontal scroll only. Do not use overflow:auto or overflow-y:visible —
+     with overflow-x non-visible, visible computes to auto and creates nested Y scroll. */
+  overflow-x: auto;
+  overflow-y: hidden;
   border-radius: 1rem;
   -webkit-overflow-scrolling: touch;
 }
@@ -1447,7 +1452,9 @@
   font-family: var(--font-vazirmatn), var(--font-inter), Tahoma, sans-serif;
   color: var(--text-main);
   background: radial-gradient(circle at top, rgba(233, 240, 250, 0.95) 0%, rgba(214, 227, 240, 0.9) 100%);
-  overflow-x: hidden;
+  /* clip (not hidden): overflow-x:hidden forces overflow-y:auto via axis coupling,
+     so decorative orbs (bottom:-120px) create a nested secondary page scroll. */
+  overflow-x: clip;
   line-height: 1.5;
   z-index: 1;
 }
@@ -1501,7 +1508,7 @@
   flex: 0 0 auto;
 }
 
-/* Page-level scroll only — no nested scroll containers on main panels */
+/* Page-level scroll only — keep panels out of the overflow axis-coupling trap */
 .material-studio-root .tab-panel,
 .material-studio-root .material-mode,
 .material-studio-root .panel-grid {
@@ -1511,7 +1518,7 @@
 
 .material-studio-root .matrix-wrap {
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
 }
 
 .material-studio-root .gradient-controls {
