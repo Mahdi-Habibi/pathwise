@@ -1,5 +1,9 @@
 import type { SiteSettings } from '../types/site-settings';
-import { createSectionPermission, normalizeAdminAccess } from '../types/site-settings';
+import {
+  createSectionPermission,
+  normalizeAdminAccess,
+  normalizePaymentSettings,
+} from '../types/site-settings';
 import { MODULE_PRICES, TRACKS } from './tracks';
 import { PRODUCT_PRICES } from '../types/payment';
 
@@ -59,12 +63,20 @@ export function createDefaultSiteSettings(): SiteSettings {
       defaultRank: 12,
       defaultPoints: 340,
     },
+    payment: {
+      provider: 'dev',
+      merchantId: '',
+      apiKey: '',
+      sandbox: true,
+      displayName: '',
+    },
     adminAccess: {
       stats: createSectionPermission(true, true, false),
       settings: createSectionPermission(false, false, false),
       courses: createSectionPermission(true, true, false),
       challenges: createSectionPermission(true, true, false),
       users: createSectionPermission(false, false, false),
+      payments: createSectionPermission(true, false, false),
     },
   };
 }
@@ -77,6 +89,7 @@ export function mergeSiteSettings(
     tracks: SiteSettings['tracks'];
     readiness: Partial<SiteSettings['readiness']>;
     bootcamp: Partial<SiteSettings['bootcamp']>;
+    payment: Partial<SiteSettings['payment']>;
     adminAccess: Partial<SiteSettings['adminAccess']>;
   }>,
 ): SiteSettings {
@@ -89,9 +102,12 @@ export function mergeSiteSettings(
         ? [...patch.pricing.modulePrices]
         : [...base.pricing.modulePrices],
     },
-    tracks: patch.tracks ? patch.tracks.map((t) => ({ ...t, modules: [...t.modules] })) : base.tracks.map((t) => ({ ...t, modules: [...t.modules] })),
+    tracks: patch.tracks
+      ? patch.tracks.map((t) => ({ ...t, modules: [...t.modules] }))
+      : base.tracks.map((t) => ({ ...t, modules: [...t.modules] })),
     readiness: { ...base.readiness, ...patch.readiness },
     bootcamp: { ...base.bootcamp, ...patch.bootcamp },
+    payment: { ...base.payment, ...patch.payment },
     adminAccess: patch.adminAccess
       ? {
           stats: { ...base.adminAccess.stats, ...patch.adminAccess.stats },
@@ -99,11 +115,13 @@ export function mergeSiteSettings(
           courses: { ...base.adminAccess.courses, ...patch.adminAccess.courses },
           challenges: { ...base.adminAccess.challenges, ...patch.adminAccess.challenges },
           users: { ...base.adminAccess.users, ...patch.adminAccess.users },
+          payments: { ...base.adminAccess.payments, ...patch.adminAccess.payments },
         }
       : base.adminAccess,
   };
   return {
     ...merged,
+    payment: normalizePaymentSettings(merged.payment),
     adminAccess: normalizeAdminAccess(merged.adminAccess),
   };
 }

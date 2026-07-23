@@ -38,6 +38,9 @@ export class SiteSettingsController {
     if (dto.adminAccess && user.role !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only super admins can change admin panel access');
     }
+    if (dto.payment && user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only super admins can change payment provider settings');
+    }
     return this.siteSettings.update(dto as UpdateSiteSettingsDto);
   }
 }

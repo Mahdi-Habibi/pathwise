@@ -40,6 +40,8 @@ Site `TopBar` / `Footer` render only after `profileComplete` (successful registr
 - `SUPER_ADMIN` — full admin panel; configures `settings.adminAccess` (what regular `ADMIN` may open).
 - `ADMIN` — limited by per-user `adminPanelAccess` (defaults from site settings template when promoted); configure under Admin → Users.
 - Seed: `admin@pathwise.dev` is `SUPER_ADMIN`; `moderator@pathwise.dev` and `moderator2@pathwise.dev` are `ADMIN` (moderators) with different per-user panel access; `alex@pathwise.dev` is `LEARNER` (password `Pathwise123!`).
+- Super admin configures per-moderator access under **Admin → Users** (matrix always visible under each moderator). Site settings → Admin access is only the default template for newly promoted moderators.
+- Payments: checkout is a review step; confirming redirects to the configured third-party provider (`dev` / Zarinpal / IDPay / Stripe) under **Settings → Payment gateway**. Catalog amounts are stored in IRR and shown in **تومان** for Persian UI.
 
 ### Readiness test caveats
 

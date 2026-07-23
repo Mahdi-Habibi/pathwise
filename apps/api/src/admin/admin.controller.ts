@@ -173,4 +173,10 @@ export class AdminController {
   markContactMessageRead(@Param('id') id: string) {
     return this.adminService.markContactMessageRead(id);
   }
+
+  @Get('payments')
+  @AdminAccess('payments', 'view')
+  listPayments() {
+    return this.adminService.listPayments();
+  }
 }

@@ -30,7 +30,6 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [draftRoles, setDraftRoles] = useState<Record<string, UserRole>>({});
   const [draftAccess, setDraftAccess] = useState<Record<string, SiteAdminAccessSettings>>({});
-  const [expandedAccessId, setExpandedAccessId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -153,7 +152,7 @@ export default function AdminUsersPage() {
               const dirty = draft !== user.role;
               const rowFeedback = feedback[user.id];
               const isModerator = user.role === 'ADMIN';
-              const showAccess = isSuper && isModerator && expandedAccessId === user.id;
+              const showAccess = isSuper && isModerator;
 
               return (
                 <Fragment key={user.id}>
@@ -207,19 +206,6 @@ export default function AdminUsersPage() {
                             t('admin.users.saveRole')
                           )}
                         </button>
-                        {isSuper && isModerator && (
-                          <button
-                            type="button"
-                            className="btn-next admin-btn"
-                            onClick={() =>
-                              setExpandedAccessId((id) => (id === user.id ? null : user.id))
-                            }
-                          >
-                            {expandedAccessId === user.id
-                              ? t('admin.users.hideAccess')
-                              : t('admin.users.editAccess')}
-                          </button>
-                        )}
                         {rowFeedback === 'success' && (
                           <span className="form-success admin-inline-status">
                             <Check size={14} /> {t('admin.users.roleUpdated')}
@@ -236,29 +222,31 @@ export default function AdminUsersPage() {
                   {showAccess && (
                     <tr key={`${user.id}-access`}>
                       <td colSpan={5}>
-                        <h3 className="admin-sub" style={{ marginTop: 0 }}>
-                          {t('admin.users.accessFor', { name: user.name })}
-                        </h3>
-                        <AdminAccessMatrix
-                          access={draftAccess[user.id] ?? defaultModeratorAccess()}
-                          onChange={(next) =>
-                            setDraftAccess((prev) => ({ ...prev, [user.id]: next }))
-                          }
-                        />
-                        <button
-                          type="button"
-                          className="cta-primary"
-                          style={{ marginTop: '0.75rem' }}
-                          disabled={savingAccessId === user.id}
-                          onClick={() => void saveAccess(user)}
-                        >
-                          {savingAccessId === user.id
-                            ? t('admin.users.savingAccess')
-                            : t('admin.users.saveAccess')}
-                        </button>
-                        {feedback[`access-${user.id}`] === 'success' && (
-                          <p className="form-success">{t('admin.users.accessSaved')}</p>
-                        )}
+                        <div className="admin-moderator-access">
+                          <h3 className="admin-sub" style={{ marginTop: 0 }}>
+                            {t('admin.users.accessFor', { name: user.name })}
+                          </h3>
+                          <AdminAccessMatrix
+                            access={draftAccess[user.id] ?? defaultModeratorAccess()}
+                            onChange={(next) =>
+                              setDraftAccess((prev) => ({ ...prev, [user.id]: next }))
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="cta-primary"
+                            style={{ marginTop: '0.75rem' }}
+                            disabled={savingAccessId === user.id}
+                            onClick={() => void saveAccess(user)}
+                          >
+                            {savingAccessId === user.id
+                              ? t('admin.users.savingAccess')
+                              : t('admin.users.saveAccess')}
+                          </button>
+                          {feedback[`access-${user.id}`] === 'success' && (
+                            <p className="form-success">{t('admin.users.accessSaved')}</p>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )}

@@ -397,3 +397,15 @@
     min-width: 640px;
   }
 }
+
+.admin-moderator-access {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  margin: 0.35rem 0 0.75rem;
+}
+
+.admin-sidebar {
+  width: 240px;
+}

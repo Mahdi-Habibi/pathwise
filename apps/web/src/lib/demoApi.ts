@@ -33,6 +33,7 @@ import type {
   AdminChallenge,
   AdminContactMessage,
   AdminUser,
+  AdminPayment,
   SiteAdminAccessSettings,
 } from '@pathwise/shared';
 import {
@@ -473,6 +474,14 @@ export const demoApi = {
     return delay({ ...found, status: 'COMPLETED' });
   },
 
+  async getPayment(id: string): Promise<PaymentResponse> {
+    requireUser();
+    const mine = await this.myPayments();
+    const found = mine.find((p) => p.id === id);
+    if (!found) throw new ApiError('Payment not found', 404);
+    return delay(found);
+  },
+
   async myPayments(): Promise<PaymentResponse[]> {
     requireUser();
     return delay(readState().payments);
@@ -874,6 +883,11 @@ export const demoApi = {
         createdAt: new Date().toISOString(),
       },
     ]);
+  },
+
+  async adminListPayments(): Promise<AdminPayment[]> {
+    requireUser();
+    return delay([]);
   },
 
   async adminUpdateUserRole(userId: string, role: UserRole): Promise<AdminUser> {

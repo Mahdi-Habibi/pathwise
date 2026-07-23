@@ -4,6 +4,7 @@ import type {
   AdminContactMessage,
   AdminCourse,
   AdminLesson,
+  AdminPayment,
   AdminStats,
   AdminUser,
   AuthUser,
@@ -500,6 +501,26 @@ export class AdminService {
       readAt: updated.readAt?.toISOString() ?? null,
       createdAt: updated.createdAt.toISOString(),
     };
+  }
+
+  async listPayments(): Promise<AdminPayment[]> {
+    const payments = await this.prisma.payment.findMany({
+      include: { user: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+    return payments.map((p) => ({
+      id: p.id,
+      userId: p.userId,
+      userName: p.user.name,
+      userEmail: p.user.email,
+      productType: p.productType,
+      productRef: p.productRef,
+      amountCents: p.amountCents,
+      currency: p.currency,
+      status: p.status,
+      createdAt: p.createdAt.toISOString(),
+    }));
   }
 
   private async ensureCourseBySlug(slug: string) {

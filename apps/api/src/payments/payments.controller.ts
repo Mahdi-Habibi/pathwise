@@ -38,6 +38,12 @@ export class PaymentsController {
     return this.paymentsService.getMyPayments(user.id);
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  getOne(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<PaymentResponse> {
+    return this.paymentsService.getPaymentForUser(user.id, id);
+  }
+
   @Post('webhook')
   webhook(
     @Req() req: RawBodyRequest<Request>,
