@@ -7,7 +7,6 @@ import {
   createDefaultSiteSettings,
   normalizeAdminAccess,
   normalizePaymentSettings,
-  type SiteAdminAccessSettings,
   type SiteSettings,
   type SiteTrackSettings,
 } from '@pathwise/shared';

@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { writeLocaleCookie } from '@/i18n/cookie';
+import { readLocaleCookie, writeLocaleCookie } from '@/i18n/cookie';
 import { createFormatters, type Formatters } from '@/i18n/formatters';
 import {
   DEFAULT_LOCALE,
@@ -51,19 +51,20 @@ export function LanguageProvider({
   const [locale, setLocaleState] = useState<Locale>(parseLocale(initialLocale));
 
   useEffect(() => {
-    if (!hasLocaleCookie()) {
-      const detected = detectBrowserLocale();
-      if (detected !== locale) {
-        setLocaleState(detected);
-        writeLocaleCookie(detected);
-        return;
-      }
-      writeLocaleCookie(locale);
+    let next = locale;
+    if (hasLocaleCookie()) {
+      next = readLocaleCookie(document.cookie);
+    } else {
+      next = detectBrowserLocale();
+      writeLocaleCookie(next);
+    }
+    if (next !== locale) {
+      setLocaleState(next);
     }
 
     const html = document.documentElement;
-    html.lang = locale;
-    html.dir = dirForLocale(locale);
+    html.lang = next;
+    html.dir = dirForLocale(next);
   }, []);
 
   useEffect(() => {

@@ -1,9 +1,13 @@
 # syntax=docker/dockerfile:1
 
-FROM node:26-bookworm-slim AS base
+# Match .nvmrc (Node 22). Node 25+ slim images no longer ship `corepack` on PATH
+# (exit 127), so install/activate pnpm explicitly.
+FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN npm install -g corepack@0.34.6 \
+  && corepack enable \
+  && corepack prepare pnpm@11.13.0 --activate
 WORKDIR /app
 
 # Install workspace dependencies (native modules: bcrypt, prisma)

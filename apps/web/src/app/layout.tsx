@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import { cookies } from 'next/headers';
 import { Inter, JetBrains_Mono, Vazirmatn } from 'next/font/google';
 import { ClientProviders } from '@/components/layout/ClientProviders';
 import { SiteChrome } from '@/components/layout/SiteChrome';
-import { readLocaleCookie } from '@/i18n/cookie';
 import { DEFAULT_LOCALE, dirForLocale } from '@/i18n/locales';
 import { messages } from '@/i18n/messages';
 import '@/styles/globals.css';
@@ -44,9 +42,13 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const locale = readLocaleCookie(cookieStore.toString());
+/**
+ * Locale is resolved on the client (LanguageProvider) so this layout stays
+ * compatible with `output: 'export'` / GitHub Pages. Reading `cookies()` here
+ * marks every route dynamic and breaks the Pages static build.
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = DEFAULT_LOCALE;
   const dir = dirForLocale(locale);
 
   return (
