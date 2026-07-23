@@ -56,6 +56,19 @@ export interface AdminUser {
   adminPanelAccess?: SiteAdminAccessSettings | null;
 }
 
+export interface AdminPayment {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string | null;
+  productType: string;
+  productRef: string | null;
+  amountCents: number;
+  currency: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface CreateCourseDto {
   slug: string;
   title: string;

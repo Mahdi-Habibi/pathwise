@@ -39,6 +39,7 @@ import type {
   AdminChallenge,
   AdminContactMessage,
   AdminUser,
+  AdminPayment,
 } from '@pathwise/shared';
 import { clearTokens, getAccessToken, setAccessToken } from '@/lib/auth';
 import { ApiError } from '@/lib/apiError';
@@ -221,6 +222,10 @@ const liveApi = {
     });
   },
 
+  getPayment(id: string): Promise<PaymentResponse> {
+    return request<PaymentResponse>(`/payments/${id}`);
+  },
+
   myPayments(): Promise<PaymentResponse[]> {
     return request<PaymentResponse[]>('/payments/my');
   },
@@ -389,6 +394,10 @@ const liveApi = {
 
   adminListUsers(): Promise<AdminUser[]> {
     return request<AdminUser[]>('/admin/users');
+  },
+
+  adminListPayments(): Promise<AdminPayment[]> {
+    return request<AdminPayment[]>('/admin/payments');
   },
 
   adminUpdateUserRole(userId: string, role: UserRole): Promise<AdminUser> {

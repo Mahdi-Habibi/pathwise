@@ -60,5 +60,10 @@ describe('i18n translator', () => {
     const format = createFormatters('en');
     expect(format.currency(19)).toContain('19');
     expect(format.percent(94)).toContain('94');
+
+    const faFormat = createFormatters('fa');
+    // 1_490_000 IRR → 149_000 تومان
+    expect(faFormat.currency(1_490_000)).toContain('تومان');
+    expect(faFormat.currency(1_490_000)).not.toContain('ریال');
   });
 });

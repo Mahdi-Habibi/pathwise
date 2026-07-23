@@ -13,13 +13,11 @@ import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 type ProductChoice = 'ROADMAP_BUNDLE' | 'COURSE';
 
-const stripeEnabled = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, format } = useLanguage();
-  const { refreshSession, learnerState } = useAuth();
+  const { refreshSession, learnerState, user } = useAuth();
   const { roadmap } = useApp();
   const { settings } = useSiteSettings();
 
@@ -48,7 +46,12 @@ function CheckoutContent() {
 
   const courseUnitPrice = settings.pricing.courseCents;
   const courseTotal = courseSlugs.length * courseUnitPrice;
+  const amount = isCourseCheckout ? courseTotal : (bundlePrice ?? 0);
   const sessionId = searchParams.get('session_id');
+  const paymentCfg = settings.payment;
+  const providerLabel =
+    paymentCfg.displayName.trim() ||
+    t(`checkout.providers.${paymentCfg.provider}` as 'checkout.providers.dev');
 
   useEffect(() => {
     if (!roadmapId) {
@@ -164,14 +167,8 @@ function CheckoutContent() {
           <CreditCard size={14} className="inline-leading-icon" />
           {t('checkout.eyebrow')}
         </span>
-        <h1>{isCourseCheckout ? t('checkout.courses.title') : t('checkout.title')}</h1>
-        <p className="auth-sub">
-          {isCourseCheckout ? t('checkout.courses.sub') : t('checkout.sub')}
-        </p>
-
-        <div className={`checkout-mode-note${stripeEnabled ? ' stripe' : ' dev'}`}>
-          {stripeEnabled ? t('checkout.stripeMode') : t('checkout.devMode')}
-        </div>
+        <h1>{t('checkout.review.title')}</h1>
+        <p className="auth-sub">{t('checkout.review.sub')}</p>
 
         {returnProcessing && (
           <p className="auth-sub">
@@ -180,44 +177,33 @@ function CheckoutContent() {
           </p>
         )}
 
-        {isCourseCheckout ? (
-          <div className="checkout-card selected highlight" style={{ cursor: 'default' }}>
-            <div className="checkout-card-head">
-              <span className="ci">📘</span>
-              <div>
-                <b>{t('checkout.courses.selected', { count: courseSlugs.length })}</b>
-                <span>{courseSlugs.join(' · ')}</span>
-              </div>
-              <span className="checkout-price">{format.currency(courseTotal)}</span>
+        <div className="checkout-card selected highlight" style={{ cursor: 'default' }}>
+          <div className="checkout-card-head">
+            <span className="ci">{isCourseCheckout ? '📘' : '🗺️'}</span>
+            <div>
+              <b>
+                {isCourseCheckout
+                  ? t('checkout.courses.selected', { count: courseSlugs.length })
+                  : t('checkout.bundle.title')}
+              </b>
+              <span>
+                {isCourseCheckout ? courseSlugs.join(' · ') : t('checkout.bundle.meta')}
+              </span>
             </div>
-            <ul className="checkout-features">
-              <li>
-                <Check size={14} /> {t('checkout.courses.feature1')}
-              </li>
-              <li>
-                <Check size={14} /> {t('checkout.courses.feature2')}
-              </li>
-            </ul>
+            <span className="checkout-price">{format.currency(amount)}</span>
           </div>
-        ) : (
-          <div className="checkout-grid">
-            <button
-              type="button"
-              className={`checkout-card highlight selected`}
-              style={{ cursor: 'default' }}
-            >
-              <span className="badge-rec">{t('checkout.bundle.badge')}</span>
-              <div className="checkout-card-head">
-                <span className="ci">🗺️</span>
-                <div>
-                  <b>{t('checkout.bundle.title')}</b>
-                  <span>{t('checkout.bundle.meta')}</span>
-                </div>
-                <span className="checkout-price">
-                  {bundlePrice != null ? format.currency(bundlePrice) : t('checkout.bundle.price')}
-                </span>
-              </div>
-              <ul className="checkout-features">
+          <ul className="checkout-features">
+            {isCourseCheckout ? (
+              <>
+                <li>
+                  <Check size={14} /> {t('checkout.courses.feature1')}
+                </li>
+                <li>
+                  <Check size={14} /> {t('checkout.courses.feature2')}
+                </li>
+              </>
+            ) : (
+              <>
                 <li>
                   <Check size={14} /> {t('checkout.bundle.feature1')}
                 </li>
@@ -227,13 +213,48 @@ function CheckoutContent() {
                 <li>
                   <Check size={14} /> {t('checkout.bundle.feature3')}
                 </li>
-              </ul>
-              {learnerState?.roadmapEnrolled && (
-                <span className="checkout-owned">{t('checkout.bundle.owned')}</span>
-              )}
-            </button>
-          </div>
-        )}
+              </>
+            )}
+          </ul>
+          {!isCourseCheckout && learnerState?.roadmapEnrolled && (
+            <span className="checkout-owned">{t('checkout.bundle.owned')}</span>
+          )}
+        </div>
+
+        <div className="checkout-summary glass-panel" style={{ marginTop: '1rem', padding: '1rem' }}>
+          <h2 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>{t('checkout.review.details')}</h2>
+          <dl className="checkout-summary-list">
+            <div>
+              <dt>{t('checkout.review.buyer')}</dt>
+              <dd>{user?.name || '—'}</dd>
+            </div>
+            <div>
+              <dt>{t('checkout.review.email')}</dt>
+              <dd className="ltr-isolate">{user?.email || user?.phone || '—'}</dd>
+            </div>
+            <div>
+              <dt>{t('checkout.review.product')}</dt>
+              <dd>
+                {isCourseCheckout ? t('checkout.courses.title') : t('checkout.bundle.title')}
+              </dd>
+            </div>
+            <div>
+              <dt>{t('checkout.review.amount')}</dt>
+              <dd>
+                <strong>{format.currency(amount)}</strong>
+              </dd>
+            </div>
+            <div>
+              <dt>{t('checkout.review.provider')}</dt>
+              <dd>{providerLabel}</dd>
+            </div>
+          </dl>
+          <p className="auth-sub" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
+            {paymentCfg.provider === 'dev'
+              ? t('checkout.review.devHint')
+              : t('checkout.review.gatewayHint')}
+          </p>
+        </div>
 
         {error && <p className="form-error">{error}</p>}
         {success && <p className="form-success">{success}</p>}
@@ -242,14 +263,14 @@ function CheckoutContent() {
           type="button"
           className="cta-primary checkout-pay"
           onClick={handleCheckout}
-          disabled={loading || returnProcessing}
+          disabled={loading || returnProcessing || (!isCourseCheckout && amount <= 0 && !bundlePrice)}
         >
           {loading ? (
             <>
               <Loader2 size={18} className="spin" /> {t('checkout.processing')}
             </>
           ) : (
-            <>{t('checkout.pay')}</>
+            <>{t('checkout.payFinal')}</>
           )}
         </button>
       </div>

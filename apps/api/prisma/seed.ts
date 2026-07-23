@@ -12,6 +12,7 @@ function moderatorAccess(
   courses: [boolean, boolean, boolean],
   challenges: [boolean, boolean, boolean],
   users: [boolean, boolean, boolean],
+  payments: [boolean, boolean, boolean] = [false, false, false],
 ): Prisma.InputJsonValue {
   return JSON.parse(
     JSON.stringify({
@@ -20,6 +21,7 @@ function moderatorAccess(
       courses: createSectionPermission(...courses),
       challenges: createSectionPermission(...challenges),
       users: createSectionPermission(...users),
+      payments: createSectionPermission(...payments),
     }),
   ) as Prisma.InputJsonValue;
 }
@@ -388,7 +390,10 @@ Use STAR (Situation, Task, Action, Result) to answer behavioral questions.
   await prisma.siteSetting.upsert({
     where: { key: 'site' },
     create: { key: 'site', value: JSON.stringify(defaults) },
-    update: {},
+    update: {
+      // Keep evolving defaults in sync for local/dev seeds (pricing + payment + access template).
+      value: JSON.stringify(defaults),
+    },
   });
   console.log('Seeded site settings');
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BarChart3, BookOpen, Mail, Settings, Shield, Trophy, Users } from 'lucide-react';
+import { BarChart3, BookOpen, CreditCard, Mail, Settings, Shield, Trophy, Users } from 'lucide-react';
 import { useEffect, useMemo, type ReactNode } from 'react';
 import {
   adminSectionAllowed,
@@ -50,8 +50,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       key: AdminSection;
     }> = [
       { href: '/admin', label: t('admin.nav.stats'), icon: BarChart3, exact: true, key: 'stats' },
-      { href: '/admin/settings', label: t('admin.nav.settings'), icon: Settings, key: 'settings' },
-      { href: '/admin/contact', label: t('admin.nav.contact'), icon: Mail, key: 'settings' },
       { href: '/admin/courses', label: t('admin.nav.courses'), icon: BookOpen, key: 'courses' },
       {
         href: '/admin/challenges',
@@ -59,7 +57,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         icon: Trophy,
         key: 'challenges',
       },
+      { href: '/admin/payments', label: t('admin.nav.payments'), icon: CreditCard, key: 'payments' },
       { href: '/admin/users', label: t('admin.nav.users'), icon: Users, key: 'users' },
+      { href: '/admin/contact', label: t('admin.nav.contact'), icon: Mail, key: 'settings' },
+      { href: '/admin/settings', label: t('admin.nav.settings'), icon: Settings, key: 'settings' },
     ];
 
     return items.filter((item) => {
