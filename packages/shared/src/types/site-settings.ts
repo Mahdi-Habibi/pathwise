@@ -41,6 +41,22 @@ export interface SiteBootcampSettings {
   defaultPoints: number;
 }
 
+/** Third-party / gateway payment configuration (super-admin editable). */
+export type PaymentProviderId = 'dev' | 'zarinpal' | 'idpay' | 'stripe';
+
+export interface SitePaymentSettings {
+  /** Active checkout provider. `dev` completes in-app without a gateway. */
+  provider: PaymentProviderId;
+  /** Merchant / terminal id for Zarinpal, IDPay, etc. */
+  merchantId: string;
+  /** Optional API key / access token for the provider. */
+  apiKey: string;
+  /** Use provider sandbox / test mode when supported. */
+  sandbox: boolean;
+  /** Public label shown on the payment review page. */
+  displayName: string;
+}
+
 /** Granular permission flags for a single admin panel section. */
 export interface AdminSectionPermission {
   view: boolean;
@@ -48,7 +64,13 @@ export interface AdminSectionPermission {
   edit: boolean;
 }
 
-export type AdminAccessSection = 'stats' | 'settings' | 'courses' | 'challenges' | 'users';
+export type AdminAccessSection =
+  | 'stats'
+  | 'settings'
+  | 'courses'
+  | 'challenges'
+  | 'users'
+  | 'payments';
 
 /** What regular ADMIN users may access. SUPER_ADMIN always has full access. */
 export type SiteAdminAccessSettings = Record<AdminAccessSection, AdminSectionPermission>;
@@ -85,6 +107,26 @@ export function normalizeAdminAccess(raw: unknown): SiteAdminAccessSettings {
     courses: normalizeAdminSectionPermission(source.courses),
     challenges: normalizeAdminSectionPermission(source.challenges),
     users: normalizeAdminSectionPermission(source.users),
+    payments: normalizeAdminSectionPermission(source.payments),
+  };
+}
+
+export function normalizePaymentSettings(raw: unknown): SitePaymentSettings {
+  const source = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  const providerRaw = String(source.provider ?? 'dev');
+  const provider: PaymentProviderId =
+    providerRaw === 'zarinpal' ||
+    providerRaw === 'idpay' ||
+    providerRaw === 'stripe' ||
+    providerRaw === 'dev'
+      ? providerRaw
+      : 'dev';
+  return {
+    provider,
+    merchantId: String(source.merchantId ?? ''),
+    apiKey: String(source.apiKey ?? ''),
+    sandbox: source.sandbox !== false,
+    displayName: String(source.displayName ?? ''),
   };
 }
 
@@ -113,6 +155,7 @@ export interface SiteSettings {
   tracks: SiteTrackSettings[];
   readiness: SiteReadinessSettings;
   bootcamp: SiteBootcampSettings;
+  payment: SitePaymentSettings;
   adminAccess: SiteAdminAccessSettings;
 }
 
@@ -124,5 +167,6 @@ export interface UpdateSiteSettingsDto {
   tracks?: SiteTrackSettings[];
   readiness?: Partial<SiteReadinessSettings>;
   bootcamp?: Partial<SiteBootcampSettings>;
+  payment?: Partial<SitePaymentSettings>;
   adminAccess?: Partial<SiteAdminAccessSettings>;
 }

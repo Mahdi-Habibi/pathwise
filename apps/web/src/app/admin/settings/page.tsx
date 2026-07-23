@@ -6,6 +6,7 @@ import { Loader2, Plus, Trash2 } from 'lucide-react';
 import {
   createDefaultSiteSettings,
   normalizeAdminAccess,
+  normalizePaymentSettings,
   type SiteAdminAccessSettings,
   type SiteSettings,
   type SiteTrackSettings,
@@ -19,6 +20,7 @@ import { AdminAccessMatrix } from '@/components/admin/AdminAccessMatrix';
 type Section =
   | 'general'
   | 'pricing'
+  | 'payment'
   | 'tracks'
   | 'readiness'
   | 'bootcamp'
@@ -47,6 +49,7 @@ export default function AdminSettingsPage() {
       { id: 'courses', label: t('admin.settings.nav.courses') },
     ];
     if (isSuper) {
+      items.splice(2, 0, { id: 'payment', label: t('admin.settings.nav.payment') });
       items.push({ id: 'adminAccess', label: t('admin.settings.nav.adminAccess') });
     }
     return items;
@@ -57,7 +60,11 @@ export default function AdminSettingsPage() {
       api.adminGetSettings(),
       api.adminListCourses(),
     ]);
-    setSettings({ ...nextSettings, adminAccess: normalizeAdminAccess(nextSettings.adminAccess) });
+    setSettings({
+      ...nextSettings,
+      adminAccess: normalizeAdminAccess(nextSettings.adminAccess),
+      payment: normalizePaymentSettings(nextSettings.payment),
+    });
     setCourses(nextCourses);
   }, []);
 
@@ -91,6 +98,7 @@ export default function AdminSettingsPage() {
     if (section === 'tracks') await persist({ tracks: settings.tracks });
     if (section === 'readiness') await persist({ readiness: settings.readiness });
     if (section === 'bootcamp') await persist({ bootcamp: settings.bootcamp });
+    if (section === 'payment') await persist({ payment: settings.payment });
     if (section === 'adminAccess') await persist({ adminAccess: settings.adminAccess });
   };
 
@@ -295,17 +303,21 @@ export default function AdminSettingsPage() {
 
           {section === 'pricing' && (
             <>
+              <p className="admin-sub">{t('admin.settings.pricing.tomanHint')}</p>
               <div className="admin-form-row">
                 <label className="form-field">
                   <span>{t('admin.settings.pricing.course')}</span>
                   <input
                     type="number"
                     min={0}
-                    value={settings.pricing.courseCents}
+                    value={Math.round(settings.pricing.courseCents / 10)}
                     onChange={(e) =>
                       setSettings({
                         ...settings,
-                        pricing: { ...settings.pricing, courseCents: Number(e.target.value) },
+                        pricing: {
+                          ...settings.pricing,
+                          courseCents: Math.round(Number(e.target.value) * 10),
+                        },
                       })
                     }
                   />
@@ -340,7 +352,7 @@ export default function AdminSettingsPage() {
                         ...settings,
                         pricing: {
                           ...settings.pricing,
-                          modulePrices: [...settings.pricing.modulePrices, 49],
+                          modulePrices: [...settings.pricing.modulePrices, 490_000],
                         },
                       })
                     }
@@ -357,10 +369,10 @@ export default function AdminSettingsPage() {
                       <input
                         type="number"
                         min={0}
-                        value={price}
+                        value={Math.round(price / 10)}
                         onChange={(e) => {
                           const modulePrices = [...settings.pricing.modulePrices];
-                          modulePrices[index] = Number(e.target.value);
+                          modulePrices[index] = Math.round(Number(e.target.value) * 10);
                           setSettings({
                             ...settings,
                             pricing: { ...settings.pricing, modulePrices },
@@ -387,6 +399,86 @@ export default function AdminSettingsPage() {
                   </div>
                 ))}
               </div>
+            </>
+          )}
+
+          {section === 'payment' && isSuper && (
+            <>
+              <p className="admin-sub">{t('admin.settings.payment.sub')}</p>
+              <label className="form-field">
+                <span>{t('admin.settings.payment.provider')}</span>
+                <select
+                  value={settings.payment.provider}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      payment: {
+                        ...settings.payment,
+                        provider: e.target.value as typeof settings.payment.provider,
+                      },
+                    })
+                  }
+                >
+                  <option value="dev">{t('checkout.providers.dev')}</option>
+                  <option value="zarinpal">{t('checkout.providers.zarinpal')}</option>
+                  <option value="idpay">{t('checkout.providers.idpay')}</option>
+                  <option value="stripe">{t('checkout.providers.stripe')}</option>
+                </select>
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.payment.displayName')}</span>
+                <input
+                  value={settings.payment.displayName}
+                  placeholder={t('admin.settings.payment.displayNamePlaceholder')}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      payment: { ...settings.payment, displayName: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.payment.merchantId')}</span>
+                <input
+                  className="ltr-isolate"
+                  value={settings.payment.merchantId}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      payment: { ...settings.payment, merchantId: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="form-field">
+                <span>{t('admin.settings.payment.apiKey')}</span>
+                <input
+                  className="ltr-isolate"
+                  type="password"
+                  autoComplete="off"
+                  value={settings.payment.apiKey}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      payment: { ...settings.payment, apiKey: e.target.value },
+                    })
+                  }
+                />
+              </label>
+              <label className="admin-access-toggle" style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  checked={settings.payment.sandbox}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      payment: { ...settings.payment, sandbox: e.target.checked },
+                    })
+                  }
+                />
+                <span>{t('admin.settings.payment.sandbox')}</span>
+              </label>
             </>
           )}
 

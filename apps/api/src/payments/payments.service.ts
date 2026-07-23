@@ -2,10 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 import {
   DEFAULT_CURRENCY,
+  normalizePaymentSettings,
   STRIPE_SUPPORTED_CURRENCIES,
   type CheckoutDto,
   type PaymentResponse,
   type RoadmapResponse,
+  type SitePaymentSettings,
 } from '@pathwise/shared';
 import { SiteSettingsService } from '../site-settings/site-settings.service';
 import type Stripe from 'stripe';
@@ -27,6 +29,8 @@ export class PaymentsService {
     const amountCents = await this.resolveAmountCents(userId, dto);
     const productName = await this.resolveProductName(dto);
     const productRef = this.resolveProductRef(dto);
+    const paymentCfg = await this.resolvePaymentConfig();
+    const appUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
 
     const payment = await this.prisma.payment.create({
       data: {
@@ -41,37 +45,55 @@ export class PaymentsService {
 
     let checkoutUrl: string | undefined;
 
-    if (this.stripeService.isConfigured() && STRIPE_SUPPORTED_CURRENCIES.has(DEFAULT_CURRENCY)) {
-      const user = await this.prisma.user.findUniqueOrThrow({
-        where: { id: userId },
+    if (paymentCfg.provider === 'stripe') {
+      if (this.stripeService.isConfigured() && STRIPE_SUPPORTED_CURRENCIES.has(DEFAULT_CURRENCY)) {
+        const user = await this.prisma.user.findUniqueOrThrow({
+          where: { id: userId },
+        });
+        const session = await this.stripeService.createSession(
+          payment.id,
+          amountCents,
+          productName,
+          user.email ?? 'noreply@kia.academy',
+          `${appUrl}/checkout/success?payment_id=${payment.id}`,
+          `${appUrl}/checkout/cancel?payment_id=${payment.id}`,
+        );
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: { stripeId: session.id },
+        });
+        checkoutUrl = session.url ?? undefined;
+      } else if (this.stripeService.isConfigured()) {
+        // Stripe does not support IRR — fall back to in-app gateway simulator.
+        checkoutUrl = `${appUrl}/checkout/gateway?payment_id=${payment.id}&provider=stripe`;
+      } else {
+        checkoutUrl = `${appUrl}/checkout/gateway?payment_id=${payment.id}&provider=stripe`;
+      }
+    } else if (paymentCfg.provider === 'zarinpal' || paymentCfg.provider === 'idpay') {
+      // Redirect to third-party payment step (sandbox simulator when keys are for testing).
+      const params = new URLSearchParams({
+        payment_id: payment.id,
+        provider: paymentCfg.provider,
       });
-      const appUrl = this.configService.get<string>('APP_URL', 'http://localhost:3000');
-
-      const session = await this.stripeService.createSession(
-        payment.id,
-        amountCents,
-        productName,
-        user.email ?? 'noreply@kia.academy',
-        `${appUrl}/checkout/success?payment_id=${payment.id}`,
-        `${appUrl}/checkout/cancel?payment_id=${payment.id}`,
-      );
-
-      await this.prisma.payment.update({
-        where: { id: payment.id },
-        data: { stripeId: session.id },
-      });
-
-      checkoutUrl = session.url;
+      if (paymentCfg.merchantId) params.set('merchant', paymentCfg.merchantId);
+      if (paymentCfg.sandbox) params.set('sandbox', '1');
+      checkoutUrl = `${appUrl}/checkout/gateway?${params.toString()}`;
     }
+    // provider === 'dev' → no checkoutUrl; client confirms in-app after review.
 
     return this.toResponse(payment, checkoutUrl);
   }
 
   async confirmPayment(userId: string, paymentId: string): Promise<PaymentResponse> {
-    if (this.stripeService.isConfigured()) {
-      throw new BadRequestException(
-        'Payment confirmation via API is only available in development without Stripe',
-      );
+    const paymentCfg = await this.resolvePaymentConfig();
+    // Live Stripe webhooks own confirmation; allow confirm for all other providers / sandbox.
+    if (paymentCfg.provider === 'stripe' && this.stripeService.isConfigured()) {
+      const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
+      if (payment?.stripeId && !paymentCfg.sandbox) {
+        throw new BadRequestException(
+          'Payment confirmation via API is only available in development without Stripe',
+        );
+      }
     }
 
     const payment = await this.prisma.payment.findUnique({
@@ -103,6 +125,14 @@ export class PaymentsService {
     );
 
     return this.toResponse(completed);
+  }
+
+  async getPaymentForUser(userId: string, paymentId: string): Promise<PaymentResponse> {
+    const payment = await this.prisma.payment.findUnique({ where: { id: paymentId } });
+    if (!payment || payment.userId !== userId) {
+      throw new NotFoundException(`Payment ${paymentId} not found`);
+    }
+    return this.toResponse(payment);
   }
 
   async handleStripeWebhook(
@@ -163,6 +193,11 @@ export class PaymentsService {
       },
       completed,
     );
+  }
+
+  private async resolvePaymentConfig(): Promise<SitePaymentSettings> {
+    const settings = await this.siteSettings.get();
+    return normalizePaymentSettings(settings.payment);
   }
 
   private resolveProductRef(dto: CheckoutDto): string | null {

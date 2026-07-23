@@ -15,7 +15,7 @@ export function createFormatters(locale: Locale): Formatters {
   const useIrr = locale === 'fa';
   const currencyFmt = new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: useIrr ? 'IRR' : 'USD',
+    currency: 'USD',
     maximumFractionDigits: 0,
   });
   const percentFmt = new Intl.NumberFormat(locale, {
@@ -32,8 +32,9 @@ export function createFormatters(locale: Locale): Formatters {
     number: (value) => numberFmt.format(value),
     currency: (value) => {
       if (useIrr) {
-        // Show Toman-friendly label: amounts are stored in Rials.
-        return `${numberFmt.format(value)} ریال`;
+        // Catalog amounts are stored in IRR (Rials). Display as Toman (1 تومان = 10 ریال).
+        const toman = Math.round(Number(value) / 10);
+        return `${numberFmt.format(toman)} تومان`;
       }
       return currencyFmt.format(value);
     },

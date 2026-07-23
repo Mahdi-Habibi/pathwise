@@ -168,6 +168,33 @@ export class SiteAdminAccessDto {
   @ValidateNested()
   @Type(() => AdminSectionPermissionDto)
   users?: AdminSectionPermissionDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AdminSectionPermissionDto)
+  payments?: AdminSectionPermissionDto;
+}
+
+export class SitePaymentDto {
+  @IsOptional()
+  @IsString()
+  provider?: string;
+
+  @IsOptional()
+  @IsString()
+  merchantId?: string;
+
+  @IsOptional()
+  @IsString()
+  apiKey?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  sandbox?: boolean;
+
+  @IsOptional()
+  @IsString()
+  displayName?: string;
 }
 
 export class UpdateSiteSettingsBodyDto {
@@ -196,6 +223,11 @@ export class UpdateSiteSettingsBodyDto {
   @ValidateNested()
   @Type(() => SiteBootcampDto)
   bootcamp?: SiteBootcampDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => SitePaymentDto)
+  payment?: SitePaymentDto;
 
   @IsOptional()
   @ValidateNested()

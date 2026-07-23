@@ -41,3 +41,22 @@
   margin-top: 24px;
   align-items: center;
 }
+.checkout-summary-list {
+  display: grid;
+  gap: 0.55rem;
+}
+.checkout-summary-list > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.4fr) 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.checkout-summary-list dt {
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+.checkout-summary-list dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+}
