@@ -961,7 +961,15 @@ function readDemoSettings(): SiteSettings {
 
 function writeDemoSettings(settings: SiteSettings): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(DEMO_SETTINGS_KEY, JSON.stringify(settings));
+  // Never persist payment secrets in browser storage (demo/Pages only).
+  const sanitized: SiteSettings = {
+    ...settings,
+    payment: {
+      ...settings.payment,
+      apiKey: '',
+    },
+  };
+  localStorage.setItem(DEMO_SETTINGS_KEY, JSON.stringify(sanitized));
 }
 
 
